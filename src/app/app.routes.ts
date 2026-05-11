@@ -10,7 +10,7 @@ import { ReaderComponent } from './pages/reader/reader.component';
 import { CategoriasComponent } from './pages/categorias/categorias.component';
 import { FollowingComponent } from './pages/following/following.component';
 import { ChapterUploaderComponent } from './pages/chapter-uploader/chapter-uploader.component';
-
+import { MangaPreviewComponent } from './pages/manga-preview/manga-preview.component';
 
 export const routes: Routes = [
   {
@@ -46,12 +46,16 @@ export const routes: Routes = [
   component: ChapterUploaderComponent
 },
 {
+  path: 'obra/:id/subir-capitulo',
+  component: ChapterUploaderComponent
+},
+{
   path: 'obra/:id/capitulo/:capitulo',
   component: ReaderComponent
 },
 {
   path: 'obra/:id',
-  component: ReaderComponent
+  component: MangaPreviewComponent
 },
   {
   path: 'categorias',

@@ -1,0 +1,235 @@
+<div class="preview-state" *ngIf="cargando">
+  Cargando obra...
+</div>
+
+<div class="preview-state error" *ngIf="error">
+  {{ error }}
+</div>
+
+<div
+  class="movie-preview"
+  *ngIf="obra"
+  [ngStyle]="{ 'background-image': 'url(' + coverUrl + ')' }"
+>
+  <div class="overlay"></div>
+
+  <div class="content">
+    <!-- Capítulos desktop -->
+    <div class="left-panel" *ngIf="!isMobileView">
+      <div class="episodes-header">
+        <h2>Capítulos</h2>
+
+        <span>
+          {{ obra.capitulos.length }} capítulos
+        </span>
+      </div>
+
+      <div
+        class="episode"
+        *ngFor="let capitulo of obra.capitulos"
+        (click)="abrirCapitulo(capitulo)"
+      >
+        <img
+          [src]="coverUrl"
+          [alt]="obra.titulo"
+        />
+
+        <div class="episode-info">
+          <span class="episode-badge">
+            {{ translationService.getTranslation('Capitulo') }}
+            {{ capitulo.numeroCapitulo }}
+          </span>
+
+          <h3>
+            {{ capitulo.titulo || ('Capítulo ' + capitulo.numeroCapitulo) }}
+          </h3>
+
+          <p>
+            {{ capitulo.descripcion || obra.descripcion || 'Sin descripción' }}
+          </p>
+        </div>
+
+        <div class="episode-meta">
+          <span>📅 {{ capitulo.creadoEn }}</span>
+          <span>👁️ {{ obra.numVisitas }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info obra -->
+    <div class="right-panel">
+      <div class="cover-container">
+        <img
+          class="cover"
+          [src]="coverUrl"
+          [alt]="obra.titulo"
+        />
+      </div>
+
+      <div class="movie-info">
+        <div class="card">
+          <div class="header-tags">
+            <span class="lang-tag">{{ obra.idioma || 'ES' }}</span>
+            <span class="series-tag">
+              {{ obra.tipoEntrega || 'serie' }}
+            </span>
+            <span class="genre-tag" *ngIf="obra.genero">
+              {{ obra.genero }}
+            </span>
+          </div>
+
+          <h1 class="title">
+            {{ obra.titulo }}
+          </h1>
+
+          <div class="stats">
+            <span>👁️ {{ obra.numVisitas }} {{ translationService.getTranslation('Vistas') }}</span>
+            <span>📚 {{ obra.capitulos.length }} capítulos</span>
+            <span>⭐ {{ obra.totalSuscriptores }} suscriptores</span>
+          </div>
+
+          <p class="description" [class.hidden]="!showDetails">
+            {{ obra.descripcion || 'Esta obra todavía no tiene descripción.' }}
+          </p>
+
+          <div class="author" [class.hidden]="!showDetails">
+            <button
+              type="button"
+              class="author-main"
+              (click)="abrirPerfilAutor()"
+            >
+              <img
+                class="author-photo"
+                [src]="imageUrl(obra.autorAvatar, '/obras/paleta/tres.png')"
+                [alt]="obra.autor"
+              />
+
+              <span class="name">{{ obra.autor }}</span>
+            </button>
+
+            <button
+              class="follow-btn"
+              type="button"
+              *ngIf="!isCurrentUser"
+              (click)="toggleSubscription()"
+            >
+              {{ obra.estaSuscrito ? 'Desuscribirse' : translationService.getTranslation('Suscribirse') }}
+            </button>
+
+            <button
+              class="follow-btn owner"
+              type="button"
+              *ngIf="isCurrentUser"
+              (click)="subirCapitulo()"
+            >
+              Subir capítulo
+            </button>
+          </div>
+
+          <p class="message" *ngIf="mensaje">
+            {{ mensaje }}
+          </p>
+
+          <div class="action-row">
+            <button
+              type="button"
+              class="primary-btn"
+              (click)="leerPrimerCapitulo()"
+              [disabled]="obra.capitulos.length === 0"
+            >
+              Leer desde el inicio
+            </button>
+
+            <button
+              type="button"
+              class="secondary-btn"
+              (click)="leerUltimoCapitulo()"
+              [disabled]="obra.capitulos.length === 0"
+            >
+              Último capítulo
+            </button>
+          </div>
+
+          <div class="social-buttons" [class.hidden]="!showDetails">
+            <a
+              *ngIf="obra.facebook"
+              [href]="obra.facebook"
+              target="_blank"
+              class="facebook"
+            >
+              Facebook
+            </a>
+
+            <a
+              *ngIf="obra.twitter"
+              [href]="obra.twitter"
+              target="_blank"
+              class="twitter"
+            >
+              Twitter
+            </a>
+
+            <a
+              *ngIf="obra.instagram"
+              [href]="obra.instagram"
+              target="_blank"
+              class="instagram"
+            >
+              Instagram
+            </a>
+          </div>
+
+          <div class="meta" [class.hidden]="!showDetails">
+            <div class="metadata">📅 Publicado: {{ obra.fechaCreacion }}</div>
+            <div class="metadata">📝 Autor: {{ obra.autor }}</div>
+          </div>
+
+          <button
+            class="details-btn"
+            type="button"
+            (click)="toggleDetails()"
+          >
+            {{ showDetails ? 'Ocultar detalles ⮝' : 'Ver detalles ⮟' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Capítulos móvil -->
+      <div class="episode-container" *ngIf="isMobileView">
+        <div class="episodes-header mobile">
+          <h2>Capítulos</h2>
+
+          <span>
+            {{ obra.capitulos.length }} capítulos
+          </span>
+        </div>
+
+        <div
+          class="episode"
+          *ngFor="let capitulo of obra.capitulos"
+          (click)="abrirCapitulo(capitulo)"
+        >
+          <img
+            [src]="coverUrl"
+            [alt]="obra.titulo"
+          />
+
+          <div class="episode-info">
+            <span class="episode-badge">
+              {{ translationService.getTranslation('Capitulo') }}
+              {{ capitulo.numeroCapitulo }}
+            </span>
+
+            <h3>
+              {{ capitulo.titulo || ('Capítulo ' + capitulo.numeroCapitulo) }}
+            </h3>
+
+            <p>
+              {{ capitulo.descripcion || obra.descripcion || 'Sin descripción' }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -206,15 +206,16 @@ export class HomeComponent implements OnInit {
   abrirObra(obra: Obra): void {
     this.router.navigate(['/obra', obra.id]);
   }
+  
 
-  abrirCapitulo(item: CapituloItem): void {
-    this.router.navigate([
-      '/obra',
-      item.obraId,
-      'capitulo',
-      item.numeroCapitulo
-    ]);
-  }
+ abrirCapitulo(item: CapituloItem): void {
+  this.router.navigate([
+    '/obra',
+    item.obraId,
+    'capitulo',
+    item.numeroCapitulo
+  ]);
+}
 
   abrirPerfilObra(event: Event, obra: Obra): void {
     event.stopPropagation();

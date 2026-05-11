@@ -1,12 +1,16 @@
-/* You can add global styles to this file, and also import other style files */
-/* Fondo global de la página */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
+html,
 body {
-    background-color: #121826; /* Color café */
-    margin: 0;
-    padding: 0;
-    font-weight: 500; 
-    font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+
+  background:
+    radial-gradient(circle at top left, rgba(164, 116, 255, 0.18), transparent 32%),
+    radial-gradient(circle at top right, rgba(199, 255, 22, 0.10), transparent 28%),
+    linear-gradient(135deg, #0d1224 0%, #121826 45%, #1a1633 100%);
+
+  color: white;
 }
 

@@ -1,25 +1,75 @@
 <footer class="footer">
-    <div class="footer-content">
-      <div class="footer-section about">
-        <h2>About Us</h2>
-        <p>
-          We are your go-to resource for all things Angels Online. Our team updates the wiki daily to keep up with the latest game version and provide you with the most accurate and up-to-date information.
-        </p>
-      </div>
-      <div class="footer-section links">
-        <h2>Quick Links</h2>
-        <ul>
-          <li><a href="https://megabanana.mx/">Megabanana</a></li>
-          <li><a href="https://www.wikiangelsonline.com/">Wiki Angels Online</a></li>
-        </ul>
-      </div>
-      <div class="footer-section contact">
-        <h2>Contact Information</h2>
-        <p>Email: kerrox16&#64;wikiangelsonline.com</p>
-        <p>Discord: kerro16</p>
-      </div>
+  <div class="footer-glow"></div>
+
+  <div class="footer-content">
+    <div class="footer-brand">
+      <a routerLink="/" class="footer-logo">
+        <img src="/obras/paleta/logo.png" alt="MINUS Logo" />
+      </a>
+
+      <p>
+        Plataforma para descubrir, leer y compartir webcomics de creadores independientes.
+      </p>
     </div>
-    <div class="footer-bottom">
-      &copy; 2025 Redemptionware. All rights reserved.
+
+    <div class="footer-section">
+      <h3>Minus</h3>
+
+      <a routerLink="/">
+        Inicio
+      </a>
+
+      <a routerLink="/categorias">
+        {{ translationService.getTranslation('Géneros') }}
+      </a>
+
+      <a routerLink="/following">
+        {{ translationService.getTranslation('Noticias') }}
+      </a>
     </div>
-  </footer>
+
+    <div class="footer-section">
+      <h3>Creadores</h3>
+
+      <a routerLink="/uploader">
+        {{ translationService.getTranslation('Subir obra') }}
+      </a>
+
+      <a routerLink="/signup">
+        {{ translationService.getTranslation('sightup') }}
+      </a>
+
+      <a routerLink="/login">
+        {{ translationService.getTranslation('login') }}
+      </a>
+    </div>
+
+    <div class="footer-section">
+      <h3>Comunidad</h3>
+
+      <a href="#" aria-label="Discord">
+        Discord
+      </a>
+
+      <a href="#" aria-label="Twitter">
+        Twitter / X
+      </a>
+
+      <a href="#" aria-label="Instagram">
+        Instagram
+      </a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <span>
+      © {{ currentYear }} Minus Creators. Todos los derechos reservados.
+    </span>
+
+    <div class="footer-bottom-links">
+      <a href="#">Privacidad</a>
+      <a href="#">Términos</a>
+      <a href="#">Soporte</a>
+    </div>
+  </div>
+</footer>

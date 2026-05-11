@@ -127,6 +127,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
 }
 
   navigateToUploader(): void {
+    if (!this.currentUser) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
     this.router.navigate(['/uploader']);
   }
 

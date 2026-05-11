@@ -6,6 +6,14 @@ import { HttpClient } from '@angular/common/http';
 
 import { TranslationService } from '../../services/translation.service';
 
+interface CurrentUser {
+  id: number;
+  username: string;
+  email?: string;
+  role?: string;
+  imgPerfil?: string;
+}
+
 interface Capitulo {
   id: number;
   numeroCapitulo: number;
@@ -37,6 +45,8 @@ interface ObraDetalle {
   autorAvatar?: string;
   autorRole?: string;
   autorNacionalidad?: string;
+  totalSuscriptores?: number;
+  estaSuscrito?: boolean;
   capitulos: Capitulo[];
   capituloActual: Capitulo;
   paginas: ObraPagina[];
@@ -46,6 +56,13 @@ interface ObraDetalleResponse {
   success: boolean;
   error?: string;
   obra?: ObraDetalle;
+}
+
+interface SuscripcionResponse {
+  success: boolean;
+  suscrito?: boolean;
+  mensaje?: string;
+  error?: string;
 }
 
 @Component({
@@ -61,13 +78,18 @@ interface ObraDetalleResponse {
 })
 export class ReaderComponent implements OnInit, OnDestroy {
   apiUrl = 'https://minuscreators.com/api/obra_detalle.php';
+  suscripcionUrl = 'https://minuscreators.com/api/suscripcion.php';
   siteUrl = 'https://minuscreators.com';
 
+  currentUser: CurrentUser | null = null;
   obra: ObraDetalle | null = null;
+
   images: string[] = [];
+  hiddenPageIndexes: number[] = [];
 
   cargando = false;
   error = '';
+  mensaje = '';
 
   selectedChapter = 1;
   isFavorite = false;
@@ -89,6 +111,8 @@ export class ReaderComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.currentUser = this.getCurrentUser();
+
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
       const capitulo = params.get('capitulo');
@@ -104,6 +128,10 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.removerDisqus();
+  }
+
+  get isCurrentAuthor(): boolean {
+    return !!this.currentUser && !!this.obra && this.currentUser.id === this.obra.usuarioId;
   }
 
   get hasPreviousChapter(): boolean {
@@ -133,8 +161,12 @@ export class ReaderComponent implements OnInit, OnDestroy {
   cargarObra(id: string, capitulo?: string): void {
     this.cargando = true;
     this.error = '';
+    this.mensaje = '';
+    this.hiddenPageIndexes = [];
 
-    let url = `${this.apiUrl}?id=${id}`;
+    const viewerId = this.currentUser?.id || 0;
+
+    let url = `${this.apiUrl}?id=${id}&viewer_id=${viewerId}`;
 
     if (capitulo) {
       url += `&capitulo=${capitulo}`;
@@ -150,6 +182,13 @@ export class ReaderComponent implements OnInit, OnDestroy {
         }
 
         this.obra = res.obra;
+
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: 'auto'
+        });
+
         this.selectedChapter = this.obra.capituloActual.numeroCapitulo;
 
         this.images = this.obra.paginas.map((pagina) => {
@@ -162,7 +201,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
           views: this.obra.numVisitas,
           author: this.obra.autor,
           authorInitial: this.getInitial(this.obra.autor),
-          subscribers: 0
+          subscribers: this.obra.totalSuscriptores || 0
         };
 
         setTimeout(() => {
@@ -191,11 +230,6 @@ export class ReaderComponent implements OnInit, OnDestroy {
       'capitulo',
       numeroCapitulo
     ]);
-
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
   }
 
   previous(): void {
@@ -248,6 +282,64 @@ export class ReaderComponent implements OnInit, OnDestroy {
     this.isFavorite = !this.isFavorite;
   }
 
+  abrirPerfilAutor(): void {
+    if (!this.obra?.usuarioId) {
+      return;
+    }
+
+    this.router.navigate(['/perfil', this.obra.usuarioId]);
+  }
+
+  toggleSubscription(): void {
+    if (!this.obra || !this.obra.usuarioId) {
+      return;
+    }
+
+    if (!this.currentUser) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (this.currentUser.id === this.obra.usuarioId) {
+      return;
+    }
+
+    this.mensaje = '';
+
+    this.http.post<SuscripcionResponse>(this.suscripcionUrl, {
+      seguidor_id: this.currentUser.id,
+      seguido_id: this.obra.usuarioId
+    }).subscribe({
+      next: (res) => {
+        if (!res.success) {
+          this.mensaje = res.error || 'No se pudo actualizar la suscripción';
+          return;
+        }
+
+        if (!this.obra) {
+          return;
+        }
+
+        this.obra.estaSuscrito = !!res.suscrito;
+        this.mensaje = res.mensaje || '';
+
+        const totalActual = this.obra.totalSuscriptores || 0;
+
+        if (res.suscrito) {
+          this.obra.totalSuscriptores = totalActual + 1;
+        } else {
+          this.obra.totalSuscriptores = Math.max(totalActual - 1, 0);
+        }
+
+        this.pageInfo.subscribers = this.obra.totalSuscriptores || 0;
+      },
+      error: (err) => {
+        this.mensaje = err.error?.error || 'Error al actualizar suscripción';
+        console.error(err);
+      }
+    });
+  }
+
   imageUrl(path?: string | null, fallback: string = '/obras/paleta/portada.png'): string {
     const finalPath = path || fallback;
 
@@ -268,6 +360,32 @@ export class ReaderComponent implements OnInit, OnDestroy {
     }
 
     return name.trim().charAt(0).toUpperCase();
+  }
+
+  onPageImageError(index: number): void {
+    this.hidePage(index);
+  }
+
+  onPageImageLoad(event: Event, index: number): void {
+    const img = event.target as HTMLImageElement;
+
+    /*
+      Esto elimina imágenes corruptas o cargadas como línea vertical.
+      Una página real nunca debería tener naturalWidth <= 10.
+    */
+    if (img.naturalWidth <= 10) {
+      this.hidePage(index);
+    }
+  }
+
+  isPageHidden(index: number): boolean {
+    return this.hiddenPageIndexes.includes(index);
+  }
+
+  private hidePage(index: number): void {
+    if (!this.hiddenPageIndexes.includes(index)) {
+      this.hiddenPageIndexes.push(index);
+    }
   }
 
   cargarDisqus(): void {
@@ -311,6 +429,21 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
     if (disqusThread) {
       disqusThread.remove();
+    }
+  }
+
+  private getCurrentUser(): CurrentUser | null {
+    const userRaw = localStorage.getItem('user');
+
+    if (!userRaw) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(userRaw) as CurrentUser;
+    } catch {
+      localStorage.removeItem('user');
+      return null;
     }
   }
 }
