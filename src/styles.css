@@ -1,1 +1,12 @@
 /* You can add global styles to this file, and also import other style files */
+/* Fondo global de la página */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+    background-color: #121826; /* Color café */
+    margin: 0;
+    padding: 0;
+    font-weight: 500; 
+    font-family: 'Inter', sans-serif;
+}
+

@@ -1,0 +1,122 @@
+<div class="signup-container">
+  <div class="signup-content">
+    <div class="signup-box">
+      <h1 class="title">Minus Creators</h1>
+
+      <h2 class="subtitle">
+        {{ translationService.getTranslation('sightup') }}
+      </h2>
+
+      <form (ngSubmit)="register()">
+        <label for="username">
+          {{ translationService.getTranslation('NombredeUsuario') }}
+        </label>
+
+        <input
+          id="username"
+          type="text"
+          name="username"
+          [(ngModel)]="username"
+          placeholder="MinusCreator"
+          required
+        />
+
+        <label for="email">
+          {{ translationService.getTranslation('mail') }}
+        </label>
+
+        <input
+          id="email"
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="correo@ejemplo.com"
+          required
+        />
+
+        <label for="nacionalidad">
+          {{ translationService.getTranslation('Nacionalidad') }}
+        </label>
+
+        <select
+          id="nacionalidad"
+          name="nacionalidad"
+          [(ngModel)]="nacionalidad"
+        >
+          <option value="">Selecciona un país</option>
+          <option *ngFor="let country of countries" [value]="country.name">
+            {{ country.name }}
+          </option>
+        </select>
+
+        <label for="password">
+          {{ translationService.getTranslation('Contrasena') }}
+        </label>
+
+        <div class="password-container">
+          <input
+            id="password"
+            [type]="mostrarPassword ? 'text' : 'password'"
+            name="password"
+            [(ngModel)]="password"
+            placeholder="Mínimo 6 caracteres"
+            required
+          />
+
+          <button
+            type="button"
+            class="toggle-password"
+            (click)="togglePassword()"
+          >
+            {{ mostrarPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+
+        <label for="confirmPassword">
+          Confirmar contraseña
+        </label>
+
+        <div class="password-container">
+          <input
+            id="confirmPassword"
+            [type]="mostrarConfirmPassword ? 'text' : 'password'"
+            name="confirmPassword"
+            [(ngModel)]="confirmPassword"
+            placeholder="Repite tu contraseña"
+            required
+          />
+
+          <button
+            type="button"
+            class="toggle-password"
+            (click)="toggleConfirmPassword()"
+          >
+            {{ mostrarConfirmPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+
+        <button type="submit" [disabled]="cargando">
+          <span *ngIf="!cargando">
+            {{ translationService.getTranslation('sightup') }}
+          </span>
+
+          <span *ngIf="cargando" class="loader"></span>
+        </button>
+      </form>
+
+      <p class="error-message" *ngIf="error">
+        {{ error }}
+      </p>
+
+      <p class="success-message" *ngIf="mensaje">
+        {{ mensaje }}
+      </p>
+
+      <div class="login-link">
+        <a routerLink="/login">
+          {{ translationService.getTranslation('yacuenta') }}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

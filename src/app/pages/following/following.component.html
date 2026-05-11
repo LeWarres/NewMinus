@@ -1,0 +1,106 @@
+<div class="following-page">
+  <section class="following-hero">
+    <div>
+      <span class="eyebrow">Minus Creators</span>
+
+      <h1>
+        {{ translationService.getTranslation('Noticias') }}
+      </h1>
+
+      <p>
+        Capítulos nuevos de los creadores a los que estás suscrito.
+      </p>
+    </div>
+
+    <div class="hero-count">
+      <strong>{{ items.length }}</strong>
+      <span>actualizaciones</span>
+    </div>
+  </section>
+
+  <p *ngIf="cargando" class="estado">
+    Cargando actualizaciones...
+  </p>
+
+  <p *ngIf="error" class="estado error">
+    {{ error }}
+  </p>
+
+  <section class="obras-grid" *ngIf="!cargando && items.length > 0; else sinItems">
+    <article
+      class="obra-card"
+      *ngFor="let item of items"
+      (click)="abrirItem(item)"
+    >
+      <div class="cover-wrap">
+        <img
+          [src]="imageUrl(item.portada)"
+          [alt]="item.tituloObra"
+        />
+
+        <div class="badges">
+          <span>{{ item.genero || 'Sin género' }}</span>
+          <span>{{ item.idioma || 'ES' }}</span>
+        </div>
+      </div>
+
+      <div class="obra-body">
+        <h3>{{ item.tituloObra }}</h3>
+
+        <p class="chapter-title">
+          {{ translationService.getTranslation('Capitulo') }}
+          {{ item.numeroCapitulo }}
+
+          <span *ngIf="item.tituloCapitulo">
+            - {{ item.tituloCapitulo }}
+          </span>
+        </p>
+
+        <p class="descripcion" *ngIf="item.descripcionCapitulo || item.descripcionObra">
+          {{ item.descripcionCapitulo || item.descripcionObra }}
+        </p>
+
+        <div class="author-row">
+          <img
+            [src]="imageUrl(item.autorAvatar, '/obras/paleta/tres.png')"
+            [alt]="item.autor"
+          />
+
+          <button
+            type="button"
+            class="author-link"
+            (click)="abrirPerfil($event, item)"
+          >
+            {{ item.autor }}
+          </button>
+        </div>
+
+        <div class="meta">
+          <span>
+            {{ item.numVisitas }}
+            {{ translationService.getTranslation('Vistas') }}
+          </span>
+
+          <span>
+            {{ item.fechaCreacion }}
+          </span>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <ng-template #sinItems>
+    <div class="empty-state" *ngIf="!cargando && !error">
+      <h2>No hay capítulos nuevos todavía</h2>
+
+      <p>
+        Cuando los creadores a los que estás suscrito suban nuevos capítulos,
+        aparecerán aquí.
+      </p>
+
+      <button type="button" routerLink="/categorias">
+        Explorar creadores
+      </button>
+    </div>
+  </ng-template>
+</div>

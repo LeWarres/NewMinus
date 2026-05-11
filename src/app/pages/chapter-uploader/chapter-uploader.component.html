@@ -1,0 +1,71 @@
+<div class="chapter-uploader">
+  <div class="uploader-card">
+    <h1>Subir nuevo capítulo</h1>
+
+    <label>
+      Número de capítulo
+      <input
+        type="number"
+        [(ngModel)]="numeroCapitulo"
+        placeholder="Déjalo vacío para usar el siguiente"
+      />
+    </label>
+
+    <label>
+      Título del capítulo
+      <input
+        type="text"
+        [(ngModel)]="tituloCapitulo"
+        placeholder="Ej: Capítulo 2"
+      />
+    </label>
+
+    <label>
+      Descripción
+      <textarea
+        [(ngModel)]="descripcionCapitulo"
+        placeholder="Descripción opcional"
+      ></textarea>
+    </label>
+
+    <label class="file-zone">
+      Agregar páginas
+      <input
+        type="file"
+        #fileInputPages
+        multiple
+        accept="image/jpeg, image/png, image/webp"
+        (change)="onFilesSelectedPages($event)"
+      />
+    </label>
+
+    <div *ngIf="selectedPages.length > 0" class="files-container">
+      <h3>Páginas seleccionadas</h3>
+
+      <div
+        *ngFor="let file of selectedPages; let index = index"
+        class="file-item"
+      >
+        <span>
+          Página {{ index + 1 }} - {{ file.name }}
+        </span>
+
+        <span>
+          {{ formatSize(file.size) }}
+        </span>
+
+        <button type="button" (click)="removePage(index)">
+          Quitar
+        </button>
+      </div>
+    </div>
+
+    <p *ngIf="respuesta" class="respuesta">
+      {{ respuesta }}
+    </p>
+
+    <button type="button" class="submit-btn" (click)="subirCapitulo()" [disabled]="cargando">
+      {{ cargando ? 'Subiendo...' : 'Subir capítulo' }}
+    </button>
+  </div>
+</div>

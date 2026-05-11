@@ -1,0 +1,225 @@
+/* Contenedor principal */
+.edit-profile-container {
+    flex: 1;
+    max-width: 900px;
+    margin: 60px auto ;
+    padding: 24px;
+    background-color: #121212;
+    color: white;
+    font-family: Arial, sans-serif;
+    border-radius: 10px;
+    border: 1px solid #333;
+    box-sizing: border-box;
+  }
+
+  
+  
+  /* Título */
+  .edit-profile-container h2 {
+    font-size: 24px;
+    margin-bottom: 24px;
+    
+  }
+  
+  /* Banner */
+  .banner-section {
+    margin-bottom: 24px;
+  }
+  
+  .banner-container {
+    position: relative;
+    width: 100%;
+    height: 150px;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .banner-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 2px solid #555;
+  }
+  
+  .banner-edit-icon {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  
+  .banner-edit-icon:hover {
+    background-color: #0069d9;
+  }
+  
+  /* Sección de cabecera */
+  .profile-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  /* Foto de perfil */
+  .profile-photo-section {
+    position: relative;
+  }
+  
+  .profile-photo-section img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #555;
+  }
+  
+  .profile-photo-section .edit-icon {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  
+  .profile-photo-section .edit-icon:hover {
+    background-color: #0069d9;
+  }
+  
+  .hidden-file {
+    display: none;
+  }
+  
+  /* Username */
+  .username-section {
+    flex: 1;
+    padding-top: 10px;
+  }
+  
+  .username-section label {
+    display: flex;
+    flex-direction: column;
+    font-weight: bold;
+  }
+  
+  .username-section input {
+    margin-top: 6px;
+    padding: 10px;
+    background-color: #1e1e1e;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 6px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .username-section input:focus {
+    outline: none;
+    border-color: #4dabf7;
+  }
+  
+  /* Formulario */
+  .form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .form-fields label {
+    display: flex;
+    flex-direction: column;
+    font-weight: bold;
+  }
+  
+  .form-fields input,
+  .form-fields textarea {
+    margin-top: 6px;
+    padding: 10px;
+    background-color: #1e1e1e;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 6px;
+    resize: vertical; /* Permite redimensionar solo verticalmente */
+    width: 100%; /* Asegura que ocupe todo el ancho del contenedor */
+    max-height: 20vh;
+    box-sizing: border-box; /* Incluye padding y borde en el ancho total */
+  }
+  
+  .form-fields input:focus,
+  .form-fields textarea:focus {
+    outline: none;
+    border-color: #4dabf7;
+  }
+  
+  .form-fields small {
+    color: #aaa;
+    font-weight: normal;
+    margin-top: 4px;
+  }
+  
+  /* Botón guardar cambios */
+  .save-button {
+    align-self: flex-start;
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .save-button:hover {
+    background-color: #218838;
+  }
+
+  /* Estilo para el select de países */
+  select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    background-color: #1e1e1e; /* Fondo oscuro similar a los inputs */
+    color: white; /* Texto blanco */
+    border: 1px solid #444; /* Borde similar a los inputs */
+    border-radius: 6px; /* Esquinas redondeadas */
+    font-size: 14px;
+    box-sizing: border-box; /* Incluye padding y borde en el ancho total */
+    appearance: none; /* Elimina el estilo predeterminado del navegador */
+  }
+  
+  select:focus {
+    outline: none;
+    border-color: #4dabf7; /* Color de borde al enfocar */
+  }
+  
+  select option {
+    background-color: #1e1e1e; /* Fondo oscuro para las opciones */
+    color: white; /* Texto blanco */
+  }
+
+  @media (max-width: 600px) {
+    .edit-profile-container {
+        max-width: 600px;
+        margin: 60px 15px 15px; /* Margen superior para evitar encimarse al header */
+        padding: 24px;
+        background-color: #121212;
+        color: white;
+        font-family: Arial, sans-serif;
+        border-radius: 10px;
+        border: 1px solid #333;
+        box-sizing: border-box;
+    }
+  }

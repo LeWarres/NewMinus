@@ -1,0 +1,206 @@
+<div class="categorias">
+  <section class="categorias-hero">
+    <div>
+      <span class="eyebrow">Minus Creators</span>
+
+      <h1>
+        {{ translationService.getTranslation('Géneros') }}
+      </h1>
+
+      <p>
+        Explora obras por categoría, idioma, popularidad y nombre.
+      </p>
+    </div>
+
+    <div class="hero-count">
+      <strong>{{ obras.length }}</strong>
+      <span>obras</span>
+    </div>
+  </section>
+
+  <section class="filters-panel">
+    <div class="filters-top">
+      <div class="search-box">
+        <span>🔎</span>
+
+        <input
+          type="text"
+          [(ngModel)]="busqueda"
+          (keyup.enter)="cargarObras()"
+          placeholder="Buscar por título, descripción o autor"
+        />
+      </div>
+
+      <button type="button" class="search-action" (click)="cargarObras()">
+        Buscar
+      </button>
+    </div>
+
+    <div class="filters-grid">
+      <label>
+        Categoría
+        <select
+          [(ngModel)]="categoriaSeleccionada"
+          (change)="cargarObras()"
+        >
+          <option
+            *ngFor="let categoria of categorias[idiomaUI]"
+            [value]="categoria.value"
+          >
+            {{ categoria.label }}
+          </option>
+        </select>
+      </label>
+
+      <label>
+        Idioma de obra
+        <select
+          [(ngModel)]="idiomaObraSeleccionado"
+          (change)="cargarObras()"
+        >
+          <option value="todos">Todos</option>
+          <option value="ES">ES</option>
+          <option value="EN">EN</option>
+          <option value="FR">FR</option>
+        </select>
+      </label>
+
+      <label>
+        Ordenar por
+        <select
+          [(ngModel)]="ordenSeleccionado"
+          (change)="cargarObras()"
+        >
+          <option value="recientes">Más recientes</option>
+          <option value="populares">Más populares</option>
+        </select>
+      </label>
+
+      <label>
+        Idioma de interfaz
+        <select
+          [(ngModel)]="idiomaUI"
+          (change)="cambiarIdiomaUI($event)"
+        >
+          <option value="es">Español</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+
+      <button type="button" class="clear-btn" (click)="limpiarFiltros()">
+        Limpiar filtros
+      </button>
+    </div>
+  </section>
+
+  <section class="category-chips">
+    <button
+      type="button"
+      *ngFor="let categoria of categorias[idiomaUI]"
+      [class.active]="categoria.value === categoriaSeleccionada"
+      (click)="seleccionarCategoria(categoria)"
+    >
+      {{ categoria.label }}
+    </button>
+  </section>
+
+  <div class="section-title">
+    <div>
+      <h2>{{ getCategoriaActual() }}</h2>
+
+      <p *ngIf="idiomaObraSeleccionado !== 'todos'">
+        Idioma: {{ idiomaObraSeleccionado }}
+      </p>
+    </div>
+  </div>
+
+  <p *ngIf="cargando" class="estado">
+    Cargando obras...
+  </p>
+
+  <p *ngIf="error" class="estado error">
+    {{ error }}
+  </p>
+<section class="usuarios-resultados" *ngIf="usuarios.length > 0">
+  <h2>Usuarios</h2>
+
+  <article
+    class="usuario-card"
+    *ngFor="let usuario of usuarios"
+    (click)="abrirPerfilUsuario(usuario)"
+  >
+    <img
+      [src]="imageUrl(usuario.imgPerfil, '/obras/paleta/tres.png')"
+      [alt]="usuario.username"
+    />
+
+    <div>
+      <h3>{{ usuario.username }}</h3>
+
+      <p>
+        {{ usuario.role || 'creator' }}
+        <span *ngIf="usuario.nacionalidad">
+          · {{ usuario.nacionalidad }}
+        </span>
+      </p>
+
+      <p>
+        {{ usuario.totalSuscriptores }} Suscriptores ·
+        {{ usuario.totalObras }} Obras
+      </p>
+    </div>
+  </article>
+</section>
+  <div class="obras-grid" *ngIf="!cargando && obras.length > 0; else sinObras">
+    <article
+      class="obra-card"
+      *ngFor="let obra of obras"
+      (click)="abrirObra(obra)"
+    >
+      <div class="cover-wrap">
+        <img
+          [src]="imageUrl(obra.portada)"
+          [alt]="obra.titulo"
+        />
+
+        <div class="badges">
+          <span>{{ getCategoriaLabel(obra.genero) }}</span>
+          <span>{{ obra.idioma || 'ES' }}</span>
+        </div>
+      </div>
+
+      <div class="obra-body">
+        <h3>{{ obra.titulo }}</h3>
+
+        <p class="descripcion" *ngIf="obra.descripcion">
+          {{ obra.descripcion }}
+        </p>
+
+        <div class="meta">
+          <button
+            type="button"
+            class="author-link"
+            (click)="abrirPerfil($event, obra)"
+          >
+            {{ translationService.getTranslation('Por') }} {{ obra.autor }}
+          </button>
+
+          <span>
+            {{ obra.numVisitas }} {{ translationService.getTranslation('Vistas') }}
+          </span>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <ng-template #sinObras>
+    <div class="empty-state" *ngIf="!cargando && !error">
+      <h3>No hay obras con estos filtros</h3>
+      <p>Prueba otra categoría, idioma o búsqueda.</p>
+
+      <button type="button" (click)="limpiarFiltros()">
+        Ver todas las obras
+      </button>
+    </div>
+  </ng-template>
+</div>

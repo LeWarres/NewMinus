@@ -1,0 +1,172 @@
+<div class="image-container">
+  <p *ngIf="cargando" class="loading">
+    Cargando obra...
+  </p>
+
+  <p *ngIf="error" class="error">
+    {{ error }}
+  </p>
+
+  <ng-container *ngIf="obra">
+    <div class="navigation-bar2">
+      <div class="breadcrumb">
+        <a routerLink="/">
+          {{ translationService.getTranslation('Inicio') }}
+        </a>
+        /
+        <a [routerLink]="['/obra', obra.id]">
+          {{ pageInfo.title }}
+        </a>
+        /
+        <span>
+          {{ translationService.getTranslation('Capitulo') }} {{ pageInfo.caption }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Información inicial -->
+    <div class="initial-info">
+      <h1 class="title-chapter">
+        {{ pageInfo.title }} -
+        {{ translationService.getTranslation('Capitulo') }} {{ pageInfo.caption }}
+      </h1>
+
+      <p class="views">
+        {{ pageInfo.views }} {{ translationService.getTranslation('Vistas') }}
+      </p>
+
+      <p class="description" *ngIf="obra.descripcion">
+        {{ obra.descripcion }}
+      </p>
+    </div>
+
+    <!-- Barra de navegación -->
+    <div class="navigation-bar">
+      <div class="navigation-controls">
+       <select [(ngModel)]="selectedChapter" (change)="onChapterChange($event)">
+  <option
+    *ngFor="let chapter of obra.capitulos"
+    [value]="chapter.numeroCapitulo"
+  >
+    {{ translationService.getTranslation('Capitulo') }}
+    {{ chapter.numeroCapitulo }}
+    <span *ngIf="chapter.titulo"> - {{ chapter.titulo }}</span>
+  </option>
+</select>
+      </div>
+
+      <div class="favorite-controls">
+        <button type="button" (click)="toggleFavorite()" class="favorite-button">
+          {{ isFavorite ? '★' : '☆' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Botones de navegación -->
+    <div class="button-container">
+      <button type="button" (click)="previous()" class="nav-button">
+        &#10094; {{ translationService.getTranslation('Anterior') }}
+      </button>
+
+      <button type="button" (click)="next()" class="nav-button">
+        {{ translationService.getTranslation('Siguiente') }} &#10095;
+      </button>
+    </div>
+
+    <!-- Imágenes -->
+    <div *ngIf="images.length > 0; else noPages">
+      <div *ngFor="let image of images; let i = index" class="image-item">
+        <img [src]="image" [alt]="'Página ' + (i + 1)" />
+      </div>
+    </div>
+
+    <ng-template #noPages>
+      <p class="error">
+        Esta obra todavía no tiene páginas.
+      </p>
+    </ng-template>
+
+    <!-- Información final -->
+    <div class="initial-info">
+      <p class="views">
+        {{ pageInfo.views }} {{ translationService.getTranslation('Vistas') }}
+      </p>
+
+      <div class="author-subscribe">
+        <div class="author-info">
+          <div class="author-avatar">
+            {{ pageInfo.authorInitial }}
+          </div>
+
+          <div>
+            <a
+              *ngIf="obra.usuarioId"
+              [routerLink]="['/perfil', obra.usuarioId]"
+              class="author-name"
+            >
+              {{ pageInfo.author }}
+            </a>
+
+            <span *ngIf="!obra.usuarioId" class="author-name">
+              {{ pageInfo.author }}
+            </span>
+
+            <p class="subscriber-count">
+              {{ pageInfo.subscribers }}
+              {{ translationService.getTranslation('Suscriptores') }}
+            </p>
+          </div>
+        </div>
+
+        <button type="button" class="subscribe-button">
+          {{ translationService.getTranslation('Suscribirse') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Barra de navegación final -->
+    <div class="navigation-bar">
+      <div class="navigation-controls">
+        <select [(ngModel)]="selectedChapter" (change)="onChapterChange($event)">
+  <option
+    *ngFor="let chapter of obra.capitulos"
+    [value]="chapter.numeroCapitulo"
+  >
+    {{ translationService.getTranslation('Capitulo') }}
+    {{ chapter.numeroCapitulo }}
+    <span *ngIf="chapter.titulo"> - {{ chapter.titulo }}</span>
+  </option>
+</select>
+      </div>
+
+      <div class="favorite-controls">
+        <button type="button" (click)="toggleFavorite()" class="favorite-button">
+          {{ isFavorite ? '★' : '☆' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Botones de navegación final -->
+    <div class="button-container">
+      <button
+  type="button"
+  (click)="previous()"
+  class="nav-button"
+  [disabled]="!hasPreviousChapter"
+>
+  &#10094; {{ translationService.getTranslation('Anterior') }}
+</button>
+
+      <button
+  type="button"
+  (click)="next()"
+  class="nav-button"
+  [disabled]="!hasNextChapter"
+>
+  {{ translationService.getTranslation('Siguiente') }} &#10095;
+</button>
+    </div>
+
+    <div id="disqus_thread"></div>
+  </ng-container>
+</div>

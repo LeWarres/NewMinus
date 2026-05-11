@@ -1,0 +1,218 @@
+/* Contenedor principal */
+.image-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centrar todo horizontalmente */
+    padding: 20px;
+    margin-top: 80px;
+    gap: 20px; /* Espaciado entre secciones */
+}
+
+/* Información inicial */
+.initial-info {
+    text-align: left; /* Alinear todo el contenido a la izquierda */
+    margin-bottom: 30px;
+    width: 100%;
+    max-width: 800px; /* Asegurar que coincida con el ancho de las imágenes */
+}
+
+/* Título y capítulo */
+.title-chapter {
+    font-size: 2em;
+    color: #ffffff;
+    margin: 0;
+    font-weight: bold;
+    text-align: left; /* Alinear el texto a la izquierda */
+    /* Ajustar para que coincida con el inicio de la foto del autor */
+}
+
+/* Vistas */
+.views {
+    font-size: 1.5em;
+    color: #a0a7c7;
+    margin: 5px 0;
+}
+
+/* Barra de navegación */
+.navigation-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 800px; /* Asegurar que coincida con el ancho de las imágenes */
+    padding: 10px 20px;
+    background-color: #19223e;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.navigation-bar2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 800px; /* Asegurar que coincida con el ancho de las imágenes */
+  padding: 10px 20px;
+
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    font-size: 14px;
+    color: #a0a7c7;
+}
+
+.breadcrumb a {
+    color: #4c82e9;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+/* Controles de navegación */
+.navigation-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.navigation-controls select {
+    padding: 5px 10px;
+    border: 1px solid #4c82e9;
+    border-radius: 5px;
+    background-color: #19223e;
+    color: white;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+}
+
+.navigation-controls select:hover {
+    border-color: #0056b3;
+}
+
+/* Botón de favoritos */
+.favorite-controls {
+    display: flex;
+    align-items: center;
+    margin-left: 5px;
+}
+
+.favorite-button {
+    background: none;
+    border: none;
+    color: #4c82e9;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.favorite-button:hover {
+    color: #0056b3;
+}
+
+/* Botones de navegación */
+.button-container {
+    display: flex;
+    justify-content: right;
+    gap: 20px;
+    width: 100%;
+    max-width: 800px; /* Asegurar que coincida con el ancho de las imágenes */
+}
+
+/* Botones de navegación */
+.nav-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.nav-button:hover {
+    background-color: #0056b3;
+}
+
+/* Imágenes */
+.image-item {
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 800px; /* Asegurar que las imágenes tengan el mismo ancho que el resto */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-item img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Contenedor de autor y botón de suscribirse */
+.author-subscribe {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    gap: 10px; /* Reducir el espacio entre el autor y el botón */
+    background-color: #343438;
+    padding: 10px 15px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 300px;
+}
+
+/* Información del autor */
+.author-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.author-avatar {
+    width: 40px;
+    height: 40px;
+    background-color: #4caf50; /* Verde */
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.author-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+}
+
+.subscriber-count {
+    font-size: 14px;
+    color: #a0a7c7; /* Gris claro */
+    margin: 0;
+}
+
+/* Botón de suscribirse */
+.subscribe-button {
+    margin-left: 10px; /* Ajustar la distancia del botón respecto al autor */
+    background-color: #ff4d4d; /* Rojo */
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.subscribe-button:hover {
+    background-color: #e60000; /* Rojo más oscuro */
+}

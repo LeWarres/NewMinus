@@ -1,0 +1,91 @@
+<header class="header">
+  <button class="menu-toggle" type="button" (click)="toggleMenu()">☰</button>
+
+  <div class="logo">
+    <a routerLink="/" style="text-decoration: none;">
+      <img src="/obras/paleta/logo.png" alt="MINUS Logo" class="logo-image">
+    </a>
+  </div>
+
+  <nav class="nav" [class.active]="menuOpen">
+    <ul>
+      <li>
+        <a routerLink="/">
+          {{ translationService.getTranslation('Sobre Nosotros') }}
+        </a>
+      </li>
+
+        <li>
+        <a routerLink="/following">
+            {{ translationService.getTranslation('Noticias') }}
+        </a>
+        </li>
+
+      <li>
+        <a routerLink="/categorias">
+          {{ translationService.getTranslation('Géneros') }}
+        </a>
+      </li>
+    </ul>
+
+    <div class="search-upload">
+<input
+  type="text"
+  [(ngModel)]="searchQuery"
+  [placeholder]="translationService.getTranslation('Keyword')"
+  (keyup.enter)="search()"
+/>
+
+      <button class="search-btn" type="button" (click)="search()">
+        🔍
+      </button>
+    </div>
+
+    <div class="upload-lang-container">
+      <button class="upload-btn" type="button" (click)="navigateToUploader()">
+        {{ translationService.getTranslation('Subir obra') }}
+      </button>
+
+      <select
+        class="lang-select"
+        (change)="changeLanguage($event)"
+        [value]="currentLanguage"
+      >
+        <option value="es">Español</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+  </nav>
+
+  <!-- Login si NO hay usuario -->
+<div class="auth-area" *ngIf="!currentUser">
+  <button class="login-btn" type="button" (click)="navigateToLogin()">
+    {{ translationService.getTranslation('login') }}
+  </button>
+
+  <button class="signup-btn" type="button" (click)="navigateToSignup()">
+    {{ translationService.getTranslation('sightup') }}
+  </button>
+</div>
+
+  <!-- Avatar si SÍ hay usuario -->
+  <div class="user-menu-container" *ngIf="currentUser">
+    <button class="avatar-btn" type="button" (click)="toggleUserMenu()">
+      <img
+        class="avatar-img"
+        [src]="imageUrl(currentUser.imgPerfil, '/obras/paleta/tres.png')"
+        [alt]="currentUser.username"
+      />
+    </button>
+
+    <div class="user-dropdown" *ngIf="userMenuOpen">
+      <button type="button" (click)="goToProfile()">
+        {{ translationService.getTranslation('Mi perfil') }}
+      </button>
+
+      <button type="button" (click)="logout()">
+        {{ translationService.getTranslation('Cerrar sesión') }}
+      </button>
+    </div>
+  </div>
+</header>

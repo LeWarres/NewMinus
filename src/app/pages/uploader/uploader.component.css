@@ -1,0 +1,164 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+form {
+    background-color: #1a1d3a; /* Fondo oscuro */
+    padding: 20px; /* Default padding */
+    border-radius: 8px;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Apply additional padding on larger screens */
+@media (min-width: 1000px) {
+    form {
+        padding: 20px 300px; /* Add padding to left and right */
+    }
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 4px;
+    border: 1px solid #444;
+    background-color: #1a1a2e;
+    color: white;
+    box-sizing: border-box;
+}
+
+input[type="radio"], input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+}
+
+button {
+    background-color: #d31a13; /* Color que combina con el fondo */
+    padding: 10px 20px;
+    border-radius: 4px;
+    color: white;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 20px;
+    width: 100%;
+}
+
+button:hover {
+    background-color: #4409e7; /* Color más claro al pasar el mouse */
+}
+
+/* Drag & Drop styles */
+.upload-container {
+  border: 2px dashed #007bff;
+  padding: 20px;
+  text-align: center;
+  width: 100%;
+  margin: 20px 0;
+  border-radius: 10px;
+  background: #1a1a2e;
+  transition: background 0.3s ease;
+  cursor: pointer;
+}
+
+.upload-container.dragover {
+  background: #333;
+}
+
+.files-container {
+  max-width: 100%;
+  margin: 20px 0;
+  padding: 10px;
+  background: #474c72; /* Fondo oscuro */
+  border-radius: 10px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  font-size: 12px;
+  color: white; /* Texto blanco */
+}
+
+.files-container h3 {
+  text-align: center;
+  color: white; /* Texto blanco */
+  margin-bottom: 10px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  background: #1a1a2e; /* Fondo oscuro */
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 5px;
+  transition: 0.3s;
+}
+
+.file-item:hover {
+  background: #333; /* Fondo más claro al pasar el mouse */
+}
+
+.file-info {
+  display: flex;
+  align-items: center; /* Align items horizontally */
+  margin-left: 10px; /* Add margin to separate from remove button */
+}
+
+.file-name {
+  font-weight: bold;
+  color: white; /* Texto blanco */
+  margin-left: 10px; /* Add margin to separate from remove button */
+}
+
+.file-size {
+  font-size: 12px;
+  color: #777;
+  margin-left: 10px; /* Add margin to separate from file name */
+}
+
+.remove-btn {
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  width: 30px; /* Fixed width */
+  height: 30px; /* Fixed height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 25%;
+  font-size: 14px;
+  transition: 0.3s;
+  flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+.remove-btn:hover {
+  background: #e60000;
+}
+
+.upload-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+button:disabled {
+  background: gray;
+  cursor: not-allowed;
+}
+
+input[type="file"] {
+  display: none;
+}

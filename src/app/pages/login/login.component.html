@@ -1,0 +1,69 @@
+<div class="login-container">
+  <div class="login-content">
+    <div class="login-box">
+      <h1 class="title">Minus Creators</h1>
+
+      <form (ngSubmit)="login()">
+        <label for="email">
+          {{ translationService.getTranslation('mail') }}
+        </label>
+
+        <input
+          id="email"
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="demo@minuscreators.com"
+          required
+        />
+
+        <label for="password">
+          {{ translationService.getTranslation('Contrasena') }}
+        </label>
+
+        <div class="password-container">
+          <input
+            id="password"
+            [type]="mostrarPassword ? 'text' : 'password'"
+            name="password"
+            [(ngModel)]="password"
+            placeholder="123456"
+            required
+          />
+
+          <button
+            type="button"
+            class="toggle-password"
+            (click)="togglePassword()"
+          >
+            {{ mostrarPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+
+        <div class="NoContrasena">
+          <a href="#">
+            {{ translationService.getTranslation('NoContrasena') }}
+          </a>
+        </div>
+
+        <button type="submit" [disabled]="cargando">
+          <span *ngIf="!cargando">
+            {{ translationService.getTranslation('login') }}
+          </span>
+
+          <span *ngIf="cargando" class="loader"></span>
+        </button>
+      </form>
+
+      <p class="error-message" *ngIf="error">
+        {{ error }}
+      </p>
+
+      <div class="register">
+        <a routerLink="/signup">
+          {{ translationService.getTranslation('registro') }}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

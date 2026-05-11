@@ -1,0 +1,190 @@
+<div class="perfil" *ngIf="user; else loading">
+  <!-- Banner -->
+  <div
+    class="banner"
+    [style.backgroundImage]="'url(' + imageUrl(user.imgBanner, '/obras/paleta/portada.png') + ')'"
+  ></div>
+
+  <!-- Card principal del perfil -->
+  <div class="contenido">
+    <img
+      class="avatar"
+      [src]="imageUrl(user.imgPerfil, '/obras/paleta/tres.png')"
+      alt="Avatar"
+    />
+
+    <div class="info">
+      <span class="nombre">
+        {{ user.username || 'Usuario desconocido' }}
+      </span>
+
+      <p class="usuario">
+        {{ user.username }} · {{ user.role || 'Sin rol' }}
+      </p>
+
+      <p class="descripcion">
+        {{ user.nacionalidad || 'Nacionalidad no especificada' }}
+      </p>
+
+      <!-- Estadísticas -->
+      <div class="stats">
+        <div class="stat-card">
+          <span class="stat-number">
+            {{ user.totalSuscriptores || 0 }}
+          </span>
+          <span class="stat-label">
+            Suscriptores
+          </span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-number">
+            {{ obras.length }}
+          </span>
+          <span class="stat-label">
+            Obras
+          </span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-number">
+            {{ totalVisitas }}
+          </span>
+          <span class="stat-label">
+            {{ translationService.getTranslation('Vistas') }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Redes sociales -->
+      <div class="redes">
+        <a
+          *ngIf="user.twitter"
+          [href]="user.twitter"
+          target="_blank"
+          class="enlace"
+        >
+          Twitter
+        </a>
+
+        <a
+          *ngIf="user.facebook"
+          [href]="user.facebook"
+          target="_blank"
+          class="enlace"
+        >
+          Facebook
+        </a>
+
+        <a
+          *ngIf="user.instagram"
+          [href]="user.instagram"
+          target="_blank"
+          class="enlace"
+        >
+          Instagram
+        </a>
+      </div>
+
+      <!-- Acciones -->
+      <div class="acciones">
+        <button
+          class="boton"
+          type="button"
+          *ngIf="!isCurrentUser"
+          (click)="toggleSubscription()"
+        >
+          {{
+            estaSuscrito
+              ? translationService.getTranslation('Desuscribirse')
+              : translationService.getTranslation('Suscribirse')
+          }}
+        </button>
+
+        <button
+          class="botonEditar"
+          type="button"
+          *ngIf="isCurrentUser"
+          (click)="navigateToEditProfile()"
+        >
+          {{ translationService.getTranslation('Editar Perfil') }}
+        </button>
+      </div>
+
+      <p *ngIf="mensaje" class="mensaje">
+        {{ mensaje }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Menú -->
+  <nav class="menu">
+    <a href="#" class="activo">Nuevos!</a>
+    <a href="#">Obras</a>
+    <a href="#">Siguiendo</a>
+    <a href="#">Mi Feed</a>
+    <a href="#">Mis Likes</a>
+    <a href="#">Publicaciones</a>
+    <a href="#">Membresía</a>
+  </nav>
+
+  <!-- Obras -->
+  <div class="obras" *ngIf="obras.length > 0; else noObras">
+    <div
+      *ngFor="let obra of obras"
+      class="obra"
+      [routerLink]="['/obra', obra.id]"
+    >
+      <img
+        [src]="imageUrl(obra.portada, '/obras/paleta/portada.png')"
+        alt="Portada de la obra"
+        class="portada"
+      />
+
+      <div class="info">
+        <h3>{{ obra.titulo }}</h3>
+
+        <p>
+          Idioma: {{ obra.idioma || 'Sin idioma' }}
+        </p>
+
+        <p>
+          Género: {{ obra.genero || 'Sin género' }}
+        </p>
+
+        <p>
+            <button
+            type="button"
+            class="botonEditar"
+            *ngIf="isCurrentUser"
+            [routerLink]="['/obra', obra.id, 'subir-capitulo']"
+            (click)="$event.stopPropagation()"
+            >
+            Subir capítulo
+            </button>
+          {{ obra.numVisitas }} {{ translationService.getTranslation('Vistas') }}
+        </p>
+
+        <p>
+          Fecha de creación: {{ obra.fechaCreacion }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noObras>
+    <p class="no-obras">
+      No hay obras disponibles para este usuario.
+    </p>
+  </ng-template>
+</div>
+
+<ng-template #loading>
+  <div class="loading">
+    <p>Cargando información del usuario...</p>
+  </div>
+</ng-template>
+
+<p class="error" *ngIf="error">
+  {{ error }}
+</p>
