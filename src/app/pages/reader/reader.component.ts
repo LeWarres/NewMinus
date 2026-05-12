@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -41,12 +41,14 @@ interface ObraDetalle {
   portada?: string;
   numVisitas: number;
   fechaCreacion: string;
+
   autor: string;
   autorAvatar?: string;
   autorRole?: string;
   autorNacionalidad?: string;
   totalSuscriptores?: number;
   estaSuscrito?: boolean;
+
   capitulos: Capitulo[];
   capituloActual: Capitulo;
   paginas: ObraPagina[];
@@ -64,6 +66,8 @@ interface SuscripcionResponse {
   mensaje?: string;
   error?: string;
 }
+
+type ReadingMode = 'strip' | 'single' | 'double';
 
 @Component({
   selector: 'app-reader',
@@ -94,14 +98,9 @@ export class ReaderComponent implements OnInit, OnDestroy {
   selectedChapter = 1;
   isFavorite = false;
 
-  pageInfo = {
-    title: '',
-    caption: '1',
-    views: 0,
-    author: '',
-    authorInitial: '',
-    subscribers: 0
-  };
+  readingMode: ReadingMode = 'strip';
+  currentPageIndex = 0;
+  scrollProgress = 0;
 
   constructor(
     private route: ActivatedRoute,
@@ -129,6 +128,37 @@ export class ReaderComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.removerDisqus();
   }
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    this.updateScrollProgress();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+onKeyboardNavigation(event: KeyboardEvent): void {
+  const target = event.target as HTMLElement;
+  const tagName = target?.tagName?.toLowerCase();
+
+  const isTyping =
+    tagName === 'input' ||
+    tagName === 'textarea' ||
+    tagName === 'select' ||
+    target?.isContentEditable;
+
+  if (isTyping || this.cargando || !this.obra) {
+    return;
+  }
+
+  if (event.key === 'ArrowRight') {
+    event.preventDefault();
+    this.nextPage();
+  }
+
+  if (event.key === 'ArrowLeft') {
+    event.preventDefault();
+    this.previousPage();
+  }
+}
 
   get isCurrentAuthor(): boolean {
     return !!this.currentUser && !!this.obra && this.currentUser.id === this.obra.usuarioId;
@@ -158,11 +188,46 @@ export class ReaderComponent implements OnInit, OnDestroy {
     return index >= 0 && index < this.obra.capitulos.length - 1;
   }
 
+  get currentPageNumber(): number {
+    return this.currentPageIndex + 1;
+  }
+
+  get totalPages(): number {
+    return this.images.length;
+  }
+
+  get currentSpreadImages(): string[] {
+    if (this.readingMode === 'double') {
+      return [
+        this.images[this.currentPageIndex],
+        this.images[this.currentPageIndex + 1]
+      ].filter(Boolean);
+    }
+
+    return [
+      this.images[this.currentPageIndex]
+    ].filter(Boolean);
+  }
+
+  get readingProgress(): number {
+    if (this.readingMode === 'strip') {
+      return this.scrollProgress;
+    }
+
+    if (this.totalPages <= 1) {
+      return 100;
+    }
+
+    return Math.min(100, Math.round(((this.currentPageIndex + 1) / this.totalPages) * 100));
+  }
+
   cargarObra(id: string, capitulo?: string): void {
     this.cargando = true;
     this.error = '';
     this.mensaje = '';
     this.hiddenPageIndexes = [];
+    this.currentPageIndex = 0;
+    this.scrollProgress = 0;
 
     const viewerId = this.currentUser?.id || 0;
 
@@ -182,6 +247,11 @@ export class ReaderComponent implements OnInit, OnDestroy {
         }
 
         this.obra = res.obra;
+        this.selectedChapter = this.obra.capituloActual.numeroCapitulo;
+
+        this.images = this.obra.paginas.map((pagina) => {
+          return this.imageUrl(pagina.imagen);
+        });
 
         window.scrollTo({
           top: 0,
@@ -189,22 +259,8 @@ export class ReaderComponent implements OnInit, OnDestroy {
           behavior: 'auto'
         });
 
-        this.selectedChapter = this.obra.capituloActual.numeroCapitulo;
-
-        this.images = this.obra.paginas.map((pagina) => {
-          return this.imageUrl(pagina.imagen);
-        });
-
-        this.pageInfo = {
-          title: this.obra.titulo,
-          caption: String(this.obra.capituloActual.numeroCapitulo),
-          views: this.obra.numVisitas,
-          author: this.obra.autor,
-          authorInitial: this.getInitial(this.obra.autor),
-          subscribers: this.obra.totalSuscriptores || 0
-        };
-
         setTimeout(() => {
+          this.updateScrollProgress();
           this.cargarDisqus();
         }, 300);
       },
@@ -214,6 +270,45 @@ export class ReaderComponent implements OnInit, OnDestroy {
         console.error(err);
       }
     });
+  }
+
+  setReadingMode(mode: ReadingMode): void {
+    this.readingMode = mode;
+    this.currentPageIndex = 0;
+
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'auto'
+    });
+
+    setTimeout(() => this.updateScrollProgress(), 100);
+  }
+
+  nextPage(): void {
+    if (this.readingMode === 'strip') {
+      window.scrollBy({
+        top: window.innerHeight * 0.85,
+        behavior: 'smooth'
+      });
+      return;
+    }
+
+    const step = this.readingMode === 'double' ? 2 : 1;
+    this.currentPageIndex = Math.min(this.currentPageIndex + step, this.totalPages - 1);
+  }
+
+  previousPage(): void {
+    if (this.readingMode === 'strip') {
+      window.scrollBy({
+        top: -window.innerHeight * 0.85,
+        behavior: 'smooth'
+      });
+      return;
+    }
+
+    const step = this.readingMode === 'double' ? 2 : 1;
+    this.currentPageIndex = Math.max(this.currentPageIndex - step, 0);
   }
 
   onChapterChange(event: Event): void {
@@ -232,7 +327,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     ]);
   }
 
-  previous(): void {
+  previousChapter(): void {
     if (!this.obra) {
       return;
     }
@@ -255,7 +350,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     ]);
   }
 
-  next(): void {
+  nextChapter(): void {
     if (!this.obra) {
       return;
     }
@@ -290,6 +385,14 @@ export class ReaderComponent implements OnInit, OnDestroy {
     this.router.navigate(['/perfil', this.obra.usuarioId]);
   }
 
+  volverDetalleObra(): void {
+    if (!this.obra) {
+      return;
+    }
+
+    this.router.navigate(['/obra', this.obra.id]);
+  }
+
   toggleSubscription(): void {
     if (!this.obra || !this.obra.usuarioId) {
       return;
@@ -321,7 +424,6 @@ export class ReaderComponent implements OnInit, OnDestroy {
         }
 
         this.obra.estaSuscrito = !!res.suscrito;
-        this.mensaje = res.mensaje || '';
 
         const totalActual = this.obra.totalSuscriptores || 0;
 
@@ -331,7 +433,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
           this.obra.totalSuscriptores = Math.max(totalActual - 1, 0);
         }
 
-        this.pageInfo.subscribers = this.obra.totalSuscriptores || 0;
+        this.mensaje = res.mensaje || '';
       },
       error: (err) => {
         this.mensaje = err.error?.error || 'Error al actualizar suscripción';
@@ -369,10 +471,6 @@ export class ReaderComponent implements OnInit, OnDestroy {
   onPageImageLoad(event: Event, index: number): void {
     const img = event.target as HTMLImageElement;
 
-    /*
-      Esto elimina imágenes corruptas o cargadas como línea vertical.
-      Una página real nunca debería tener naturalWidth <= 10.
-    */
     if (img.naturalWidth <= 10) {
       this.hidePage(index);
     }
@@ -386,6 +484,18 @@ export class ReaderComponent implements OnInit, OnDestroy {
     if (!this.hiddenPageIndexes.includes(index)) {
       this.hiddenPageIndexes.push(index);
     }
+  }
+
+  private updateScrollProgress(): void {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+
+    if (docHeight <= 0) {
+      this.scrollProgress = 100;
+      return;
+    }
+
+    this.scrollProgress = Math.min(100, Math.max(0, Math.round((scrollTop / docHeight) * 100)));
   }
 
   cargarDisqus(): void {

@@ -15,15 +15,15 @@
 
     <div class="info">
       <span class="nombre">
-        {{ user.username || 'Usuario desconocido' }}
+        {{ user.username || translationService.getTranslation('Usuario desconocido') }}
       </span>
 
       <p class="usuario">
-        {{ user.username }} · {{ user.role || 'Sin rol' }}
+        {{ user.username }} · {{ user.role || translationService.getTranslation('Sin rol') }}
       </p>
 
       <p class="descripcion">
-        {{ user.nacionalidad || 'Nacionalidad no especificada' }}
+        {{ user.nacionalidad || translationService.getTranslation('Nacionalidad no especificada') }}
       </p>
 
       <!-- Estadísticas -->
@@ -32,8 +32,9 @@
           <span class="stat-number">
             {{ user.totalSuscriptores || 0 }}
           </span>
+
           <span class="stat-label">
-            Suscriptores
+            {{ translationService.getTranslation('Suscriptores') }}
           </span>
         </div>
 
@@ -41,8 +42,9 @@
           <span class="stat-number">
             {{ obras.length }}
           </span>
+
           <span class="stat-label">
-            Obras
+            {{ translationService.getTranslation('Obras') }}
           </span>
         </div>
 
@@ -50,6 +52,7 @@
           <span class="stat-number">
             {{ totalVisitas }}
           </span>
+
           <span class="stat-label">
             {{ translationService.getTranslation('Vistas') }}
           </span>
@@ -117,21 +120,97 @@
     </div>
   </div>
 
-  <!-- Menú -->
-  <nav class="menu">
-    <a href="#" class="activo">Nuevos!</a>
-    <a href="#">Obras</a>
-    <a href="#">Siguiendo</a>
-    <a href="#">Mi Feed</a>
-    <a href="#">Mis Likes</a>
-    <a href="#">Publicaciones</a>
-    <a href="#">Membresía</a>
+  <!-- Tabs -->
+  <nav class="menu profile-tabs">
+    <button
+      type="button"
+      [class.activo]="activeTab === 'news'"
+      (click)="setActiveTab('news')"
+    >
+      {{ translationService.getTranslation('News') }}
+    </button>
+
+    <button
+      type="button"
+      [class.activo]="activeTab === 'obras'"
+      (click)="setActiveTab('obras')"
+    >
+      {{ translationService.getTranslation('Obras') }}
+    </button>
+
+    <button
+      type="button"
+      [class.activo]="activeTab === 'popular'"
+      (click)="setActiveTab('popular')"
+    >
+      {{ translationService.getTranslation('Most Popular') }}
+    </button>
   </nav>
 
-  <!-- Obras -->
-  <div class="obras" *ngIf="obras.length > 0; else noObras">
+  <!-- NEWS: últimos capítulos -->
+  <div
+    class="obras"
+    *ngIf="activeTab === 'news' && displayedCapitulos.length > 0; else noCapitulosNews"
+  >
     <div
-      *ngFor="let obra of obras"
+      *ngFor="let capitulo of displayedCapitulos"
+      class="obra"
+      (click)="abrirCapitulo(capitulo)"
+    >
+      <img
+        [src]="imageUrl(capitulo.portada, '/obras/paleta/portada.png')"
+        alt="Portada de la obra"
+        class="portada"
+      />
+
+      <div class="info">
+        <h3>{{ capitulo.tituloObra }}</h3>
+
+        <p>
+          {{ translationService.getTranslation('Capitulo') }}
+          {{ capitulo.numeroCapitulo }}
+
+          <span *ngIf="capitulo.tituloCapitulo">
+            - {{ capitulo.tituloCapitulo }}
+          </span>
+        </p>
+
+        <p>
+          {{ translationService.getTranslation('Idioma') }}:
+          {{ capitulo.idioma || translationService.getTranslation('Sin idioma') }}
+        </p>
+
+        <p>
+          {{ translationService.getTranslation('Género') }}:
+          {{ capitulo.genero || translationService.getTranslation('Sin género') }}
+        </p>
+
+        <p>
+          {{ capitulo.numVisitas }}
+          {{ translationService.getTranslation('Vistas') }}
+        </p>
+
+        <p>
+          {{ translationService.getTranslation('Fecha de creación') }}:
+          {{ capitulo.fechaCreacion }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noCapitulosNews>
+    <p class="no-obras" *ngIf="activeTab === 'news'">
+      {{ translationService.getTranslation('No hay capítulos disponibles en esta sección') }}
+    </p>
+  </ng-template>
+
+  <!-- OBRAS / MOST POPULAR -->
+  <div
+    class="obras"
+    *ngIf="activeTab !== 'news' && displayedObras.length > 0; else noObras"
+  >
+    <div
+      *ngFor="let obra of displayedObras"
       class="obra"
       [routerLink]="['/obra', obra.id]"
     >
@@ -145,43 +224,50 @@
         <h3>{{ obra.titulo }}</h3>
 
         <p>
-          Idioma: {{ obra.idioma || 'Sin idioma' }}
+          {{ translationService.getTranslation('Idioma') }}:
+          {{ obra.idioma || translationService.getTranslation('Sin idioma') }}
         </p>
 
         <p>
-          Género: {{ obra.genero || 'Sin género' }}
+          {{ translationService.getTranslation('Género') }}:
+          {{ obra.genero || translationService.getTranslation('Sin género') }}
         </p>
 
         <p>
-            <button
-            type="button"
-            class="botonEditar"
-            *ngIf="isCurrentUser"
-            [routerLink]="['/obra', obra.id, 'subir-capitulo']"
-            (click)="$event.stopPropagation()"
-            >
-            Subir capítulo
-            </button>
-          {{ obra.numVisitas }} {{ translationService.getTranslation('Vistas') }}
+          {{ obra.numVisitas }}
+          {{ translationService.getTranslation('Vistas') }}
         </p>
 
         <p>
-          Fecha de creación: {{ obra.fechaCreacion }}
+          {{ translationService.getTranslation('Fecha de creación') }}:
+          {{ obra.fechaCreacion }}
         </p>
+
+        <button
+          type="button"
+          class="botonEditar subir-capitulo-btn"
+          *ngIf="isCurrentUser"
+          [routerLink]="['/obra', obra.id, 'subir-capitulo']"
+          (click)="$event.stopPropagation()"
+        >
+          {{ translationService.getTranslation('Subir capítulo') }}
+        </button>
       </div>
     </div>
   </div>
 
   <ng-template #noObras>
-    <p class="no-obras">
-      No hay obras disponibles para este usuario.
+    <p class="no-obras" *ngIf="activeTab !== 'news'">
+      {{ translationService.getTranslation('No hay obras disponibles en esta sección') }}
     </p>
   </ng-template>
 </div>
 
 <ng-template #loading>
   <div class="loading">
-    <p>Cargando información del usuario...</p>
+    <p>
+      {{ translationService.getTranslation('Cargando información del usuario') }}
+    </p>
   </div>
 </ng-template>
 

@@ -32,11 +32,26 @@ interface Obra {
   fechaCreacion: string;
 }
 
+interface CapituloPerfil {
+  capituloId: number;
+  obraId: number;
+  numeroCapitulo: number;
+  tituloCapitulo?: string;
+  descripcionCapitulo?: string;
+  fechaCreacion: string;
+  tituloObra: string;
+  portada?: string;
+  genero?: string;
+  idioma?: string;
+  numVisitas: number;
+}
+
 interface PerfilResponse {
   success: boolean;
   error?: string;
   user?: User;
   obras?: Obra[];
+  capitulos?: CapituloPerfil[];
   estaSuscrito?: boolean;
 }
 
@@ -46,6 +61,8 @@ interface SuscripcionResponse {
   mensaje?: string;
   error?: string;
 }
+
+type PerfilTab = 'news' | 'obras' | 'popular';
 
 @Component({
   selector: 'app-perfil',
@@ -66,6 +83,9 @@ export class PerfilComponent implements OnInit {
   currentUser: User | null = null;
 
   obras: Obra[] = [];
+  capitulos: CapituloPerfil[] = [];
+
+  activeTab: PerfilTab = 'news';
 
   isCurrentUser = false;
   estaSuscrito = false;
@@ -99,6 +119,30 @@ export class PerfilComponent implements OnInit {
     return this.obras.reduce((total, obra) => total + (obra.numVisitas || 0), 0);
   }
 
+  get displayedCapitulos(): CapituloPerfil[] {
+    return [...this.capitulos]
+      .sort((a, b) => {
+        return new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime();
+      })
+      .slice(0, 8);
+  }
+
+  get displayedObras(): Obra[] {
+    if (this.activeTab === 'popular') {
+      return [...this.obras]
+        .sort((a, b) => {
+          return (b.numVisitas || 0) - (a.numVisitas || 0);
+        })
+        .slice(0, 3);
+    }
+
+    return this.obras;
+  }
+
+  setActiveTab(tab: PerfilTab): void {
+    this.activeTab = tab;
+  }
+
   cargarPerfil(id: string): void {
     this.error = '';
     this.mensaje = '';
@@ -116,6 +160,7 @@ export class PerfilComponent implements OnInit {
 
           this.user = res.user;
           this.obras = res.obras || [];
+          this.capitulos = res.capitulos || [];
           this.estaSuscrito = !!res.estaSuscrito;
 
           this.isCurrentUser = this.currentUser?.id === this.user.id;
@@ -133,6 +178,15 @@ export class PerfilComponent implements OnInit {
     }
 
     this.router.navigate(['/perfil', this.user.id, 'editar']);
+  }
+
+  abrirCapitulo(capitulo: CapituloPerfil): void {
+    this.router.navigate([
+      '/obra',
+      capitulo.obraId,
+      'capitulo',
+      capitulo.numeroCapitulo
+    ]);
   }
 
   toggleSubscription(): void {

@@ -1,89 +1,47 @@
-<div class="image-container">
-  <p *ngIf="cargando" class="loading">
-    Cargando obra...
+<div class="reader-page">
+  <p *ngIf="cargando" class="reader-state">
+    {{ translationService.getTranslation('Cargando capítulo') }}
   </p>
 
-  <p *ngIf="error" class="error">
+  <p *ngIf="error" class="reader-state error">
     {{ error }}
   </p>
 
   <ng-container *ngIf="obra">
-    <ng-template #authorCard>
-  <div class="reader-author-card">
-    <button type="button" class="author-profile" (click)="abrirPerfilAutor()">
-      <img
-        class="author-avatar-img"
-        [src]="imageUrl(obra.autorAvatar, '/obras/paleta/tres.png')"
-        [alt]="obra.autor"
-      />
-
-      <div>
-        <strong>{{ obra.autor }}</strong>
-
-        <span>
-          {{ obra.totalSuscriptores || 0 }} Suscriptores
-        </span>
-      </div>
-    </button>
-
-    <!-- Si NO es el autor, muestra Suscribirse / Desuscribirse -->
-    <button
-      type="button"
-      class="subscribe-button"
-      *ngIf="!isCurrentAuthor"
-      (click)="toggleSubscription()"
-    >
-      {{
-        obra.estaSuscrito
-          ? 'Desuscribirse'
-          : translationService.getTranslation('Suscribirse')
-      }}
-    </button>
-  </div>
-
-  <p class="subscription-message" *ngIf="mensaje">
-    {{ mensaje }}
-  </p>
-</ng-template>
-
-    <div class="navigation-bar2">
-      <div class="breadcrumb">
-        <a routerLink="/">
-          {{ translationService.getTranslation('Inicio') }}
-        </a>
-        /
-        <a [routerLink]="['/obra', obra.id]">
-          {{ pageInfo.title }}
-        </a>
-        /
-        <span>
-          {{ translationService.getTranslation('Capitulo') }} {{ pageInfo.caption }}
-        </span>
-      </div>
+    <div class="reader-progress">
+      <div class="reader-progress-fill" [style.width.%]="readingProgress"></div>
     </div>
 
-    <!-- Información inicial -->
-    <div class="initial-info">
-      <h1 class="title-chapter">
-        {{ pageInfo.title }} -
-        {{ translationService.getTranslation('Capitulo') }} {{ pageInfo.caption }}
-      </h1>
+    <header class="reader-topbar">
+      <div class="reader-title-area">
+        <button type="button" class="back-detail-btn" (click)="volverDetalleObra()">
+          ← {{ translationService.getTranslation('Detalle') }}
+        </button>
 
-      <p class="views">
-        {{ pageInfo.views }} {{ translationService.getTranslation('Vistas') }}
-      </p>
+        <div>
+          <h1>{{ obra.titulo }}</h1>
 
-      <p class="description" *ngIf="obra.capituloActual.descripcion || obra.descripcion">
-        {{ obra.capituloActual.descripcion || obra.descripcion }}
-      </p>
-    </div>
+          <p>
+            {{ translationService.getTranslation('Capitulo') }}
+            {{ obra.capituloActual.numeroCapitulo }}
 
-    <!-- Autor arriba -->
-    <ng-container *ngTemplateOutlet="authorCard"></ng-container>
+            <span *ngIf="obra.capituloActual.titulo">
+              · {{ obra.capituloActual.titulo }}
+            </span>
+          </p>
+        </div>
+      </div>
 
-    <!-- Barra de navegación superior -->
-    <div class="navigation-bar">
-      <div class="navigation-controls">
+      <div class="chapter-controls">
+        <button
+          type="button"
+          class="chapter-btn"
+          (click)="previousChapter()"
+          [disabled]="!hasPreviousChapter"
+        >
+          &#10094;
+        </button>
+
         <select [(ngModel)]="selectedChapter" (change)="onChapterChange($event)">
           <option
             *ngFor="let chapter of obra.capitulos"
@@ -91,115 +49,301 @@
           >
             {{ translationService.getTranslation('Capitulo') }}
             {{ chapter.numeroCapitulo }}
-            - {{ chapter.titulo || ('Capítulo ' + chapter.numeroCapitulo) }}
+            - {{ chapter.titulo || (translationService.getTranslation('Capitulo') + ' ' + chapter.numeroCapitulo) }}
           </option>
         </select>
-      </div>
 
-      <div class="favorite-controls">
-        <button type="button" (click)="toggleFavorite()" class="favorite-button">
-          {{ isFavorite ? '★' : '☆' }}
+        <button
+          type="button"
+          class="chapter-btn"
+          (click)="nextChapter()"
+          [disabled]="!hasNextChapter"
+        >
+          &#10095;
         </button>
       </div>
-    </div>
+    </header>
 
-    <!-- Botones superiores -->
-    <div class="button-container">
-      <button
-        type="button"
-        (click)="previous()"
-        class="nav-button"
-        [disabled]="!hasPreviousChapter"
-      >
-        &#10094; {{ translationService.getTranslation('Anterior') }}
-      </button>
+    <div class="reader-layout">
+      <aside class="reader-sidebar">
+        <!-- Autor -->
+        <div class="sidebar-card author-card">
+          <button type="button" class="author-profile" (click)="abrirPerfilAutor()">
+            <img
+              class="author-avatar"
+              [src]="imageUrl(obra.autorAvatar, '/obras/paleta/tres.png')"
+              [alt]="obra.autor"
+            />
 
-      <button
-        type="button"
-        (click)="next()"
-        class="nav-button"
-        [disabled]="!hasNextChapter"
-      >
-        {{ translationService.getTranslation('Siguiente') }} &#10095;
-      </button>
-    </div>
+            <div>
+              <strong>{{ obra.autor }}</strong>
 
-    <!-- Imágenes -->
-    <div *ngIf="images.length > 0; else noPages">
-      <div
-        *ngFor="let image of images; let i = index"
-        class="image-item"
-        [class.hidden-page]="isPageHidden(i)"
-      >
-        <img
-          *ngIf="!isPageHidden(i)"
-          [src]="image"
-          [alt]="'Página ' + (i + 1)"
-          (error)="onPageImageError(i)"
-          (load)="onPageImageLoad($event, i)"
-        />
-      </div>
-    </div>
+              <span>
+                {{ obra.totalSuscriptores || 0 }}
+                {{ translationService.getTranslation('Suscriptores') }}
+              </span>
+            </div>
+          </button>
 
-    <ng-template #noPages>
-      <p class="error">
-        Esta obra todavía no tiene páginas.
-      </p>
-    </ng-template>
-
-    <!-- Información final -->
-    <div class="initial-info bottom-info">
-      <p class="views">
-        {{ pageInfo.views }} {{ translationService.getTranslation('Vistas') }}
-      </p>
-    </div>
-
-    <!-- Autor abajo -->
-    <ng-container *ngTemplateOutlet="authorCard"></ng-container>
-
-    <!-- Barra de navegación inferior -->
-    <div class="navigation-bar">
-      <div class="navigation-controls">
-        <select [(ngModel)]="selectedChapter" (change)="onChapterChange($event)">
-          <option
-            *ngFor="let chapter of obra.capitulos"
-            [value]="chapter.numeroCapitulo"
+          <button
+            type="button"
+            class="subscribe-btn"
+            *ngIf="!isCurrentAuthor"
+            (click)="toggleSubscription()"
           >
-            {{ translationService.getTranslation('Capitulo') }}
-            {{ chapter.numeroCapitulo }}
-            - {{ chapter.titulo || ('Capítulo ' + chapter.numeroCapitulo) }}
-          </option>
-        </select>
-      </div>
+            {{
+              obra.estaSuscrito
+                ? translationService.getTranslation('Desuscribirse')
+                : translationService.getTranslation('Suscribirse')
+            }}
+          </button>
 
-      <div class="favorite-controls">
-        <button type="button" (click)="toggleFavorite()" class="favorite-button">
-          {{ isFavorite ? '★' : '☆' }}
-        </button>
-      </div>
+          <p class="subscription-message" *ngIf="mensaje">
+            {{ mensaje }}
+          </p>
+        </div>
+
+        <!-- Modo de lectura -->
+        <div class="sidebar-card">
+          <h2>{{ translationService.getTranslation('Vista') }}</h2>
+
+          <div class="reader-mode-buttons">
+            <button
+              type="button"
+              [class.active]="readingMode === 'strip'"
+              (click)="setReadingMode('strip')"
+            >
+              {{ translationService.getTranslation('Long Strip') }}
+            </button>
+
+            <button
+              type="button"
+              [class.active]="readingMode === 'single'"
+              (click)="setReadingMode('single')"
+            >
+              {{ translationService.getTranslation('Single Page') }}
+            </button>
+
+            <button
+              type="button"
+              [class.active]="readingMode === 'double'"
+              (click)="setReadingMode('double')"
+            >
+              {{ translationService.getTranslation('Double Page') }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Página -->
+        <div class="sidebar-card page-card">
+          <h2>{{ translationService.getTranslation('Página') }}</h2>
+
+          <p>
+            {{
+              readingMode === 'strip'
+                ? readingProgress + '%'
+                : currentPageNumber + ' / ' + totalPages
+            }}
+          </p>
+
+          <div class="page-buttons">
+            <button type="button" (click)="previousPage()">
+              &#10094;
+            </button>
+
+            <button type="button" (click)="nextPage()">
+              &#10095;
+            </button>
+          </div>
+        </div>
+
+        <!-- Info de obra -->
+        <div class="sidebar-card compact-info">
+          <h2>{{ translationService.getTranslation('Obra') }}</h2>
+
+          <p>
+            {{ obra.numVisitas }}
+            {{ translationService.getTranslation('Vistas') }}
+          </p>
+
+          <p>
+            {{ obra.genero || translationService.getTranslation('Sin género') }}
+            ·
+            {{ obra.idioma || 'ES' }}
+          </p>
+
+          <button type="button" class="favorite-btn" (click)="toggleFavorite()">
+            {{
+              isFavorite
+                ? '★ ' + translationService.getTranslation('Favorito')
+                : '☆ ' + translationService.getTranslation('Favorito')
+            }}
+          </button>
+        </div>
+      </aside>
+
+      <main class="reader-main">
+        <!-- Autor móvil arriba -->
+        <section class="reader-mobile-author">
+          <button type="button" class="author-profile" (click)="abrirPerfilAutor()">
+            <img
+              class="author-avatar"
+              [src]="imageUrl(obra.autorAvatar, '/obras/paleta/tres.png')"
+              [alt]="obra.autor"
+            />
+
+            <div>
+              <strong>{{ obra.autor }}</strong>
+
+              <span>
+                {{ obra.totalSuscriptores || 0 }}
+                {{ translationService.getTranslation('Suscriptores') }}
+              </span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            class="subscribe-btn"
+            *ngIf="!isCurrentAuthor"
+            (click)="toggleSubscription()"
+          >
+            {{
+              obra.estaSuscrito
+                ? translationService.getTranslation('Desuscribirse')
+                : translationService.getTranslation('Suscribirse')
+            }}
+          </button>
+        </section>
+
+        <!-- Controles de página arriba -->
+        <div class="reader-page-controls" *ngIf="readingMode !== 'strip'">
+          <button type="button" (click)="previousPage()">
+            &#10094; {{ translationService.getTranslation('Página anterior') }}
+          </button>
+
+          <span>
+            {{ currentPageNumber }} / {{ totalPages }}
+          </span>
+
+          <button type="button" (click)="nextPage()">
+            {{ translationService.getTranslation('Página siguiente') }} &#10095;
+          </button>
+        </div>
+
+        <!-- Páginas -->
+        <ng-container [ngSwitch]="readingMode">
+          <!-- Long Strip -->
+          <section *ngSwitchCase="'strip'" class="pages-strip">
+            <div
+              *ngFor="let image of images; let i = index"
+              class="page-image-wrap"
+              [class.hidden-page]="isPageHidden(i)"
+            >
+              <img
+                *ngIf="!isPageHidden(i)"
+                [src]="image"
+                [alt]="translationService.getTranslation('Página') + ' ' + (i + 1)"
+                (error)="onPageImageError(i)"
+                (load)="onPageImageLoad($event, i)"
+              />
+            </div>
+          </section>
+
+          <!-- Single Page -->
+          <section *ngSwitchCase="'single'" class="pages-single">
+            <div class="page-image-wrap single-page">
+              <img
+                *ngIf="currentSpreadImages[0]"
+                [src]="currentSpreadImages[0]"
+                [alt]="translationService.getTranslation('Página') + ' ' + currentPageNumber"
+              />
+            </div>
+          </section>
+
+          <!-- Double Page -->
+          <section *ngSwitchCase="'double'" class="pages-double">
+            <div
+              class="page-image-wrap double-page"
+              *ngFor="let image of currentSpreadImages; let i = index"
+            >
+              <img
+                [src]="image"
+                [alt]="translationService.getTranslation('Página') + ' ' + (currentPageIndex + i + 1)"
+              />
+            </div>
+          </section>
+        </ng-container>
+
+        <!-- Controles de página abajo -->
+        <div class="reader-page-controls bottom-controls" *ngIf="readingMode !== 'strip'">
+          <button type="button" (click)="previousPage()">
+            &#10094; {{ translationService.getTranslation('Página anterior') }}
+          </button>
+
+          <span>
+            {{ currentPageNumber }} / {{ totalPages }}
+          </span>
+
+          <button type="button" (click)="nextPage()">
+            {{ translationService.getTranslation('Página siguiente') }} &#10095;
+          </button>
+        </div>
+
+        <!-- Autor abajo -->
+        <section class="reader-bottom-author">
+          <button type="button" class="author-profile" (click)="abrirPerfilAutor()">
+            <img
+              class="author-avatar"
+              [src]="imageUrl(obra.autorAvatar, '/obras/paleta/tres.png')"
+              [alt]="obra.autor"
+            />
+
+            <div>
+              <strong>{{ obra.autor }}</strong>
+
+              <span>
+                {{ obra.totalSuscriptores || 0 }}
+                {{ translationService.getTranslation('Suscriptores') }}
+              </span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            class="subscribe-btn"
+            *ngIf="!isCurrentAuthor"
+            (click)="toggleSubscription()"
+          >
+            {{
+              obra.estaSuscrito
+                ? translationService.getTranslation('Desuscribirse')
+                : translationService.getTranslation('Suscribirse')
+            }}
+          </button>
+        </section>
+
+        <!-- Navegación de capítulos abajo -->
+        <div class="chapter-bottom-nav">
+          <button
+            type="button"
+            (click)="previousChapter()"
+            [disabled]="!hasPreviousChapter"
+          >
+            &#10094; {{ translationService.getTranslation('Anterior') }}
+          </button>
+
+          <button
+            type="button"
+            (click)="nextChapter()"
+            [disabled]="!hasNextChapter"
+          >
+            {{ translationService.getTranslation('Siguiente') }} &#10095;
+          </button>
+        </div>
+
+        <div id="disqus_thread"></div>
+      </main>
     </div>
-
-    <!-- Botones inferiores -->
-    <div class="button-container">
-      <button
-        type="button"
-        (click)="previous()"
-        class="nav-button"
-        [disabled]="!hasPreviousChapter"
-      >
-        &#10094; {{ translationService.getTranslation('Anterior') }}
-      </button>
-
-      <button
-        type="button"
-        (click)="next()"
-        class="nav-button"
-        [disabled]="!hasNextChapter"
-      >
-        {{ translationService.getTranslation('Siguiente') }} &#10095;
-      </button>
-    </div>
-
-    <div id="disqus_thread"></div>
   </ng-container>
 </div>
