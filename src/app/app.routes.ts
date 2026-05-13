@@ -11,7 +11,7 @@ import { CategoriasComponent } from './pages/categorias/categorias.component';
 import { FollowingComponent } from './pages/following/following.component';
 import { ChapterUploaderComponent } from './pages/chapter-uploader/chapter-uploader.component';
 import { MangaPreviewComponent } from './pages/manga-preview/manga-preview.component';
-
+import { ObraAdminComponent } from './pages/obra-admin/obra-admin.component';
 export const routes: Routes = [
   {
     path: '',
@@ -37,6 +37,11 @@ export const routes: Routes = [
     path: 'perfil/:id/editar',
     component: EditProfileComponent
   },
+
+  {
+  path: 'obra/:id/admin',
+  component: ObraAdminComponent
+},
   {
     path: 'perfil/:id',
     component: PerfilComponent

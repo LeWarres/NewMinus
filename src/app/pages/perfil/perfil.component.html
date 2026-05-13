@@ -194,6 +194,28 @@
           {{ translationService.getTranslation('Fecha de creación') }}:
           {{ capitulo.fechaCreacion }}
         </p>
+
+        <button
+          type="button"
+          class="botonEditar subir-capitulo-btn"
+          *ngIf="isCurrentUser"
+          [routerLink]="['/obra', capitulo.obraId, 'subir-capitulo']"
+          (click)="$event.stopPropagation()"
+        >
+          {{ translationService.getTranslation('Subir capítulo') }}
+        </button>
+
+        <button
+          type="button"
+          class="botonEditar subir-capitulo-btn"
+          *ngIf="isCurrentUser"
+          [routerLink]="['/obra', capitulo.obraId, 'admin']"
+          (click)="$event.stopPropagation()"
+        >
+          {{ translationService.getTranslation('Administrar obra') }}
+        </button>
+
+        
       </div>
     </div>
   </div>
@@ -252,6 +274,16 @@
         >
           {{ translationService.getTranslation('Subir capítulo') }}
         </button>
+
+        <button
+        type="button"
+        class="botonEditar subir-capitulo-btn"
+        *ngIf="isCurrentUser"
+        [routerLink]="['/obra', obra.id, 'admin']"
+        (click)="$event.stopPropagation()"
+      >
+        {{ translationService.getTranslation('Administrar obra') }}
+      </button>
       </div>
     </div>
   </div>

@@ -1,6 +1,16 @@
 <div class="register-container">
   <div class="edit-profile-container">
-    <h2>{{ translationService.getTranslation('Editar Perfil') }}</h2>
+    <div class="edit-profile-hero">
+      <span class="eyebrow">Minus Creators</span>
+
+      <h2>
+        {{ translationService.getTranslation('Editar Perfil') }}
+      </h2>
+
+      <p>
+        {{ translationService.getTranslation('Actualiza tu información pública, avatar y banner') }}
+      </p>
+    </div>
 
     <p *ngIf="error" class="error-message">
       {{ error }}
@@ -10,142 +20,197 @@
       {{ mensaje }}
     </p>
 
-    <!-- Banner -->
-    <div class="banner-section">
-      <div class="banner-container">
-        <img
-          [src]="imageUrl(profile.imgBanner, '/obras/paleta/portada.png')"
-          alt="Banner"
-        />
-
-        <label for="fileInputBanner" class="edit-icon banner-edit-icon">
-          ✎
-        </label>
-
-        <input
-          type="file"
-          id="fileInputBanner"
-          class="hidden-file"
-          accept="image/jpeg, image/png, image/webp"
-          (change)="onBannerImageSelected($event)"
-        />
-      </div>
-    </div>
-
-    <!-- Avatar y usuario -->
-    <div class="profile-header">
-      <div class="profile-photo-section">
-        <img
-          [src]="imageUrl(profile.imgPerfil, '/obras/paleta/tres.png')"
-          alt="Foto de perfil"
-        />
-
-        <label for="fileInputProfile" class="edit-icon">
-          ✎
-        </label>
-
-        <input
-          type="file"
-          id="fileInputProfile"
-          class="hidden-file"
-          accept="image/jpeg, image/png, image/webp"
-          (change)="onProfileImageSelected($event)"
-        />
-      </div>
-
-      <div class="username-section">
-        <label>
-          {{ translationService.getTranslation('NombredeUsuario') }}
-          <input
-            type="text"
-            [(ngModel)]="profile.username"
-            name="username"
-            placeholder="Nombre de usuario"
-            required
-          />
-        </label>
-      </div>
-    </div>
-
-    <!-- Formulario -->
     <form (ngSubmit)="onSubmit()" class="form-fields">
-      <label>
-        Email
-        <input
-          type="email"
-          [(ngModel)]="profile.email"
-          name="email"
-          placeholder="Correo electrónico"
-          required
-        />
-      </label>
+      <!-- Banner -->
+      <section class="banner-section">
+        <div class="section-title">
+          <span class="section-kicker">
+            {{ translationService.getTranslation('Banner') }}
+          </span>
 
-      <label for="nacionalidad">
-        {{ translationService.getTranslation('Nacionalidad') }}
-      </label>
-
-      <select
-        id="nacionalidad"
-        [(ngModel)]="profile.nacionalidad"
-        name="nacionalidad"
-        required
-      >
-        <option value="">Selecciona un país</option>
-        <option *ngFor="let country of countries" [value]="country.name">
-          {{ country.name }}
-        </option>
-      </select>
-
-      <label>
-        Facebook
-        <input
-          type="text"
-          [(ngModel)]="profile.facebook"
-          name="facebook"
-          placeholder="https://facebook.com/tuusuario"
-          pattern="https?://.+"
-          #facebook="ngModel"
-        />
-
-        <div *ngIf="facebook.invalid && facebook.touched" class="error-message">
-          Debe ser una URL válida.
+          <p>
+            {{ translationService.getTranslation('Imagen de portada de tu perfil') }}
+          </p>
         </div>
-      </label>
 
-      <label>
-        Twitter / X
-        <input
-          type="text"
-          [(ngModel)]="profile.twitter"
-          name="twitter"
-          placeholder="https://twitter.com/tuusuario"
-          pattern="https?://.+"
-          #twitter="ngModel"
-        />
+        <div class="banner-container">
+          <img
+            [src]="imageUrl(profile.imgBanner, '/obras/paleta/portada.png')"
+            alt="Banner"
+          />
 
-        <div *ngIf="twitter.invalid && twitter.touched" class="error-message">
-          Debe ser una URL válida.
+          <label for="fileInputBanner" class="edit-icon banner-edit-icon">
+            ✎
+          </label>
+
+          <input
+            type="file"
+            id="fileInputBanner"
+            class="hidden-file"
+            accept="image/jpeg, image/png, image/webp"
+            (change)="onBannerImageSelected($event)"
+          />
         </div>
-      </label>
+      </section>
 
-      <label>
-        Instagram
-        <input
-          type="text"
-          [(ngModel)]="profile.instagram"
-          name="instagram"
-          placeholder="https://instagram.com/tuusuario"
-          pattern="https?://.+"
-          #instagram="ngModel"
-        />
+      <!-- Avatar y usuario -->
+      <section class="profile-header">
+        <div class="profile-photo-section">
+          <img
+            [src]="imageUrl(profile.imgPerfil, '/obras/paleta/tres.png')"
+            alt="Foto de perfil"
+          />
 
-        <div *ngIf="instagram.invalid && instagram.touched" class="error-message">
-          Debe ser una URL válida.
+          <label for="fileInputProfile" class="edit-icon">
+            ✎
+          </label>
+
+          <input
+            type="file"
+            id="fileInputProfile"
+            class="hidden-file"
+            accept="image/jpeg, image/png, image/webp"
+            (change)="onProfileImageSelected($event)"
+          />
         </div>
-      </label>
+
+        <div class="username-section">
+          <label>
+            {{ translationService.getTranslation('NombredeUsuario') }}
+
+            <input
+              type="text"
+              [(ngModel)]="profile.username"
+              name="username"
+              [placeholder]="translationService.getTranslation('Nombre de usuario')"
+              required
+            />
+          </label>
+
+          <p class="helper-text">
+            {{ translationService.getTranslation('Este nombre será visible para otros usuarios') }}
+          </p>
+        </div>
+      </section>
+
+      <!-- Datos principales -->
+      <section class="form-section">
+        <div class="section-title">
+          <span class="section-kicker">
+            {{ translationService.getTranslation('Información') }}
+          </span>
+
+          <p>
+            {{ translationService.getTranslation('Datos básicos de tu cuenta') }}
+          </p>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Email
+
+            <input
+              type="email"
+              [(ngModel)]="profile.email"
+              name="email"
+              [placeholder]="translationService.getTranslation('Correo electrónico')"
+              required
+            />
+          </label>
+
+          <label>
+            {{ translationService.getTranslation('Nacionalidad') }}
+
+            <select
+              id="nacionalidad"
+              [(ngModel)]="profile.nacionalidad"
+              name="nacionalidad"
+              required
+            >
+              <option value="">
+                {{ translationService.getTranslation('Selecciona un país') }}
+              </option>
+
+              <option *ngFor="let country of countries" [value]="country.name">
+                {{ country.name }}
+              </option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <!-- Redes sociales -->
+      <section class="form-section">
+        <div class="section-title">
+          <span class="section-kicker">
+            {{ translationService.getTranslation('Redes sociales') }}
+          </span>
+
+          <p>
+            {{ translationService.getTranslation('Agrega enlaces para que tus lectores te encuentren') }}
+          </p>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Facebook
+
+            <input
+              type="text"
+              [(ngModel)]="profile.facebook"
+              name="facebook"
+              placeholder="https://facebook.com/tuusuario"
+              pattern="https?://.+"
+              #facebook="ngModel"
+            />
+
+            <div *ngIf="facebook.invalid && facebook.touched" class="field-error">
+              {{ translationService.getTranslation('Debe ser una URL válida') }}
+            </div>
+          </label>
+
+          <label>
+            Twitter / X
+
+            <input
+              type="text"
+              [(ngModel)]="profile.twitter"
+              name="twitter"
+              placeholder="https://twitter.com/tuusuario"
+              pattern="https?://.+"
+              #twitter="ngModel"
+            />
+
+            <div *ngIf="twitter.invalid && twitter.touched" class="field-error">
+              {{ translationService.getTranslation('Debe ser una URL válida') }}
+            </div>
+          </label>
+
+          <label class="full-width">
+            Instagram
+
+            <input
+              type="text"
+              [(ngModel)]="profile.instagram"
+              name="instagram"
+              placeholder="https://instagram.com/tuusuario"
+              pattern="https?://.+"
+              #instagram="ngModel"
+            />
+
+            <div *ngIf="instagram.invalid && instagram.touched" class="field-error">
+              {{ translationService.getTranslation('Debe ser una URL válida') }}
+            </div>
+          </label>
+        </div>
+      </section>
 
       <button type="submit" class="save-button" [disabled]="cargando">
-        {{ cargando ? 'Guardando...' : 'Guardar cambios' }}
+        {{
+          cargando
+            ? translationService.getTranslation('Guardando')
+            : translationService.getTranslation('Guardar cambios')
+        }}
       </button>
     </form>
   </div>

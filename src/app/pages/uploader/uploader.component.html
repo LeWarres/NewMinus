@@ -1,166 +1,300 @@
-<div class="p-6 bg-gray-900 text-white rounded-md max-w-lg mx-auto mt-8">
-  <h1 class="text-2xl font-bold mb-2">Minus Creators</h1>
-  <h2 class="text-xl font-semibold mb-6">Registrar obra</h2>
+<div class="uploader-page">
+  <section class="uploader-hero">
+    <div>
+      <span class="eyebrow">Minus Creators</span>
 
-  <form [formGroup]="formulario" (ngSubmit)="enviarFormulario()">
-    <!-- Título -->
-    <div class="mb-4">
-      <label class="block text-lg font-bold">
-        Título <span class="text-red-500">Requerido</span>
+      <h1>
+        {{ translationService.getTranslation('Registrar obra') }}
+      </h1>
+
+      <p>
+        {{ translationService.getTranslation('Sube una obra nueva con su portada y el capítulo inicial') }}
+      </p>
+    </div>
+
+    <div class="hero-badge">
+      <strong>01</strong>
+      <span>{{ translationService.getTranslation('Capitulo') }}</span>
+    </div>
+  </section>
+
+  <form class="uploader-card" [formGroup]="formulario" (ngSubmit)="enviarFormulario()">
+    <div class="form-header">
+      <div>
+        <span class="section-kicker">
+          {{ translationService.getTranslation('Obra') }}
+        </span>
+
+        <h2>
+          {{ translationService.getTranslation('Información de la obra') }}
+        </h2>
+      </div>
+
+      <span class="required-note">
+        {{ translationService.getTranslation('Campos requeridos') }}
+      </span>
+    </div>
+
+    <div class="form-grid">
+      <!-- Título -->
+      <label class="full">
+        <span>
+          {{ translationService.getTranslation('Título') }}
+          <strong>*</strong>
+        </span>
+
+        <input
+          type="text"
+          formControlName="titulo"
+          [placeholder]="translationService.getTranslation('Ejemplo titulo obra')"
+        />
+
+        <small
+          class="field-error"
+          *ngIf="formulario.get('titulo')?.invalid && formulario.get('titulo')?.touched"
+        >
+          {{ translationService.getTranslation('El título es obligatorio') }}
+        </small>
       </label>
 
-      <input
-        type="text"
-        formControlName="titulo"
-        class="w-full bg-gray-800 p-2 mt-1 rounded border border-gray-600 focus:outline-none"
-        placeholder="Ej: Capítulo 1"
-      />
-    </div>
+      <!-- Descripción -->
+      <label class="full">
+        <span>
+          {{ translationService.getTranslation('Descripción') }}
+        </span>
 
-    <!-- Descripción -->
-    <div class="mb-4">
-      <label class="block text-lg font-bold">Descripción</label>
+        <textarea
+          formControlName="descripcion"
+          rows="5"
+          [placeholder]="translationService.getTranslation('Describe tu obra aquí')"
+        ></textarea>
+      </label>
 
-      <textarea
-        formControlName="descripcion"
-        class="w-full bg-gray-800 p-2 mt-1 rounded border border-gray-600 focus:outline-none"
-        rows="4"
-        placeholder="Describe tu obra aquí..."
-      ></textarea>
-    </div>
+      <!-- Género -->
+      <label>
+        <span>
+          {{ translationService.getTranslation('Género') }}
+        </span>
 
-    <!-- Género -->
-    <div class="mb-4">
-      <label class="block text-lg font-bold">Género 1</label>
+        <select formControlName="genero">
+          <option value="">
+            {{ translationService.getTranslation('Selecciona un género') }}
+          </option>
 
-      <select
-        formControlName="genero"
-        class="w-full bg-gray-800 p-2 mt-1 rounded border border-gray-600"
-      >
-        <option value="">Selecciona un género</option>
-        <option value="accion">Acción</option>
-        <option value="drama">Drama</option>
-        <option value="comedia">Comedia</option>
-      </select>
-    </div>
+          <option value="accion">
+            {{ translationService.getTranslation('Acción') }}
+          </option>
 
-    <!-- Idioma -->
-    <div class="mb-4">
-      <label class="block text-lg font-bold">Idioma de la obra</label>
+          <option value="drama">
+            {{ translationService.getTranslation('Drama') }}
+          </option>
 
-      <select
-        formControlName="idioma"
-        class="w-full bg-gray-800 p-2 mt-1 rounded border border-gray-600"
-      >
-        <option value="ES">ES</option>
-        <option value="EN">EN</option>
-        <option value="FR">FR</option>
-      </select>
-    </div>
+          <option value="comedia">
+            {{ translationService.getTranslation('Comedia') }}
+          </option>
 
-    <!-- Tipo de Entrega -->
-    <div class="mb-4">
-      <label class="block text-lg font-bold">Tipo de entrega</label>
+          <option value="romance">
+            {{ translationService.getTranslation('Romance') }}
+          </option>
 
-      <div class="flex gap-4 mt-2">
-        <label class="flex items-center">
-          <input
-            type="radio"
-            formControlName="tipoEntrega"
-            value="one-shot"
-            class="mr-2"
-          />
-          One shot
-        </label>
+          <option value="fantasia">
+            {{ translationService.getTranslation('Fantasía') }}
+          </option>
 
-        <label class="flex items-center">
-          <input
-            type="radio"
-            formControlName="tipoEntrega"
-            value="serie"
-            class="mr-2"
-          />
-          Serie
-        </label>
+          <option value="terror">
+            {{ translationService.getTranslation('Terror') }}
+          </option>
+
+          <option value="aventura">
+            {{ translationService.getTranslation('Aventura') }}
+          </option>
+
+          <option value="ciencia-ficcion">
+            {{ translationService.getTranslation('Ciencia ficción') }}
+          </option>
+        </select>
+      </label>
+
+      <!-- Idioma -->
+      <label>
+        <span>
+          {{ translationService.getTranslation('Idioma') }}
+        </span>
+
+        <select formControlName="idioma">
+          <option value="ES">ES</option>
+          <option value="EN">EN</option>
+          <option value="FR">FR</option>
+        </select>
+      </label>
+
+      <!-- Tipo de entrega -->
+      <div class="radio-panel">
+        <span class="panel-label">
+          {{ translationService.getTranslation('Tipo de entrega') }}
+        </span>
+
+        <div class="radio-options">
+          <label class="radio-option">
+            <input
+              type="radio"
+              formControlName="tipoEntrega"
+              value="one-shot"
+            />
+
+            <span>One shot</span>
+          </label>
+
+          <label class="radio-option">
+            <input
+              type="radio"
+              formControlName="tipoEntrega"
+              value="serie"
+            />
+
+            <span>{{ translationService.getTranslation('Serie') }}</span>
+          </label>
+        </div>
       </div>
-    </div>
 
-    <!-- Serie Concluida -->
-    <div class="mb-4">
-      <label class="flex items-center">
+      <!-- Serie concluida -->
+      <label class="checkbox-option">
         <input
           type="checkbox"
           formControlName="serieConcluida"
-          class="mr-2"
         />
-        Serie concluida
+
+        <span>
+          {{ translationService.getTranslation('Serie concluida') }}
+        </span>
       </label>
     </div>
 
-    <!-- Agregar Portada -->
-    <div class="mt-4">
-      <label class="block text-lg font-bold">Agregar portada</label>
+    <!-- Portada -->
+    <section class="upload-section">
+      <div class="upload-title">
+        <div>
+          <span class="section-kicker">
+            {{ translationService.getTranslation('Portada') }}
+          </span>
 
-      <div
-        class="upload-container"
-        (click)="triggerFileInput()"
-        (dragover)="onDragOver($event)"
-        (dragleave)="onDragLeave($event)"
-        (drop)="onDrop($event)"
-        [class.dragover]="isDragging"
-      >
-        <p>Arrastra y suelta la portada aquí o haz clic para seleccionar</p>
+          <h2>
+            {{ translationService.getTranslation('Agregar portada') }}
+          </h2>
+        </div>
 
-        <input
-          type="file"
-          #fileInput
-          (change)="onFileSelected($event)"
-          hidden
-          accept="image/jpeg, image/png, image/webp"
-        />
+        <p>
+          JPG, PNG, WEBP · Max 10 MB
+        </p>
       </div>
-    </div>
 
-    <!-- Archivo de portada seleccionado -->
-    <div *ngIf="selectedFile" class="files-container">
-      <h3>📁 Portada seleccionada</h3>
+      <div class="upload-layout">
+        <div
+          class="upload-container"
+          (click)="triggerFileInput()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+          [class.dragover]="isDragging"
+        >
+          <div class="upload-icon">🖼️</div>
 
-      <ul>
-        <li class="file-item">
-          <div class="file-info">
-            <button
-              type="button"
-              (click)="removeFile($event)"
-              class="remove-btn"
-            >
-              ❌
-            </button>
+          <h3>
+            {{ translationService.getTranslation('Arrastra la portada aquí') }}
+          </h3>
 
-            <span class="file-name">{{ selectedFile.name }}</span>
-            <span class="file-size">{{ formatSize(selectedFile.size) }}</span>
+          <p>
+            {{ translationService.getTranslation('Haz clic para seleccionar archivo') }}
+          </p>
+
+          <input
+            type="file"
+            #fileInput
+            (change)="onFileSelected($event)"
+            hidden
+            accept="image/jpeg, image/png, image/webp"
+          />
+        </div>
+
+        <div class="preview-panel" *ngIf="selectedFile; else noCover">
+          <div class="file-preview-icon">📁</div>
+
+          <div>
+            <h3>
+              {{ translationService.getTranslation('Portada seleccionada') }}
+            </h3>
+
+            <p class="file-name">
+              {{ selectedFile.name }}
+            </p>
+
+            <p class="file-size">
+              {{ formatSize(selectedFile.size) }}
+            </p>
           </div>
-        </li>
-      </ul>
-    </div>
+
+          <button
+            type="button"
+            class="remove-btn"
+            (click)="removeFile($event)"
+          >
+            {{ translationService.getTranslation('Eliminar') }}
+          </button>
+        </div>
+
+        <ng-template #noCover>
+          <div class="preview-panel empty-preview">
+            <div class="file-preview-icon">✨</div>
+
+            <div>
+              <h3>
+                {{ translationService.getTranslation('Sin portada seleccionada') }}
+              </h3>
+
+              <p>
+                {{ translationService.getTranslation('La portada aparecerá aquí') }}
+              </p>
+            </div>
+          </div>
+        </ng-template>
+      </div>
+    </section>
 
     <!-- Capítulo 1 -->
-    <div class="mt-6">
-      <label class="block text-lg font-bold">Capítulo 1</label>
-      <label class="block text-lg font-bold">Agregar páginas</label>
+    <section class="upload-section">
+      <div class="upload-title">
+        <div>
+          <span class="section-kicker">
+            {{ translationService.getTranslation('Capitulo') }} 1
+          </span>
 
-      <p class="text-sm text-gray-300 mb-2">
-        Solo se aceptan imágenes JPG, JPEG, PNG o WEBP.
-      </p>
+          <h2>
+            {{ translationService.getTranslation('Agregar páginas') }}
+          </h2>
+        </div>
+
+        <p>
+          JPG, PNG, WEBP · Max 10 MB
+        </p>
+      </div>
 
       <div
-        class="upload-container"
+        class="upload-container pages-dropzone"
         (click)="triggerFileInputPages()"
         (dragover)="onDragOverPages($event)"
         (dragleave)="onDragLeavePages($event)"
         (drop)="onDropPages($event)"
         [class.dragover]="isDraggingPages"
       >
-        <p>Arrastra y suelta las páginas aquí o haz clic para seleccionar</p>
+        <div class="upload-icon">📚</div>
+
+        <h3>
+          {{ translationService.getTranslation('Arrastra las páginas aquí') }}
+        </h3>
+
+        <p>
+          {{ translationService.getTranslation('Haz clic para seleccionar varias imágenes') }}
+        </p>
 
         <input
           type="file"
@@ -171,50 +305,65 @@
           accept="image/jpeg, image/png, image/webp"
         />
       </div>
-    </div>
 
-    <!-- Páginas seleccionadas -->
-    <div *ngIf="selectedPages.length > 0" class="files-container">
-      <h3>📁 Páginas seleccionadas</h3>
+      <div *ngIf="selectedPages.length > 0" class="files-container">
+        <div class="files-header">
+          <h3>
+            {{ translationService.getTranslation('Páginas seleccionadas') }}
+          </h3>
 
-      <ul>
-        <li
-          *ngFor="let file of selectedPages; let index = index"
-          class="file-item"
-        >
-          <div class="file-info">
+          <span>
+            {{ selectedPages.length }}
+          </span>
+        </div>
+
+        <div class="files-list">
+          <div
+            *ngFor="let file of selectedPages; let index = index"
+            class="file-item"
+          >
+            <div class="page-number">
+              {{ index + 1 }}
+            </div>
+
+            <div class="file-info">
+              <span class="file-name">
+                {{ file.name }}
+              </span>
+
+              <span class="file-size">
+                {{ formatSize(file.size) }}
+              </span>
+            </div>
+
             <button
               type="button"
               (click)="removePage(index, $event)"
-              class="remove-btn"
+              class="remove-btn small"
             >
-              ❌
+              ×
             </button>
-
-            <span class="file-name">
-              Página {{ index + 1 }} - {{ file.name }}
-            </span>
-
-            <span class="file-size">
-              {{ formatSize(file.size) }}
-            </span>
           </div>
-        </li>
-      </ul>
-    </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Respuesta -->
-    <p *ngIf="respuesta" class="mt-4 p-3 rounded bg-gray-800 text-center">
+    <p *ngIf="respuesta" class="response-message">
       {{ respuesta }}
     </p>
 
-    <!-- Botón de Envío -->
+    <!-- Botón de envío -->
     <button
       type="submit"
-      class="mt-6 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded"
+      class="submit-btn"
       [disabled]="cargando"
     >
-      {{ cargando ? 'Enviando...' : 'Enviar' }}
+      {{
+        cargando
+          ? translationService.getTranslation('Enviando')
+          : translationService.getTranslation('Enviar')
+      }}
     </button>
   </form>
 </div>

@@ -2,6 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+
+import { TranslationService } from '../../services/translation.service';
 
 interface UploadResponse {
   success: boolean;
@@ -10,6 +13,14 @@ interface UploadResponse {
   obra_id?: number;
   usuario_id?: number;
   portada?: string;
+}
+
+interface CurrentUser {
+  id: number;
+  username?: string;
+  email?: string;
+  role?: string;
+  imgPerfil?: string;
 }
 
 @Component({
@@ -34,13 +45,15 @@ export class UploaderComponent {
   cargando = false;
   respuesta = '';
 
-  maxFileSize = 10 * 1024 * 1024; // 10 MB
+  maxFileSize = 10 * 1024 * 1024;
 
   formulario!: FormGroup;
 
   constructor(
     private fb: FormBuilder,
-    private http: HttpClient
+    private http: HttpClient,
+    private router: Router,
+    public translationService: TranslationService
   ) {
     this.formulario = this.fb.group({
       titulo: ['', Validators.required],
@@ -70,7 +83,7 @@ export class UploaderComponent {
     const file = input.files[0];
 
     if (!this.esImagenValida(file)) {
-      this.respuesta = 'La portada debe ser JPG, PNG o WEBP y pesar máximo 10 MB';
+      this.respuesta = this.translationService.getTranslation('La portada debe ser una imagen válida');
       input.value = '';
       return;
     }
@@ -113,7 +126,7 @@ export class UploaderComponent {
     const file = event.dataTransfer.files[0];
 
     if (!this.esImagenValida(file)) {
-      this.respuesta = 'La portada debe ser JPG, PNG o WEBP y pesar máximo 10 MB';
+      this.respuesta = this.translationService.getTranslation('La portada debe ser una imagen válida');
       return;
     }
 
@@ -147,7 +160,7 @@ export class UploaderComponent {
     const archivosValidos = files.filter((file) => this.esImagenValida(file));
 
     if (archivosValidos.length !== files.length) {
-      this.respuesta = 'Algunas páginas no se agregaron porque no son JPG, PNG o WEBP, o pesan más de 10 MB';
+      this.respuesta = this.translationService.getTranslation('Algunas páginas no se agregaron');
     } else {
       this.respuesta = '';
     }
@@ -194,27 +207,33 @@ export class UploaderComponent {
 
   enviarFormulario(): void {
     if (this.formulario.invalid) {
-      this.respuesta = 'El título es obligatorio';
+      this.respuesta = this.translationService.getTranslation('El título es obligatorio');
       this.formulario.markAllAsTouched();
       return;
     }
 
     if (!this.selectedFile) {
-      this.respuesta = 'Debes seleccionar una portada';
+      this.respuesta = this.translationService.getTranslation('Debes seleccionar una portada');
       return;
     }
 
     if (this.selectedPages.length === 0) {
-      this.respuesta = 'Debes agregar al menos una página';
+      this.respuesta = this.translationService.getTranslation('Debes agregar al menos una página');
+      return;
+    }
+
+    const currentUser = this.obtenerUsuarioActual();
+
+    if (!currentUser) {
+      this.router.navigate(['/login']);
       return;
     }
 
     const valores = this.formulario.value;
-    const usuarioId = this.obtenerUsuarioId();
 
     const formData = new FormData();
 
-    formData.append('usuario_id', String(usuarioId));
+    formData.append('usuario_id', String(currentUser.id));
     formData.append('titulo', valores.titulo || '');
     formData.append('descripcion', valores.descripcion || '');
     formData.append('genero', valores.genero || '');
@@ -236,11 +255,11 @@ export class UploaderComponent {
         this.cargando = false;
 
         if (!res.success) {
-          this.respuesta = res.error || 'No se pudo guardar la obra';
+          this.respuesta = res.error || this.translationService.getTranslation('No se pudo guardar la obra');
           return;
         }
 
-        this.respuesta = res.mensaje || 'Obra guardada correctamente';
+        this.respuesta = res.mensaje || this.translationService.getTranslation('Obra guardada correctamente');
 
         this.formulario.reset({
           titulo: '',
@@ -261,27 +280,32 @@ export class UploaderComponent {
         if (this.fileInputPages) {
           this.fileInputPages.nativeElement.value = '';
         }
+
+        if (res.obra_id) {
+          this.router.navigate(['/obra', res.obra_id]);
+        }
       },
       error: (err) => {
         this.cargando = false;
-        this.respuesta = err.error?.error || 'Error al guardar la obra';
+        this.respuesta = err.error?.error || this.translationService.getTranslation('Error al guardar la obra');
         console.error(err);
       }
     });
   }
 
-  private obtenerUsuarioId(): number {
+  private obtenerUsuarioActual(): CurrentUser | null {
     const userRaw = localStorage.getItem('user');
 
     if (!userRaw) {
-      return 2;
+      return null;
     }
 
     try {
-      const user = JSON.parse(userRaw);
-      return user?.id ? Number(user.id) : 2;
+      const user = JSON.parse(userRaw) as CurrentUser;
+      return user?.id ? user : null;
     } catch {
-      return 2;
+      localStorage.removeItem('user');
+      return null;
     }
   }
 
