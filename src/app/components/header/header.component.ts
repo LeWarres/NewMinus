@@ -5,6 +5,7 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 
 import { TranslationService } from '../../services/translation.service';
+import { AuthService } from '../../services/auth.service';
 
 interface CurrentUser {
   id: number;
@@ -46,12 +47,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   constructor(
     public translationService: TranslationService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.currentLanguage = this.translationService.getCurrentLanguage();
+
     this.loadCurrentUser();
+    this.checkServerSession();
 
     this.languageSubscription = this.translationService.currentLanguage$
       .subscribe((language) => {
@@ -82,19 +86,26 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   loadCurrentUser(): void {
-    const userRaw = localStorage.getItem('user');
+    this.currentUser = this.authService.getCurrentUser();
+  }
 
-    if (!userRaw) {
-      this.currentUser = null;
-      return;
-    }
+  checkServerSession(): void {
+    this.authService.checkSession().subscribe({
+      next: (res) => {
+        if (!res.success || !res.authenticated || !res.user) {
+          this.authService.clearSession();
+          this.currentUser = null;
+          return;
+        }
 
-    try {
-      this.currentUser = JSON.parse(userRaw);
-    } catch {
-      this.currentUser = null;
-      localStorage.removeItem('user');
-    }
+        this.authService.saveSession(res.user, res.csrfToken);
+        this.currentUser = res.user;
+      },
+      error: () => {
+        this.authService.clearSession();
+        this.currentUser = null;
+      }
+    });
   }
 
   toggleMenu(): void {
@@ -110,21 +121,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.translationService.setLanguage(select.value);
   }
 
- search(): void {
-  const query = this.searchQuery.trim();
+  search(): void {
+    const query = this.searchQuery.trim();
 
-  if (!query) {
-    return;
-  }
-
-  this.router.navigate(['/categorias'], {
-    queryParams: {
-      buscar: query
+    if (!query) {
+      return;
     }
-  });
 
-  this.menuOpen = false;
-}
+    this.router.navigate(['/categorias'], {
+      queryParams: {
+        buscar: query
+      }
+    });
+
+    this.menuOpen = false;
+  }
 
   navigateToUploader(): void {
     if (!this.currentUser) {
@@ -139,6 +150,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
+  navigateToSignup(): void {
+    this.router.navigate(['/signup']);
+  }
+
   goToProfile(): void {
     if (!this.currentUser) {
       this.router.navigate(['/login']);
@@ -149,14 +164,25 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.userMenuOpen = false;
   }
 
-  navigateToSignup(): void {
-  this.router.navigate(['/signup']);
-}
-
   logout(): void {
-    localStorage.removeItem('user');
+    this.authService.logout().subscribe({
+      next: () => {
+        this.finishLogout();
+      },
+      error: (err) => {
+        console.error(err);
+        this.finishLogout();
+      }
+    });
+  }
+
+  private finishLogout(): void {
+    this.authService.clearSession();
+
     this.currentUser = null;
     this.userMenuOpen = false;
+    this.menuOpen = false;
+
     this.router.navigate(['/login']);
   }
 

@@ -5,13 +5,13 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { TranslationService } from '../../services/translation.service';
+import { AuthService, CurrentUser } from '../../services/auth.service';
 
-interface CurrentUser {
+interface AdminPagina {
   id: number;
-  username: string;
-  email?: string;
-  role?: string;
-  imgPerfil?: string;
+  numeroPagina: number;
+  imagen: string;
+  creadoEn: string;
 }
 
 interface AdminCapitulo {
@@ -21,13 +21,6 @@ interface AdminCapitulo {
   descripcion?: string;
   creadoEn: string;
   paginas: AdminPagina[];
-}
-
-interface AdminPagina {
-  id: number;
-  numeroPagina: number;
-  imagen: string;
-  creadoEn: string;
 }
 
 interface AdminObra {
@@ -57,6 +50,17 @@ interface GenericResponse {
   error?: string;
 }
 
+interface PortadaResponse extends GenericResponse {
+  portada?: string;
+}
+
+interface PaginasResponse extends GenericResponse {
+  paginas?: AdminPagina[];
+  insertadas?: number;
+  insertIds?: number[];
+  capituloId?: number;
+}
+
 @Component({
   selector: 'app-obra-admin',
   standalone: true,
@@ -72,16 +76,18 @@ export class ObraAdminComponent implements OnInit {
   adminUrl = 'https://minuscreators.com/api/obra_admin.php';
   actualizarObraUrl = 'https://minuscreators.com/api/actualizar_obra.php';
   actualizarCapituloUrl = 'https://minuscreators.com/api/actualizar_capitulo.php';
-  siteUrl = 'https://minuscreators.com';
   actualizarPortadaUrl = 'https://minuscreators.com/api/actualizar_portada.php';
-agregarPaginasUrl = 'https://minuscreators.com/api/agregar_paginas_capitulo.php';
-eliminarPaginaUrl = 'https://minuscreators.com/api/eliminar_pagina_capitulo.php';
+  agregarPaginasUrl = 'https://minuscreators.com/api/agregar_paginas_capitulo.php';
+  eliminarPaginaUrl = 'https://minuscreators.com/api/eliminar_pagina_capitulo.php';
+
+  siteUrl = 'https://minuscreators.com';
 
   currentUser: CurrentUser | null = null;
   obra: AdminObra | null = null;
 
   cargando = false;
   guardandoObra = false;
+  guardandoPortada = false;
 
   error = '';
   mensajeObra = '';
@@ -89,14 +95,12 @@ eliminarPaginaUrl = 'https://minuscreators.com/api/eliminar_pagina_capitulo.php'
   capituloMensajes: Record<number, string> = {};
   guardandoCapitulo: Record<number, boolean> = {};
 
-coverFile: File | null = null;
-coverPreview = '';
+  coverFile: File | null = null;
+  coverPreview = '';
 
-selectedChapterFiles: Record<number, File[]> = {};
-pageUploadMessages: Record<number, string> = {};
-guardandoPortada = false;
-subiendoPaginas: Record<number, boolean> = {};
-
+  selectedChapterFiles: Record<number, File[]> = {};
+  pageUploadMessages: Record<number, string> = {};
+  subiendoPaginas: Record<number, boolean> = {};
 
   generos = [
     { label: 'Acción', value: 'accion' },
@@ -124,11 +128,12 @@ subiendoPaginas: Record<number, boolean> = {};
     private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router,
+    private authService: AuthService,
     public translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = this.getCurrentUser();
+    this.currentUser = this.authService.getCurrentUser();
 
     if (!this.currentUser) {
       this.router.navigate(['/login']);
@@ -150,23 +155,24 @@ subiendoPaginas: Record<number, boolean> = {};
   }
 
   cargarObraAdmin(obraId: number): void {
-    if (!this.currentUser) {
-      this.router.navigate(['/login']);
-      return;
-    }
-
     this.cargando = true;
     this.error = '';
     this.mensajeObra = '';
 
-    const url = `${this.adminUrl}?obra_id=${obraId}&current_user_id=${this.currentUser.id}`;
+    /*
+      Ya NO mandamos current_user_id.
+      PHP identifica al usuario con la cookie HttpOnly.
+    */
+    const url = `${this.adminUrl}?obra_id=${obraId}`;
 
-    this.http.get<ObraAdminResponse>(url).subscribe({
+    this.http.get<ObraAdminResponse>(url, {
+      withCredentials: true
+    }).subscribe({
       next: (res) => {
         this.cargando = false;
 
         if (!res.success || !res.obra) {
-          this.error = res.error || 'No se pudo cargar la obra';
+          this.error = res.error || this.translationService.getTranslation('No se pudo cargar la obra');
           return;
         }
 
@@ -174,14 +180,26 @@ subiendoPaginas: Record<number, boolean> = {};
       },
       error: (err) => {
         this.cargando = false;
-        this.error = err.error?.error || 'Error al cargar la obra';
+
+        if (err.status === 401) {
+          this.authService.clearSession();
+          this.router.navigate(['/login']);
+          return;
+        }
+
+        if (err.status === 403) {
+          this.error = err.error?.error || this.translationService.getTranslation('No tienes permiso para realizar esta acción');
+          return;
+        }
+
+        this.error = err.error?.error || this.translationService.getTranslation('Error al cargar la obra');
         console.error(err);
       }
     });
   }
 
   guardarObra(): void {
-    if (!this.obra || !this.currentUser) {
+    if (!this.obra) {
       return;
     }
 
@@ -195,8 +213,7 @@ subiendoPaginas: Record<number, boolean> = {};
 
     const payload = {
       obra_id: this.obra.id,
-      current_user_id: this.currentUser.id,
-      titulo: this.obra.titulo,
+      titulo: this.obra.titulo.trim(),
       descripcion: this.obra.descripcion || '',
       genero: this.obra.genero || '',
       idioma: this.obra.idioma || 'ES',
@@ -204,58 +221,78 @@ subiendoPaginas: Record<number, boolean> = {};
       serieConcluida: this.obra.serieConcluida
     };
 
-    this.http.post<GenericResponse>(this.actualizarObraUrl, payload).subscribe({
-      next: (res) => {
-        this.guardandoObra = false;
-
-        if (!res.success) {
-          this.mensajeObra = res.error || 'No se pudo actualizar la obra';
-          return;
+    this.ensureCsrfAndRun(() => {
+      this.http.post<GenericResponse>(
+        this.actualizarObraUrl,
+        payload,
+        {
+          withCredentials: true,
+          headers: this.authService.csrfHeaders()
         }
+      ).subscribe({
+        next: (res) => {
+          this.guardandoObra = false;
 
-        this.mensajeObra = res.mensaje || this.translationService.getTranslation('Obra actualizada correctamente');
-      },
-      error: (err) => {
-        this.guardandoObra = false;
-        this.mensajeObra = err.error?.error || 'Error al actualizar la obra';
-        console.error(err);
-      }
+          if (!res.success) {
+            this.mensajeObra = res.error || this.translationService.getTranslation('No se pudo actualizar la obra');
+            return;
+          }
+
+          this.mensajeObra = res.mensaje || this.translationService.getTranslation('Obra actualizada correctamente');
+        },
+        error: (err) => {
+          this.guardandoObra = false;
+          this.mensajeObra = this.getFriendlyError(err, this.translationService.getTranslation('Error al actualizar la obra'));
+          console.error(err);
+        }
+      });
+    }, () => {
+      this.guardandoObra = false;
+      this.mensajeObra = this.translationService.getTranslation('No se pudo preparar la acción');
     });
   }
 
   guardarCapitulo(capitulo: AdminCapitulo): void {
-    if (!this.currentUser) {
-      this.router.navigate(['/login']);
-      return;
-    }
-
     this.guardandoCapitulo[capitulo.id] = true;
     this.capituloMensajes[capitulo.id] = '';
 
     const payload = {
       capitulo_id: capitulo.id,
-      current_user_id: this.currentUser.id,
       titulo: capitulo.titulo || '',
       descripcion: capitulo.descripcion || ''
     };
 
-    this.http.post<GenericResponse>(this.actualizarCapituloUrl, payload).subscribe({
-      next: (res) => {
-        this.guardandoCapitulo[capitulo.id] = false;
-
-        if (!res.success) {
-          this.capituloMensajes[capitulo.id] = res.error || 'No se pudo actualizar el capítulo';
-          return;
+    this.ensureCsrfAndRun(() => {
+      this.http.post<GenericResponse>(
+        this.actualizarCapituloUrl,
+        payload,
+        {
+          withCredentials: true,
+          headers: this.authService.csrfHeaders()
         }
+      ).subscribe({
+        next: (res) => {
+          this.guardandoCapitulo[capitulo.id] = false;
 
-        this.capituloMensajes[capitulo.id] =
-          res.mensaje || this.translationService.getTranslation('Capítulo actualizado correctamente');
-      },
-      error: (err) => {
-        this.guardandoCapitulo[capitulo.id] = false;
-        this.capituloMensajes[capitulo.id] = err.error?.error || 'Error al actualizar el capítulo';
-        console.error(err);
-      }
+          if (!res.success) {
+            this.capituloMensajes[capitulo.id] =
+              res.error || this.translationService.getTranslation('No se pudo actualizar el capítulo');
+            return;
+          }
+
+          this.capituloMensajes[capitulo.id] =
+            res.mensaje || this.translationService.getTranslation('Capítulo actualizado correctamente');
+        },
+        error: (err) => {
+          this.guardandoCapitulo[capitulo.id] = false;
+          this.capituloMensajes[capitulo.id] =
+            this.getFriendlyError(err, this.translationService.getTranslation('Error al actualizar el capítulo'));
+          console.error(err);
+        }
+      });
+    }, () => {
+      this.guardandoCapitulo[capitulo.id] = false;
+      this.capituloMensajes[capitulo.id] = this.translationService.getTranslation('No se pudo preparar la acción');
     });
   }
 
@@ -289,210 +326,260 @@ subiendoPaginas: Record<number, boolean> = {};
   }
 
   volverPerfil(): void {
-    if (!this.currentUser) {
+    const user = this.authService.getCurrentUser();
+
+    if (!user) {
       this.router.navigate(['/']);
       return;
     }
 
-    this.router.navigate(['/perfil', this.currentUser.id]);
+    this.router.navigate(['/perfil', user.id]);
   }
 
   onCoverSelected(event: Event): void {
-  const input = event.target as HTMLInputElement;
+    const input = event.target as HTMLInputElement;
 
-  if (!input.files || input.files.length === 0) {
-    return;
-  }
-
-  const file = input.files[0];
-
-  if (!this.esImagenValida(file)) {
-    this.mensajeObra = 'La portada debe ser JPG, PNG o WEBP y pesar máximo 10 MB';
-    input.value = '';
-    return;
-  }
-
-  this.coverFile = file;
-  this.coverPreview = URL.createObjectURL(file);
-  this.mensajeObra = '';
-  input.value = '';
-}
-
-guardarPortada(): void {
-  if (!this.obra || !this.currentUser || !this.coverFile) {
-    return;
-  }
-
-  const formData = new FormData();
-
-  formData.append('obra_id', String(this.obra.id));
-  formData.append('current_user_id', String(this.currentUser.id));
-  formData.append('portada', this.coverFile);
-
-  this.guardandoPortada = true;
-  this.mensajeObra = '';
-
-  this.http.post<GenericResponse & { portada?: string }>(this.actualizarPortadaUrl, formData).subscribe({
-    next: (res) => {
-      this.guardandoPortada = false;
-
-      if (!res.success) {
-        this.mensajeObra = res.error || 'No se pudo actualizar la portada';
-        return;
-      }
-
-      if (res.portada && this.obra) {
-        this.obra.portada = res.portada;
-      }
-
-      this.coverFile = null;
-      this.coverPreview = '';
-      this.mensajeObra = res.mensaje || 'Portada actualizada correctamente';
-    },
-    error: (err) => {
-      this.guardandoPortada = false;
-      this.mensajeObra = err.error?.error || 'Error al actualizar portada';
-      console.error(err);
+    if (!input.files || input.files.length === 0) {
+      return;
     }
-  });
-}
 
-onChapterPagesSelected(event: Event, capitulo: AdminCapitulo): void {
-  const input = event.target as HTMLInputElement;
+    const file = input.files[0];
 
-  if (!input.files || input.files.length === 0) {
-    return;
+    if (!this.esImagenValida(file)) {
+      this.mensajeObra = this.translationService.getTranslation('La portada debe ser una imagen válida');
+      input.value = '';
+      return;
+    }
+
+    if (this.coverPreview) {
+      URL.revokeObjectURL(this.coverPreview);
+    }
+
+    this.coverFile = file;
+    this.coverPreview = URL.createObjectURL(file);
+    this.mensajeObra = '';
+    input.value = '';
   }
 
-  const files = Array.from(input.files);
-  const validos = files.filter(file => this.esImagenValida(file));
+  guardarPortada(): void {
+    if (!this.obra || !this.coverFile) {
+      return;
+    }
 
-  if (validos.length !== files.length) {
-    this.pageUploadMessages[capitulo.id] = 'Algunas imágenes no se agregaron porque no son válidas o pesan más de 10 MB';
-  } else {
-    this.pageUploadMessages[capitulo.id] = '';
+    const formData = new FormData();
+
+    formData.append('obra_id', String(this.obra.id));
+    formData.append('portada', this.coverFile);
+
+    this.guardandoPortada = true;
+    this.mensajeObra = '';
+
+    this.ensureCsrfAndRun(() => {
+      this.http.post<PortadaResponse>(
+        this.actualizarPortadaUrl,
+        formData,
+        {
+          withCredentials: true,
+          headers: this.authService.csrfHeaders()
+        }
+      ).subscribe({
+        next: (res) => {
+          this.guardandoPortada = false;
+
+          if (!res.success) {
+            this.mensajeObra = res.error || this.translationService.getTranslation('No se pudo actualizar la portada');
+            return;
+          }
+
+          if (res.portada && this.obra) {
+            this.obra.portada = res.portada;
+          }
+
+          if (this.coverPreview) {
+            URL.revokeObjectURL(this.coverPreview);
+          }
+
+          this.coverFile = null;
+          this.coverPreview = '';
+          this.mensajeObra = res.mensaje || this.translationService.getTranslation('Portada actualizada correctamente');
+        },
+        error: (err) => {
+          this.guardandoPortada = false;
+          this.mensajeObra = this.getFriendlyError(err, this.translationService.getTranslation('Error al actualizar portada'));
+          console.error(err);
+        }
+      });
+    }, () => {
+      this.guardandoPortada = false;
+      this.mensajeObra = this.translationService.getTranslation('No se pudo preparar la acción');
+    });
   }
 
-  this.selectedChapterFiles[capitulo.id] = [
-    ...(this.selectedChapterFiles[capitulo.id] || []),
-    ...validos
-  ];
+  onChapterPagesSelected(event: Event, capitulo: AdminCapitulo): void {
+    const input = event.target as HTMLInputElement;
 
-  input.value = '';
-}
+    if (!input.files || input.files.length === 0) {
+      return;
+    }
 
-removeSelectedChapterFile(capituloId: number, index: number): void {
-  const files = this.selectedChapterFiles[capituloId] || [];
-  files.splice(index, 1);
-  this.selectedChapterFiles[capituloId] = [...files];
-}
+    const files = Array.from(input.files);
+    const validos = files.filter((file) => this.esImagenValida(file));
 
-subirPaginasCapitulo(capitulo: AdminCapitulo): void {
-  if (!this.currentUser) {
-    this.router.navigate(['/login']);
-    return;
+    if (validos.length !== files.length) {
+      this.pageUploadMessages[capitulo.id] = this.translationService.getTranslation('Algunas páginas no se agregaron');
+    } else {
+      this.pageUploadMessages[capitulo.id] = '';
+    }
+
+    this.selectedChapterFiles[capitulo.id] = [
+      ...(this.selectedChapterFiles[capitulo.id] || []),
+      ...validos
+    ];
+
+    input.value = '';
   }
 
+  removeSelectedChapterFile(capituloId: number, index: number): void {
+    const files = this.selectedChapterFiles[capituloId] || [];
+    files.splice(index, 1);
+    this.selectedChapterFiles[capituloId] = [...files];
+  }
+
+  subirPaginasCapitulo(capitulo: AdminCapitulo): void {
   const files = this.selectedChapterFiles[capitulo.id] || [];
 
   if (files.length === 0) {
-    this.pageUploadMessages[capitulo.id] = 'Selecciona al menos una imagen';
+    this.pageUploadMessages[capitulo.id] =
+      this.translationService.getTranslation('Selecciona al menos una imagen');
     return;
   }
 
   const formData = new FormData();
 
   formData.append('capitulo_id', String(capitulo.id));
-  formData.append('current_user_id', String(this.currentUser.id));
 
-  files.forEach(file => {
+  files.forEach((file) => {
     formData.append('paginas[]', file);
   });
 
   this.subiendoPaginas[capitulo.id] = true;
   this.pageUploadMessages[capitulo.id] = '';
 
-  this.http.post<GenericResponse & { paginas?: AdminPagina[] }>(this.agregarPaginasUrl, formData).subscribe({
-    next: (res) => {
-      this.subiendoPaginas[capitulo.id] = false;
-
-      if (!res.success) {
-        this.pageUploadMessages[capitulo.id] = res.error || 'No se pudieron agregar las páginas';
-        return;
+  this.ensureCsrfAndRun(() => {
+    this.http.post<PaginasResponse>(
+      this.agregarPaginasUrl,
+      formData,
+      {
+        withCredentials: true,
+        headers: this.authService.csrfHeaders()
       }
+    ).subscribe({
+      next: (res) => {
+        this.subiendoPaginas[capitulo.id] = false;
 
-      capitulo.paginas = res.paginas || capitulo.paginas;
-      this.selectedChapterFiles[capitulo.id] = [];
-      this.pageUploadMessages[capitulo.id] = res.mensaje || 'Páginas agregadas correctamente';
-    },
-    error: (err) => {
-      this.subiendoPaginas[capitulo.id] = false;
-      this.pageUploadMessages[capitulo.id] = err.error?.error || 'Error al agregar páginas';
-      console.error(err);
-    }
+        console.log('Respuesta agregar páginas:', res);
+
+        if (!res.success) {
+          this.pageUploadMessages[capitulo.id] =
+            res.error || this.translationService.getTranslation('No se pudieron agregar las páginas');
+          return;
+        }
+
+        if (!res.insertadas || res.insertadas <= 0) {
+          this.pageUploadMessages[capitulo.id] =
+            'El servidor respondió éxito, pero no confirmó imágenes insertadas. Revisa agregar_paginas_capitulo.php.';
+          return;
+        }
+
+        capitulo.paginas = res.paginas || capitulo.paginas;
+        this.selectedChapterFiles[capitulo.id] = [];
+
+        this.pageUploadMessages[capitulo.id] =
+          `${res.insertadas} ${this.translationService.getTranslation('Páginas agregadas correctamente')}`;
+
+        if (this.obra) {
+          this.cargarObraAdmin(this.obra.id);
+        }
+      },
+      error: (err) => {
+        this.subiendoPaginas[capitulo.id] = false;
+
+        console.error('Error agregar páginas:', err);
+
+        this.pageUploadMessages[capitulo.id] =
+          this.getFriendlyError(
+            err,
+            this.translationService.getTranslation('Error al agregar páginas')
+          );
+      }
+    });
+  }, () => {
+    this.subiendoPaginas[capitulo.id] = false;
+    this.pageUploadMessages[capitulo.id] =
+      this.translationService.getTranslation('No se pudo preparar la acción');
   });
 }
 
-eliminarPagina(capitulo: AdminCapitulo, pagina: AdminPagina): void {
-  if (!this.currentUser) {
-    this.router.navigate(['/login']);
-    return;
-  }
+  eliminarPagina(capitulo: AdminCapitulo, pagina: AdminPagina): void {
+    const confirmar = confirm(
+      `${this.translationService.getTranslation('Eliminar')} ${this.translationService.getTranslation('Página')} ${pagina.numeroPagina}?`
+    );
 
-  const confirmar = confirm(`¿Eliminar página ${pagina.numeroPagina}?`);
-
-  if (!confirmar) {
-    return;
-  }
-
-  this.pageUploadMessages[capitulo.id] = '';
-
-  this.http.post<GenericResponse & { paginas?: AdminPagina[] }>(this.eliminarPaginaUrl, {
-    pagina_id: pagina.id,
-    current_user_id: this.currentUser.id
-  }).subscribe({
-    next: (res) => {
-      if (!res.success) {
-        this.pageUploadMessages[capitulo.id] = res.error || 'No se pudo eliminar la página';
-        return;
-      }
-
-      capitulo.paginas = res.paginas || capitulo.paginas.filter(item => item.id !== pagina.id);
-      this.pageUploadMessages[capitulo.id] = res.mensaje || 'Página eliminada correctamente';
-    },
-    error: (err) => {
-      this.pageUploadMessages[capitulo.id] = err.error?.error || 'Error al eliminar página';
-      console.error(err);
+    if (!confirmar) {
+      return;
     }
-  });
-}
 
-formatSize(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} B`;
+    this.pageUploadMessages[capitulo.id] = '';
+
+    const payload = {
+      pagina_id: pagina.id
+    };
+
+    this.ensureCsrfAndRun(() => {
+      this.http.post<PaginasResponse>(
+        this.eliminarPaginaUrl,
+        payload,
+        {
+          withCredentials: true,
+          headers: this.authService.csrfHeaders()
+        }
+      ).subscribe({
+        next: (res) => {
+          if (!res.success) {
+            this.pageUploadMessages[capitulo.id] =
+              res.error || this.translationService.getTranslation('No se pudo eliminar la página');
+            return;
+          }
+
+          capitulo.paginas = res.paginas || capitulo.paginas.filter((item) => item.id !== pagina.id);
+          this.pageUploadMessages[capitulo.id] =
+            res.mensaje || this.translationService.getTranslation('Página eliminada correctamente');
+        },
+        error: (err) => {
+          this.pageUploadMessages[capitulo.id] =
+            this.getFriendlyError(err, this.translationService.getTranslation('Error al eliminar página'));
+          console.error(err);
+        }
+      });
+    }, () => {
+      this.pageUploadMessages[capitulo.id] = this.translationService.getTranslation('No se pudo preparar la acción');
+    });
   }
 
-  const kb = bytes / 1024;
+  formatSize(bytes: number): string {
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
 
-  if (kb < 1024) {
-    return `${kb.toFixed(2)} KB`;
+    const kb = bytes / 1024;
+
+    if (kb < 1024) {
+      return `${kb.toFixed(2)} KB`;
+    }
+
+    const mb = kb / 1024;
+    return `${mb.toFixed(2)} MB`;
   }
-
-  const mb = kb / 1024;
-  return `${mb.toFixed(2)} MB`;
-}
-
-private esImagenValida(file: File): boolean {
-  const tiposPermitidos = [
-    'image/jpeg',
-    'image/png',
-    'image/webp'
-  ];
-
-  const maxFileSize = 10 * 1024 * 1024;
-
-  return tiposPermitidos.includes(file.type) && file.size <= maxFileSize;
-}
 
   imageUrl(path?: string | null, fallback: string = '/obras/paleta/portada.png'): string {
     const finalPath = path || fallback;
@@ -508,18 +595,52 @@ private esImagenValida(file: File): boolean {
     return `${this.siteUrl}/${finalPath}`;
   }
 
-  private getCurrentUser(): CurrentUser | null {
-    const userRaw = localStorage.getItem('user');
-
-    if (!userRaw) {
-      return null;
+  private ensureCsrfAndRun(action: () => void, onFail?: () => void): void {
+    if (this.authService.getCsrfToken()) {
+      action();
+      return;
     }
 
-    try {
-      return JSON.parse(userRaw) as CurrentUser;
-    } catch {
-      localStorage.removeItem('user');
-      return null;
+    this.authService.fetchCsrfToken().subscribe({
+      next: (res) => {
+        if (!res.success || !res.csrfToken) {
+          onFail?.();
+          return;
+        }
+
+        this.authService.saveCsrfToken(res.csrfToken);
+        action();
+      },
+      error: (err) => {
+        onFail?.();
+        console.error(err);
+      }
+    });
+  }
+
+  private getFriendlyError(err: any, fallback: string): string {
+    if (err.status === 401) {
+      this.authService.clearSession();
+      this.router.navigate(['/login']);
+      return this.translationService.getTranslation('No autenticado');
     }
+
+    if (err.status === 403) {
+      return err.error?.error || this.translationService.getTranslation('No tienes permiso para realizar esta acción');
+    }
+
+    return err.error?.error || fallback;
+  }
+
+  private esImagenValida(file: File): boolean {
+    const tiposPermitidos = [
+      'image/jpeg',
+      'image/png',
+      'image/webp'
+    ];
+
+    const maxFileSize = 10 * 1024 * 1024;
+
+    return tiposPermitidos.includes(file.type) && file.size <= maxFileSize;
   }
 }

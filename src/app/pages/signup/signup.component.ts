@@ -1,28 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 
 import { TranslationService } from '../../services/translation.service';
-
-interface RegisterResponse {
-  success: boolean;
-  mensaje?: string;
-  error?: string;
-  user?: {
-    id: number;
-    username: string;
-    email: string;
-    role: string;
-    nacionalidad?: string;
-    imgPerfil?: string;
-    imgBanner?: string;
-    twitter?: string;
-    facebook?: string;
-    instagram?: string;
-  };
-}
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-signup',
@@ -36,13 +18,18 @@ interface RegisterResponse {
   styleUrl: './signup.component.css'
 })
 export class SignupComponent {
-  apiUrl = 'https://minuscreators.com/api/register.php';
-
   username = '';
   email = '';
   password = '';
   confirmPassword = '';
   nacionalidad = '';
+
+  /*
+    Honeypot anti-bot.
+    No necesitas mostrarlo en el HTML.
+    Se manda vacío al backend.
+  */
+  website = '';
 
   mostrarPassword = false;
   mostrarConfirmPassword = false;
@@ -63,8 +50,8 @@ export class SignupComponent {
   ];
 
   constructor(
-    private http: HttpClient,
     private router: Router,
+    private authService: AuthService,
     public translationService: TranslationService
   ) {}
 
@@ -80,46 +67,82 @@ export class SignupComponent {
     this.error = '';
     this.mensaje = '';
 
-    if (!this.username.trim() || !this.email.trim() || !this.password.trim()) {
-      this.error = 'Completa usuario, email y contraseña';
+    const username = this.username.trim();
+    const email = this.email.trim().toLowerCase();
+    const password = this.password;
+    const confirmPassword = this.confirmPassword;
+    const nacionalidad = this.nacionalidad.trim();
+
+    if (!username || !email || !password) {
+      this.error = this.translationService.getTranslation('Completa usuario, email y contraseña');
       return;
     }
 
-    if (this.password.length < 6) {
-      this.error = 'La contraseña debe tener mínimo 6 caracteres';
+    if (!/^[A-Za-z0-9_]{3,30}$/.test(username)) {
+      this.error = this.translationService.getTranslation('Usuario inválido');
       return;
     }
 
-    if (this.password !== this.confirmPassword) {
-      this.error = 'Las contraseñas no coinciden';
+    if (password.length < 8) {
+      this.error = this.translationService.getTranslation('La contraseña debe tener mínimo 8 caracteres');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      this.error = this.translationService.getTranslation('Las contraseñas no coinciden');
       return;
     }
 
     this.cargando = true;
 
-    this.http.post<RegisterResponse>(this.apiUrl, {
-      username: this.username,
-      email: this.email,
-      password: this.password,
-      nacionalidad: this.nacionalidad
-    }).subscribe({
-      next: (res) => {
-        this.cargando = false;
-
-        if (!res.success || !res.user) {
-          this.error = res.error || 'No fue posible hacer el registro';
+    /*
+      1. Pedimos CSRF.
+      2. Guardamos CSRF temporalmente.
+      3. Enviamos register.php con cookie + header X-CSRF-Token.
+      4. Guardamos sesión local para que header/perfil funcionen.
+         La seguridad real viene de la cookie HttpOnly creada por PHP.
+    */
+    this.authService.fetchCsrfToken().subscribe({
+      next: (csrfRes) => {
+        if (!csrfRes.success || !csrfRes.csrfToken) {
+          this.cargando = false;
+          this.error = this.translationService.getTranslation('No se pudo preparar el registro');
           return;
         }
 
-        localStorage.setItem('user', JSON.stringify(res.user));
+        this.authService.saveCsrfToken(csrfRes.csrfToken);
 
-        this.mensaje = res.mensaje || 'Registro correcto';
+        this.authService.register({
+          username,
+          email,
+          password,
+          nacionalidad,
+          website: this.website
+        }).subscribe({
+          next: (res) => {
+            this.cargando = false;
 
-        this.router.navigate(['/perfil', res.user.id]);
+            if (!res.success || !res.authenticated || !res.user) {
+              this.error = res.error || this.translationService.getTranslation('No fue posible hacer el registro');
+              return;
+            }
+
+            this.authService.saveSession(res.user, res.csrfToken);
+
+            this.mensaje = res.mensaje || this.translationService.getTranslation('Registro correcto');
+
+            this.router.navigate(['/perfil', res.user.id]);
+          },
+          error: (err) => {
+            this.cargando = false;
+            this.error = err.error?.error || this.translationService.getTranslation('Error al registrar usuario');
+            console.error(err);
+          }
+        });
       },
       error: (err) => {
         this.cargando = false;
-        this.error = err.error?.error || 'Error al registrar usuario';
+        this.error = this.translationService.getTranslation('No se pudo preparar el registro');
         console.error(err);
       }
     });

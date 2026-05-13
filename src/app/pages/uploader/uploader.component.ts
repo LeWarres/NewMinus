@@ -5,28 +5,25 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 
 import { TranslationService } from '../../services/translation.service';
+import { AuthService } from '../../services/auth.service';
 
 interface UploadResponse {
   success: boolean;
   mensaje?: string;
   error?: string;
   obra_id?: number;
+  capitulo_id?: number;
   usuario_id?: number;
   portada?: string;
-}
-
-interface CurrentUser {
-  id: number;
-  username?: string;
-  email?: string;
-  role?: string;
-  imgPerfil?: string;
 }
 
 @Component({
   selector: 'app-uploader',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule
+  ],
   templateUrl: './uploader.component.html',
   styleUrl: './uploader.component.css'
 })
@@ -53,6 +50,7 @@ export class UploaderComponent {
     private fb: FormBuilder,
     private http: HttpClient,
     private router: Router,
+    private authService: AuthService,
     public translationService: TranslationService
   ) {
     this.formulario = this.fb.group({
@@ -165,7 +163,10 @@ export class UploaderComponent {
       this.respuesta = '';
     }
 
-    this.selectedPages = [...this.selectedPages, ...archivosValidos];
+    this.selectedPages = [
+      ...this.selectedPages,
+      ...archivosValidos
+    ];
   }
 
   removeFile(event?: Event): void {
@@ -222,7 +223,11 @@ export class UploaderComponent {
       return;
     }
 
-    const currentUser = this.obtenerUsuarioActual();
+    /*
+      Esto solo es para experiencia de usuario.
+      La seguridad real la valida PHP con require_auth().
+    */
+    const currentUser = this.authService.getCurrentUser();
 
     if (!currentUser) {
       this.router.navigate(['/login']);
@@ -230,10 +235,13 @@ export class UploaderComponent {
     }
 
     const valores = this.formulario.value;
-
     const formData = new FormData();
 
-    formData.append('usuario_id', String(currentUser.id));
+    /*
+      IMPORTANTE:
+      Ya NO mandamos usuario_id.
+      upload.php obtiene el usuario desde la sesión segura HttpOnly.
+    */
     formData.append('titulo', valores.titulo || '');
     formData.append('descripcion', valores.descripcion || '');
     formData.append('genero', valores.genero || '');
@@ -250,7 +258,44 @@ export class UploaderComponent {
     this.cargando = true;
     this.respuesta = '';
 
-    this.http.post<UploadResponse>(this.apiUrl, formData).subscribe({
+    /*
+      Si por alguna razón no hay CSRF en localStorage,
+      pedimos uno antes de subir.
+    */
+    if (!this.authService.getCsrfToken()) {
+      this.authService.fetchCsrfToken().subscribe({
+        next: (csrfRes) => {
+          if (!csrfRes.success || !csrfRes.csrfToken) {
+            this.cargando = false;
+            this.respuesta = this.translationService.getTranslation('No se pudo preparar la subida');
+            return;
+          }
+
+          this.authService.saveCsrfToken(csrfRes.csrfToken);
+          this.subirObra(formData);
+        },
+        error: (err) => {
+          this.cargando = false;
+          this.respuesta = this.translationService.getTranslation('No se pudo preparar la subida');
+          console.error(err);
+        }
+      });
+
+      return;
+    }
+
+    this.subirObra(formData);
+  }
+
+  private subirObra(formData: FormData): void {
+    this.http.post<UploadResponse>(
+      this.apiUrl,
+      formData,
+      {
+        withCredentials: true,
+        headers: this.authService.csrfHeaders()
+      }
+    ).subscribe({
       next: (res) => {
         this.cargando = false;
 
@@ -287,26 +332,22 @@ export class UploaderComponent {
       },
       error: (err) => {
         this.cargando = false;
+
+        if (err.status === 401) {
+          this.authService.clearSession();
+          this.router.navigate(['/login']);
+          return;
+        }
+
+        if (err.status === 403) {
+          this.respuesta = err.error?.error || this.translationService.getTranslation('No tienes permiso para realizar esta acción');
+          return;
+        }
+
         this.respuesta = err.error?.error || this.translationService.getTranslation('Error al guardar la obra');
         console.error(err);
       }
     });
-  }
-
-  private obtenerUsuarioActual(): CurrentUser | null {
-    const userRaw = localStorage.getItem('user');
-
-    if (!userRaw) {
-      return null;
-    }
-
-    try {
-      const user = JSON.parse(userRaw) as CurrentUser;
-      return user?.id ? user : null;
-    } catch {
-      localStorage.removeItem('user');
-      return null;
-    }
   }
 
   private esImagenValida(file: File): boolean {

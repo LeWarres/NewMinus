@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { TranslationService } from '../../services/translation.service';
+import { AuthService, CurrentUser } from '../../services/auth.service';
 
 interface User {
   id: number;
@@ -80,7 +81,7 @@ export class PerfilComponent implements OnInit {
   siteUrl = 'https://minuscreators.com';
 
   user: User | null = null;
-  currentUser: User | null = null;
+  currentUser: CurrentUser | null = null;
 
   obras: Obra[] = [];
   capitulos: CapituloPerfil[] = [];
@@ -97,17 +98,18 @@ export class PerfilComponent implements OnInit {
     private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router,
+    private authService: AuthService,
     public translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = this.getCurrentUser();
+    this.currentUser = this.authService.getCurrentUser();
 
     this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
 
       if (!id) {
-        this.error = 'No se encontró el usuario';
+        this.error = this.translationService.getTranslation('No se encontró el usuario');
         return;
       }
 
@@ -147,14 +149,17 @@ export class PerfilComponent implements OnInit {
     this.error = '';
     this.mensaje = '';
 
-    const viewerId = this.currentUser?.id || 0;
-
     this.http
-      .get<PerfilResponse>(`${this.apiUrl}?id=${id}&viewer_id=${viewerId}`)
+      .get<PerfilResponse>(
+        `${this.apiUrl}?id=${id}`,
+        {
+          withCredentials: true
+        }
+      )
       .subscribe({
         next: (res) => {
           if (!res.success || !res.user) {
-            this.error = res.error || 'No se pudo cargar el perfil';
+            this.error = res.error || this.translationService.getTranslation('No se pudo cargar el perfil');
             return;
           }
 
@@ -163,10 +168,11 @@ export class PerfilComponent implements OnInit {
           this.capitulos = res.capitulos || [];
           this.estaSuscrito = !!res.estaSuscrito;
 
+          this.currentUser = this.authService.getCurrentUser();
           this.isCurrentUser = this.currentUser?.id === this.user.id;
         },
         error: (err) => {
-          this.error = err.error?.error || 'Error al cargar el perfil';
+          this.error = err.error?.error || this.translationService.getTranslation('Error al cargar el perfil');
           console.error(err);
         }
       });
@@ -194,6 +200,8 @@ export class PerfilComponent implements OnInit {
       return;
     }
 
+    this.currentUser = this.authService.getCurrentUser();
+
     if (!this.currentUser) {
       this.router.navigate(['/login']);
       return;
@@ -206,6 +214,12 @@ export class PerfilComponent implements OnInit {
     this.mensaje = '';
     this.error = '';
 
+    /*
+      Nota:
+      Este endpoint lo dejamos compatible con tu suscripcion.php actual.
+      En el siguiente paso conviene asegurar suscripcion.php para que tampoco
+      reciba seguidor_id desde Angular.
+    */
     this.http
       .post<SuscripcionResponse>(this.suscripcionUrl, {
         seguidor_id: this.currentUser.id,
@@ -214,7 +228,7 @@ export class PerfilComponent implements OnInit {
       .subscribe({
         next: (res) => {
           if (!res.success) {
-            this.mensaje = res.error || 'No se pudo actualizar la suscripción';
+            this.mensaje = res.error || this.translationService.getTranslation('No se pudo actualizar la suscripción');
             return;
           }
 
@@ -232,7 +246,7 @@ export class PerfilComponent implements OnInit {
           }
         },
         error: (err) => {
-          this.mensaje = err.error?.error || 'Error al actualizar suscripción';
+          this.mensaje = err.error?.error || this.translationService.getTranslation('Error al actualizar suscripción');
           console.error(err);
         }
       });
@@ -254,20 +268,5 @@ export class PerfilComponent implements OnInit {
     }
 
     return `${this.siteUrl}/${finalPath}`;
-  }
-
-  private getCurrentUser(): User | null {
-    const userRaw = localStorage.getItem('user');
-
-    if (!userRaw) {
-      return null;
-    }
-
-    try {
-      return JSON.parse(userRaw) as User;
-    } catch {
-      localStorage.removeItem('user');
-      return null;
-    }
   }
 }

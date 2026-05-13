@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import { TranslationService } from '../../services/translation.service';
+import { AuthService } from '../../services/auth.service';
+
 interface UploadChapterResponse {
   success: boolean;
   mensaje?: string;
@@ -29,7 +32,6 @@ export class ChapterUploaderComponent implements OnInit {
   apiUrl = 'https://minuscreators.com/api/subir_capitulo.php';
 
   obraId = 0;
-  currentUser: any = null;
 
   tituloCapitulo = '';
   descripcionCapitulo = '';
@@ -45,13 +47,19 @@ export class ChapterUploaderComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private authService: AuthService,
+    public translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+    /*
+      Esto es solo para UX.
+      La seguridad real la valida PHP con la sesión HttpOnly.
+    */
+    const currentUser = this.authService.getCurrentUser();
 
-    if (!this.currentUser) {
+    if (!currentUser) {
       this.router.navigate(['/login']);
       return;
     }
@@ -71,20 +79,28 @@ export class ChapterUploaderComponent implements OnInit {
     }
 
     const files = Array.from(input.files);
-    const validos = files.filter(file => this.esImagenValida(file));
+    const validos = files.filter((file) => this.esImagenValida(file));
 
     if (validos.length !== files.length) {
-      this.respuesta = 'Algunas imágenes no se agregaron porque no son válidas o pesan más de 10 MB';
+      this.respuesta = this.translationService.getTranslation('Algunas páginas no se agregaron');
     } else {
       this.respuesta = '';
     }
 
-    this.selectedPages = [...this.selectedPages, ...validos];
+    this.selectedPages = [
+      ...this.selectedPages,
+      ...validos
+    ];
+
     input.value = '';
   }
 
   removePage(index: number): void {
     this.selectedPages.splice(index, 1);
+
+    if (this.fileInputPages && this.selectedPages.length === 0) {
+      this.fileInputPages.nativeElement.value = '';
+    }
   }
 
   formatSize(bytes: number): string {
@@ -103,44 +119,94 @@ export class ChapterUploaderComponent implements OnInit {
   }
 
   subirCapitulo(): void {
-    if (!this.currentUser) {
+    const currentUser = this.authService.getCurrentUser();
+
+    if (!currentUser) {
       this.router.navigate(['/login']);
       return;
     }
 
+    if (!this.obraId) {
+      this.respuesta = this.translationService.getTranslation('No se encontró la obra');
+      return;
+    }
+
     if (this.selectedPages.length === 0) {
-      this.respuesta = 'Debes agregar al menos una página';
+      this.respuesta = this.translationService.getTranslation('Debes agregar al menos una página');
       return;
     }
 
     const formData = new FormData();
 
+    /*
+      IMPORTANTE:
+      Ya NO mandamos current_user_id ni usuario_id.
+      PHP valida el usuario con require_auth().
+    */
     formData.append('obra_id', String(this.obraId));
-    formData.append('current_user_id', String(this.currentUser.id));
-    formData.append('titulo_capitulo', this.tituloCapitulo || '');
-    formData.append('descripcion_capitulo', this.descripcionCapitulo || '');
+    formData.append('numero_capitulo', this.numeroCapitulo.trim() || '0');
+    formData.append('titulo', this.tituloCapitulo.trim() || '');
+    formData.append('descripcion', this.descripcionCapitulo.trim() || '');
 
-    if (this.numeroCapitulo.trim()) {
-      formData.append('numero_capitulo', this.numeroCapitulo.trim());
-    }
-
-    this.selectedPages.forEach(file => {
+    this.selectedPages.forEach((file) => {
       formData.append('paginas[]', file);
     });
 
     this.cargando = true;
     this.respuesta = '';
 
-    this.http.post<UploadChapterResponse>(this.apiUrl, formData).subscribe({
+    if (!this.authService.getCsrfToken()) {
+      this.authService.fetchCsrfToken().subscribe({
+        next: (csrfRes) => {
+          if (!csrfRes.success || !csrfRes.csrfToken) {
+            this.cargando = false;
+            this.respuesta = this.translationService.getTranslation('No se pudo preparar la subida');
+            return;
+          }
+
+          this.authService.saveCsrfToken(csrfRes.csrfToken);
+          this.enviarCapitulo(formData);
+        },
+        error: (err) => {
+          this.cargando = false;
+          this.respuesta = this.translationService.getTranslation('No se pudo preparar la subida');
+          console.error(err);
+        }
+      });
+
+      return;
+    }
+
+    this.enviarCapitulo(formData);
+  }
+
+  private enviarCapitulo(formData: FormData): void {
+    this.http.post<UploadChapterResponse>(
+      this.apiUrl,
+      formData,
+      {
+        withCredentials: true,
+        headers: this.authService.csrfHeaders()
+      }
+    ).subscribe({
       next: (res) => {
         this.cargando = false;
 
         if (!res.success) {
-          this.respuesta = res.error || 'No se pudo subir el capítulo';
+          this.respuesta = res.error || this.translationService.getTranslation('No se pudo subir el capítulo');
           return;
         }
 
-        this.respuesta = res.mensaje || 'Capítulo subido correctamente';
+        this.respuesta = res.mensaje || this.translationService.getTranslation('Capítulo subido correctamente');
+
+        this.selectedPages = [];
+        this.tituloCapitulo = '';
+        this.descripcionCapitulo = '';
+        this.numeroCapitulo = '';
+
+        if (this.fileInputPages) {
+          this.fileInputPages.nativeElement.value = '';
+        }
 
         this.router.navigate([
           '/obra',
@@ -151,7 +217,24 @@ export class ChapterUploaderComponent implements OnInit {
       },
       error: (err) => {
         this.cargando = false;
-        this.respuesta = err.error?.error || 'Error al subir capítulo';
+
+        if (err.status === 401) {
+          this.authService.clearSession();
+          this.router.navigate(['/login']);
+          return;
+        }
+
+        if (err.status === 403) {
+          this.respuesta = err.error?.error || this.translationService.getTranslation('No tienes permiso para realizar esta acción');
+          return;
+        }
+
+        if (err.status === 409) {
+          this.respuesta = err.error?.error || this.translationService.getTranslation('Ya existe un capítulo con ese número');
+          return;
+        }
+
+        this.respuesta = err.error?.error || this.translationService.getTranslation('Error al subir capítulo');
         console.error(err);
       }
     });
