@@ -4,14 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { TranslationService } from '../../services/translation.service';
-
-interface CurrentUser {
-  id: number;
-  username: string;
-  email?: string;
-  role?: string;
-  imgPerfil?: string;
-}
+import { AuthService, CurrentUser } from '../../services/auth.service';
 
 interface Capitulo {
   id: number;
@@ -73,6 +66,8 @@ interface SuscripcionResponse {
 export class MangaPreviewComponent implements OnInit {
   apiUrl = 'https://minuscreators.com/api/obra_preview.php';
   suscripcionUrl = 'https://minuscreators.com/api/suscripcion.php';
+  registrarVistaUrl = 'https://minuscreators.com/api/registrar_vista.php';
+
   siteUrl = 'https://minuscreators.com';
 
   obra: ObraPreview | null = null;
@@ -91,18 +86,19 @@ export class MangaPreviewComponent implements OnInit {
     private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router,
+    private authService: AuthService,
     public translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = this.getCurrentUser();
+    this.currentUser = this.authService.getCurrentUser();
     this.checkScreenSize();
 
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
 
       if (!id) {
-        this.error = 'No se encontró la obra';
+        this.error = this.translationService.getTranslation('No se encontró la obra');
         return;
       }
 
@@ -124,28 +120,51 @@ export class MangaPreviewComponent implements OnInit {
     this.error = '';
     this.mensaje = '';
 
-    const viewerId = this.currentUser?.id || 0;
-
     this.http
-      .get<ObraPreviewResponse>(`${this.apiUrl}?id=${id}&viewer_id=${viewerId}`)
+      .get<ObraPreviewResponse>(
+        `${this.apiUrl}?id=${id}`,
+        {
+          withCredentials: true
+        }
+      )
       .subscribe({
         next: (res) => {
           this.cargando = false;
 
           if (!res.success || !res.obra) {
-            this.error = res.error || 'No se pudo cargar la obra';
+            this.error = res.error || this.translationService.getTranslation('No se pudo cargar la obra');
             return;
           }
 
           this.obra = res.obra;
+          this.currentUser = this.authService.getCurrentUser();
           this.isCurrentUser = this.currentUser?.id === this.obra.usuarioId;
+
+          this.registrarVista(this.obra.id);
         },
         error: (err) => {
           this.cargando = false;
-          this.error = err.error?.error || 'Error al cargar la obra';
+          this.error = err.error?.error || this.translationService.getTranslation('Error al cargar la obra');
           console.error(err);
         }
       });
+  }
+
+  registrarVista(obraId: number): void {
+    this.http.post(
+      this.registrarVistaUrl,
+      {
+        obra_id: obraId
+      },
+      {
+        withCredentials: true
+      }
+    ).subscribe({
+      next: () => {},
+      error: (err) => {
+        console.error('No se pudo registrar vista', err);
+      }
+    });
   }
 
   abrirCapitulo(capitulo: Capitulo): void {
@@ -198,6 +217,8 @@ export class MangaPreviewComponent implements OnInit {
       return;
     }
 
+    this.currentUser = this.authService.getCurrentUser();
+
     if (!this.currentUser) {
       this.router.navigate(['/login']);
       return;
@@ -207,38 +228,63 @@ export class MangaPreviewComponent implements OnInit {
       return;
     }
 
-    this.http
-      .post<SuscripcionResponse>(this.suscripcionUrl, {
-        seguidor_id: this.currentUser.id,
-        seguido_id: this.obra.usuarioId
-      })
-      .subscribe({
-        next: (res) => {
-          if (!res.success) {
-            this.mensaje = res.error || 'No se pudo actualizar la suscripción';
-            return;
+    const seguidoId = this.obra.usuarioId;
+
+    this.mensaje = '';
+
+    this.ensureCsrfAndRun(() => {
+      this.http
+        .post<SuscripcionResponse>(
+          this.suscripcionUrl,
+          {
+            seguido_id: seguidoId
+          },
+          {
+            withCredentials: true,
+            headers: this.authService.csrfHeaders()
           }
+        )
+        .subscribe({
+          next: (res) => {
+            if (!res.success) {
+              this.mensaje =
+                res.error ||
+                this.translationService.getTranslation('No se pudo actualizar la suscripción');
+              return;
+            }
 
-          if (!this.obra) {
-            return;
+            if (!this.obra) {
+              return;
+            }
+
+            this.obra.estaSuscrito = !!res.suscrito;
+            this.mensaje = res.mensaje || '';
+
+            const totalActual = this.obra.totalSuscriptores || 0;
+
+            if (res.suscrito) {
+              this.obra.totalSuscriptores = totalActual + 1;
+            } else {
+              this.obra.totalSuscriptores = Math.max(totalActual - 1, 0);
+            }
+          },
+          error: (err) => {
+            if (err.status === 401) {
+              this.authService.clearSession();
+              this.router.navigate(['/login']);
+              return;
+            }
+
+            this.mensaje =
+              err.error?.error ||
+              this.translationService.getTranslation('Error al actualizar suscripción');
+
+            console.error(err);
           }
-
-          this.obra.estaSuscrito = !!res.suscrito;
-          this.mensaje = res.mensaje || '';
-
-          const totalActual = this.obra.totalSuscriptores || 0;
-
-          if (res.suscrito) {
-            this.obra.totalSuscriptores = totalActual + 1;
-          } else {
-            this.obra.totalSuscriptores = Math.max(totalActual - 1, 0);
-          }
-        },
-        error: (err) => {
-          this.mensaje = err.error?.error || 'Error al actualizar suscripción';
-          console.error(err);
-        }
-      });
+        });
+    }, () => {
+      this.mensaje = this.translationService.getTranslation('No se pudo preparar la acción');
+    });
   }
 
   toggleDetails(): void {
@@ -263,18 +309,26 @@ export class MangaPreviewComponent implements OnInit {
     return this.imageUrl(this.obra?.portada, '/obras/paleta/portada.png');
   }
 
-  private getCurrentUser(): CurrentUser | null {
-    const userRaw = localStorage.getItem('user');
-
-    if (!userRaw) {
-      return null;
+  private ensureCsrfAndRun(action: () => void, onFail?: () => void): void {
+    if (this.authService.getCsrfToken()) {
+      action();
+      return;
     }
 
-    try {
-      return JSON.parse(userRaw) as CurrentUser;
-    } catch {
-      localStorage.removeItem('user');
-      return null;
-    }
+    this.authService.fetchCsrfToken().subscribe({
+      next: (res) => {
+        if (!res.success || !res.csrfToken) {
+          onFail?.();
+          return;
+        }
+
+        this.authService.saveCsrfToken(res.csrfToken);
+        action();
+      },
+      error: (err) => {
+        onFail?.();
+        console.error(err);
+      }
+    });
   }
 }

@@ -1,17 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute,Router, RouterModule } from '@angular/router';
 
 import { TranslationService } from '../../services/translation.service';
-
-interface CurrentUser {
-  id: number;
-  username: string;
-  email?: string;
-  role?: string;
-  imgPerfil?: string;
-}
+import { AuthService, CurrentUser } from '../../services/auth.service';
 
 interface Obra {
   id: number;
@@ -98,22 +91,44 @@ export class HomeComponent implements OnInit {
   errorFollowing = '';
 
   constructor(
-    private http: HttpClient,
-    private router: Router,
-    public translationService: TranslationService
-  ) {}
+  private http: HttpClient,
+  private router: Router,
+  private route: ActivatedRoute,
+  private authService: AuthService,
+  public translationService: TranslationService
+) {}
 
-  ngOnInit(): void {
-    this.currentUser = this.getCurrentUser();
+ngOnInit(): void {
+  /*
+    Fallback para links de recuperación.
+    Algunos clientes de correo pueden abrir:
+    https://minuscreators.com/?token=TOKEN
 
-    this.checkScreenSize();
-    this.cargarObrasNuevas();
-    this.cargarCapitulosNuevos();
+    Si detectamos token en Home, lo mandamos a reset-password.
+  */
+  const resetToken = this.route.snapshot.queryParamMap.get('token');
 
-    if (this.currentUser) {
-      this.cargarFollowing();
-    }
+  if (resetToken) {
+    this.router.navigate(['/reset-password'], {
+      queryParams: {
+        token: resetToken
+      },
+      replaceUrl: true
+    });
+
+    return;
   }
+
+  this.currentUser = this.authService.getCurrentUser();
+
+  this.checkScreenSize();
+  this.cargarObrasNuevas();
+  this.cargarCapitulosNuevos();
+
+  if (this.currentUser) {
+    this.cargarFollowing();
+  }
+}
 
   @HostListener('window:resize')
   onResize(): void {
@@ -135,7 +150,9 @@ export class HomeComponent implements OnInit {
           this.cargandoObras = false;
 
           if (!res.success) {
-            this.errorObras = res.error || 'No se pudieron cargar las obras';
+            this.errorObras =
+              res.error ||
+              this.translationService.getTranslation('No se pudieron cargar las obras');
             return;
           }
 
@@ -143,7 +160,9 @@ export class HomeComponent implements OnInit {
         },
         error: (err) => {
           this.cargandoObras = false;
-          this.errorObras = err.error?.error || 'Error al cargar obras';
+          this.errorObras =
+            err.error?.error ||
+            this.translationService.getTranslation('Error al cargar obras');
           console.error(err);
         }
       });
@@ -160,7 +179,9 @@ export class HomeComponent implements OnInit {
           this.cargandoCapitulos = false;
 
           if (!res.success) {
-            this.errorCapitulos = res.error || 'No se pudieron cargar los capítulos';
+            this.errorCapitulos =
+              res.error ||
+              this.translationService.getTranslation('No se pudieron cargar los capítulos');
             return;
           }
 
@@ -168,28 +189,44 @@ export class HomeComponent implements OnInit {
         },
         error: (err) => {
           this.cargandoCapitulos = false;
-          this.errorCapitulos = err.error?.error || 'Error al cargar capítulos';
+          this.errorCapitulos =
+            err.error?.error ||
+            this.translationService.getTranslation('Error al cargar capítulos');
           console.error(err);
         }
       });
   }
 
   cargarFollowing(): void {
+    this.currentUser = this.authService.getCurrentUser();
+
     if (!this.currentUser) {
+      this.followingItems = [];
       return;
     }
 
     this.cargandoFollowing = true;
     this.errorFollowing = '';
 
+    /*
+      Ya NO mandamos user_id.
+      following.php usa la sesión HttpOnly.
+    */
     this.http
-      .get<CapitulosResponse>(`${this.followingUrl}?user_id=${this.currentUser.id}&limite=12`)
+      .get<CapitulosResponse>(
+        `${this.followingUrl}?limite=12`,
+        {
+          withCredentials: true
+        }
+      )
       .subscribe({
         next: (res) => {
           this.cargandoFollowing = false;
 
           if (!res.success) {
-            this.errorFollowing = res.error || 'No se pudo cargar lo que sigues';
+            this.errorFollowing =
+              res.error ||
+              this.translationService.getTranslation('No se pudo cargar lo que sigues');
             return;
           }
 
@@ -197,7 +234,18 @@ export class HomeComponent implements OnInit {
         },
         error: (err) => {
           this.cargandoFollowing = false;
-          this.errorFollowing = err.error?.error || 'Error al cargar lo que sigues';
+
+          if (err.status === 401) {
+            this.authService.clearSession();
+            this.currentUser = null;
+            this.followingItems = [];
+            return;
+          }
+
+          this.errorFollowing =
+            err.error?.error ||
+            this.translationService.getTranslation('Error al cargar lo que sigues');
+
           console.error(err);
         }
       });
@@ -206,16 +254,15 @@ export class HomeComponent implements OnInit {
   abrirObra(obra: Obra): void {
     this.router.navigate(['/obra', obra.id]);
   }
-  
 
- abrirCapitulo(item: CapituloItem): void {
-  this.router.navigate([
-    '/obra',
-    item.obraId,
-    'capitulo',
-    item.numeroCapitulo
-  ]);
-}
+  abrirCapitulo(item: CapituloItem): void {
+    this.router.navigate([
+      '/obra',
+      item.obraId,
+      'capitulo',
+      item.numeroCapitulo
+    ]);
+  }
 
   abrirPerfilObra(event: Event, obra: Obra): void {
     event.stopPropagation();
@@ -238,42 +285,42 @@ export class HomeComponent implements OnInit {
   }
 
   discoverRandomStory(): void {
-  type RandomItem =
-    | { tipo: 'obra'; id: number }
-    | { tipo: 'capitulo'; obraId: number; numeroCapitulo: number };
+    type RandomItem =
+      | { tipo: 'obra'; id: number }
+      | { tipo: 'capitulo'; obraId: number; numeroCapitulo: number };
 
-  const disponibles: RandomItem[] = [
-    ...this.obrasNuevas.map((obra): RandomItem => ({
-      tipo: 'obra',
-      id: obra.id
-    })),
+    const disponibles: RandomItem[] = [
+      ...this.obrasNuevas.map((obra): RandomItem => ({
+        tipo: 'obra',
+        id: obra.id
+      })),
 
-    ...this.capitulosNuevos.map((item): RandomItem => ({
-      tipo: 'capitulo',
-      obraId: item.obraId,
-      numeroCapitulo: item.numeroCapitulo
-    }))
-  ];
+      ...this.capitulosNuevos.map((item): RandomItem => ({
+        tipo: 'capitulo',
+        obraId: item.obraId,
+        numeroCapitulo: item.numeroCapitulo
+      }))
+    ];
 
-  if (disponibles.length === 0) {
-    return;
+    if (disponibles.length === 0) {
+      return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * disponibles.length);
+    const elegido = disponibles[randomIndex];
+
+    if (elegido.tipo === 'obra') {
+      this.router.navigate(['/obra', elegido.id]);
+      return;
+    }
+
+    this.router.navigate([
+      '/obra',
+      elegido.obraId,
+      'capitulo',
+      elegido.numeroCapitulo
+    ]);
   }
-
-  const randomIndex = Math.floor(Math.random() * disponibles.length);
-  const elegido = disponibles[randomIndex];
-
-  if (elegido.tipo === 'obra') {
-    this.router.navigate(['/obra', elegido.id]);
-    return;
-  }
-
-  this.router.navigate([
-    '/obra',
-    elegido.obraId,
-    'capitulo',
-    elegido.numeroCapitulo
-  ]);
-}
 
   nextCarousel(id: string): void {
     this.scrollCarousel(id, 1);
@@ -308,20 +355,5 @@ export class HomeComponent implements OnInit {
     }
 
     return `${this.siteUrl}/${finalPath}`;
-  }
-
-  private getCurrentUser(): CurrentUser | null {
-    const userRaw = localStorage.getItem('user');
-
-    if (!userRaw) {
-      return null;
-    }
-
-    try {
-      return JSON.parse(userRaw) as CurrentUser;
-    } catch {
-      localStorage.removeItem('user');
-      return null;
-    }
   }
 }

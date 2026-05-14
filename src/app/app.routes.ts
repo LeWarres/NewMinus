@@ -12,60 +12,73 @@ import { FollowingComponent } from './pages/following/following.component';
 import { ChapterUploaderComponent } from './pages/chapter-uploader/chapter-uploader.component';
 import { MangaPreviewComponent } from './pages/manga-preview/manga-preview.component';
 import { ObraAdminComponent } from './pages/obra-admin/obra-admin.component';
+
+import { ReenviarVerificacionComponent } from './pages/reenviar-verificacion/reenviar-verificacion.component';
+import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
+
 export const routes: Routes = [
   {
     path: '',
-    component: HomeComponent
-  },
-  {
-    path: 'uploader',
-    component: UploaderComponent
+    component: HomeComponent,
+    pathMatch: 'full'
   },
   {
     path: 'login',
     component: LoginComponent
   },
   {
-  path: 'following',
-  component: FollowingComponent
-},
-  {
     path: 'signup',
     component: SignupComponent
+  },
+  {
+    path: 'reenviar-verificacion',
+    component: ReenviarVerificacionComponent
+  },
+  {
+    path: 'forgot-password',
+    component: ForgotPasswordComponent
+  },
+  {
+    path: 'reset-password',
+    component: ResetPasswordComponent
+  },
+  {
+    path: 'uploader',
+    component: UploaderComponent
+  },
+  {
+    path: 'following',
+    component: FollowingComponent
+  },
+  {
+    path: 'categorias',
+    component: CategoriasComponent
   },
   {
     path: 'perfil/:id/editar',
     component: EditProfileComponent
   },
-
-  {
-  path: 'obra/:id/admin',
-  component: ObraAdminComponent
-},
   {
     path: 'perfil/:id',
     component: PerfilComponent
   },
-{
-  path: 'obra/:id/subir-capitulo',
-  component: ChapterUploaderComponent
-},
-{
-  path: 'obra/:id/subir-capitulo',
-  component: ChapterUploaderComponent
-},
-{
-  path: 'obra/:id/capitulo/:capitulo',
-  component: ReaderComponent
-},
-{
-  path: 'obra/:id',
-  component: MangaPreviewComponent
-},
   {
-  path: 'categorias',
-  component: CategoriasComponent
-},
+    path: 'obra/:id/admin',
+    component: ObraAdminComponent
+  },
+  {
+    path: 'obra/:id/subir-capitulo',
+    component: ChapterUploaderComponent
+  },
+  {
+    path: 'obra/:id/capitulo/:capitulo',
+    component: ReaderComponent
+  },
+  {
+    path: 'obra/:id',
+    component: MangaPreviewComponent
+  },
   {
     path: '**',
     redirectTo: ''

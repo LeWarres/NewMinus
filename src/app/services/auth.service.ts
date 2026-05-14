@@ -40,6 +40,7 @@ export interface RegisterPayload {
   password: string;
   nacionalidad?: string;
   website?: string;
+  turnstileToken?: string;
 }
 
 export interface RegisterResponse {
@@ -59,6 +60,9 @@ export class AuthService {
   private csrfUrl = 'https://minuscreators.com/api/csrf.php';
   private logoutUrl = 'https://minuscreators.com/api/logout.php';
   private registerUrl = 'https://minuscreators.com/api/register.php';
+  private resendVerificationUrl = 'https://minuscreators.com/api/reenviar_verificacion.php';
+private requestPasswordResetUrl = 'https://minuscreators.com/api/solicitar_reset_password.php';
+private resetPasswordUrl = 'https://minuscreators.com/api/reset_password.php';
 
   constructor(
     private http: HttpClient
@@ -107,22 +111,23 @@ export class AuthService {
     });
   }
 
-  register(payload: RegisterPayload) {
-    return this.http.post<RegisterResponse>(
-      this.registerUrl,
-      {
-        username: payload.username,
-        email: payload.email,
-        password: payload.password,
-        nacionalidad: payload.nacionalidad || '',
-        website: payload.website || ''
-      },
-      {
-        withCredentials: true,
-        headers: this.csrfHeaders()
-      }
-    );
-  }
+register(payload: RegisterPayload) {
+  return this.http.post<RegisterResponse>(
+    this.registerUrl,
+    {
+      username: payload.username,
+      email: payload.email,
+      password: payload.password,
+      nacionalidad: payload.nacionalidad || '',
+      website: payload.website || '',
+      turnstileToken: payload.turnstileToken || ''
+    },
+    {
+      withCredentials: true,
+      headers: this.csrfHeaders()
+    }
+  );
+}
 
   logout() {
     return this.http.post<LogoutResponse>(
@@ -144,4 +149,48 @@ export class AuthService {
     localStorage.removeItem('user');
     localStorage.removeItem('csrfToken');
   }
+
+resendVerification(email: string, turnstileToken: string) {
+  return this.http.post<{ success: boolean; mensaje?: string; error?: string }>(
+    this.resendVerificationUrl,
+    {
+      email,
+      turnstileToken
+    },
+    {
+      withCredentials: true,
+      headers: this.csrfHeaders()
+    }
+  );
+}
+
+requestPasswordReset(email: string, turnstileToken: string) {
+  return this.http.post<{ success: boolean; mensaje?: string; error?: string }>(
+    this.requestPasswordResetUrl,
+    {
+      email,
+      turnstileToken
+    },
+    {
+      withCredentials: true,
+      headers: this.csrfHeaders()
+    }
+  );
+}
+
+resetPassword(token: string, password: string) {
+  return this.http.post<{ success: boolean; mensaje?: string; error?: string }>(
+    this.resetPasswordUrl,
+    {
+      token,
+      password
+    },
+    {
+      withCredentials: true,
+      headers: this.csrfHeaders()
+    }
+  );
+}
+
+
 }

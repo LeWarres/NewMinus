@@ -5,20 +5,7 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 
 import { TranslationService } from '../../services/translation.service';
-import { AuthService } from '../../services/auth.service';
-
-interface CurrentUser {
-  id: number;
-  username: string;
-  email?: string;
-  role?: string;
-  nacionalidad?: string;
-  imgPerfil?: string;
-  imgBanner?: string;
-  twitter?: string;
-  facebook?: string;
-  instagram?: string;
-}
+import { AuthService, CurrentUser } from '../../services/auth.service';
 
 @Component({
   selector: 'app-header',

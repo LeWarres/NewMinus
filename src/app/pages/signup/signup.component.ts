@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 
+import { TurnstileWidgetComponent } from '../../components/turnstile-widget/turnstile-widget.component';
 import { TranslationService } from '../../services/translation.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -12,24 +13,23 @@ import { AuthService } from '../../services/auth.service';
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule
+    RouterModule,
+    TurnstileWidgetComponent
   ],
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.css'
 })
 export class SignupComponent {
+  @ViewChild(TurnstileWidgetComponent) turnstileWidget?: TurnstileWidgetComponent;
+
   username = '';
   email = '';
   password = '';
   confirmPassword = '';
   nacionalidad = '';
 
-  /*
-    Honeypot anti-bot.
-    No necesitas mostrarlo en el HTML.
-    Se manda vacío al backend.
-  */
   website = '';
+  turnstileToken = '';
 
   mostrarPassword = false;
   mostrarConfirmPassword = false;
@@ -37,6 +37,7 @@ export class SignupComponent {
   cargando = false;
   error = '';
   mensaje = '';
+  registroCompletado = false;
 
   countries = [
     { name: 'México' },
@@ -61,6 +62,19 @@ export class SignupComponent {
 
   toggleConfirmPassword(): void {
     this.mostrarConfirmPassword = !this.mostrarConfirmPassword;
+  }
+
+  goToLogin(): void {
+    this.router.navigate(['/login'], {
+      queryParams: {
+        registered: '1'
+      }
+    });
+  }
+
+  resetTurnstile(): void {
+    this.turnstileToken = '';
+    this.turnstileWidget?.reset();
   }
 
   register(): void {
@@ -93,20 +107,19 @@ export class SignupComponent {
       return;
     }
 
+    if (!this.turnstileToken) {
+      this.error = this.translationService.getTranslation('Completa la verificación anti-bot');
+      return;
+    }
+
     this.cargando = true;
 
-    /*
-      1. Pedimos CSRF.
-      2. Guardamos CSRF temporalmente.
-      3. Enviamos register.php con cookie + header X-CSRF-Token.
-      4. Guardamos sesión local para que header/perfil funcionen.
-         La seguridad real viene de la cookie HttpOnly creada por PHP.
-    */
     this.authService.fetchCsrfToken().subscribe({
       next: (csrfRes) => {
         if (!csrfRes.success || !csrfRes.csrfToken) {
           this.cargando = false;
           this.error = this.translationService.getTranslation('No se pudo preparar el registro');
+          this.resetTurnstile();
           return;
         }
 
@@ -117,25 +130,44 @@ export class SignupComponent {
           email,
           password,
           nacionalidad,
-          website: this.website
+          website: this.website,
+          turnstileToken: this.turnstileToken
         }).subscribe({
           next: (res) => {
             this.cargando = false;
 
-            if (!res.success || !res.authenticated || !res.user) {
-              this.error = res.error || this.translationService.getTranslation('No fue posible hacer el registro');
+            if (!res.success) {
+              this.error =
+                res.error ||
+                this.translationService.getTranslation('No fue posible hacer el registro');
+
+              this.resetTurnstile();
               return;
             }
 
-            this.authService.saveSession(res.user, res.csrfToken);
+            this.authService.clearSession();
 
-            this.mensaje = res.mensaje || this.translationService.getTranslation('Registro correcto');
+            this.registroCompletado = true;
+            this.mensaje =
+              res.mensaje ||
+              this.translationService.getTranslation(
+                'Cuenta creada. Revisa tu correo para verificarla antes de iniciar sesión.'
+              );
 
-            this.router.navigate(['/perfil', res.user.id]);
+            this.username = '';
+            this.email = '';
+            this.password = '';
+            this.confirmPassword = '';
+            this.nacionalidad = '';
+            this.turnstileToken = '';
           },
           error: (err) => {
             this.cargando = false;
-            this.error = err.error?.error || this.translationService.getTranslation('Error al registrar usuario');
+            this.error =
+              err.error?.error ||
+              this.translationService.getTranslation('Error al registrar usuario');
+
+            this.resetTurnstile();
             console.error(err);
           }
         });
@@ -143,6 +175,7 @@ export class SignupComponent {
       error: (err) => {
         this.cargando = false;
         this.error = this.translationService.getTranslation('No se pudo preparar el registro');
+        this.resetTurnstile();
         console.error(err);
       }
     });

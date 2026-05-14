@@ -162,7 +162,7 @@ export class CategoriasComponent implements OnInit {
     }
 
     if (this.idiomaObraSeleccionado !== 'todos') {
-      params.set('idioma', this.idiomaObraSeleccionado);
+      params.set('idioma', this.idiomaObraSeleccionado.toUpperCase());
     }
 
     this.http.get<BuscarResponse>(`${this.apiUrl}?${params.toString()}`).subscribe({
@@ -170,7 +170,9 @@ export class CategoriasComponent implements OnInit {
         this.cargando = false;
 
         if (!res.success) {
-          this.error = res.error || 'No se pudieron cargar los resultados';
+          this.error =
+            res.error ||
+            this.translationService.getTranslation('No se pudieron cargar los resultados');
           return;
         }
 
@@ -179,7 +181,9 @@ export class CategoriasComponent implements OnInit {
       },
       error: (err) => {
         this.cargando = false;
-        this.error = err.error?.error || 'Error al cargar los resultados';
+        this.error =
+          err.error?.error ||
+          this.translationService.getTranslation('Error al cargar los resultados');
         console.error(err);
       }
     });

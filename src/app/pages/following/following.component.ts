@@ -4,14 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 
 import { TranslationService } from '../../services/translation.service';
-
-interface CurrentUser {
-  id: number;
-  username: string;
-  email?: string;
-  role?: string;
-  imgPerfil?: string;
-}
+import { AuthService, CurrentUser } from '../../services/auth.service';
 
 interface FollowingItem {
   tipo: string;
@@ -67,11 +60,12 @@ export class FollowingComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private router: Router,
+    private authService: AuthService,
     public translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = this.getCurrentUser();
+    this.currentUser = this.authService.getCurrentUser();
 
     if (!this.currentUser) {
       this.router.navigate(['/login']);
@@ -82,22 +76,28 @@ export class FollowingComponent implements OnInit {
   }
 
   cargarFollowing(): void {
-    if (!this.currentUser) {
-      this.router.navigate(['/login']);
-      return;
-    }
-
     this.cargando = true;
     this.error = '';
 
+    /*
+      Ya NO mandamos user_id.
+      following.php usa la sesión HttpOnly para saber quién eres.
+    */
     this.http
-      .get<FollowingResponse>(`${this.apiUrl}?user_id=${this.currentUser.id}&limite=50`)
+      .get<FollowingResponse>(
+        `${this.apiUrl}?limite=50`,
+        {
+          withCredentials: true
+        }
+      )
       .subscribe({
         next: (res) => {
           this.cargando = false;
 
           if (!res.success) {
-            this.error = res.error || 'No se pudieron cargar las actualizaciones';
+            this.error =
+              res.error ||
+              this.translationService.getTranslation('No se pudieron cargar las actualizaciones');
             return;
           }
 
@@ -105,7 +105,17 @@ export class FollowingComponent implements OnInit {
         },
         error: (err) => {
           this.cargando = false;
-          this.error = err.error?.error || 'Error al cargar las actualizaciones';
+
+          if (err.status === 401) {
+            this.authService.clearSession();
+            this.router.navigate(['/login']);
+            return;
+          }
+
+          this.error =
+            err.error?.error ||
+            this.translationService.getTranslation('Error al cargar las actualizaciones');
+
           console.error(err);
         }
       });
@@ -142,20 +152,5 @@ export class FollowingComponent implements OnInit {
     }
 
     return `${this.siteUrl}/${finalPath}`;
-  }
-
-  private getCurrentUser(): CurrentUser | null {
-    const userRaw = localStorage.getItem('user');
-
-    if (!userRaw) {
-      return null;
-    }
-
-    try {
-      return JSON.parse(userRaw) as CurrentUser;
-    } catch {
-      localStorage.removeItem('user');
-      return null;
-    }
   }
 }

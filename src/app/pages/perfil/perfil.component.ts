@@ -196,39 +196,42 @@ export class PerfilComponent implements OnInit {
   }
 
   toggleSubscription(): void {
-    if (!this.user) {
-      return;
-    }
+  if (!this.user) {
+    return;
+  }
 
-    this.currentUser = this.authService.getCurrentUser();
+  this.currentUser = this.authService.getCurrentUser();
 
-    if (!this.currentUser) {
-      this.router.navigate(['/login']);
-      return;
-    }
+  if (!this.currentUser) {
+    this.router.navigate(['/login']);
+    return;
+  }
 
-    if (this.currentUser.id === this.user.id) {
-      return;
-    }
+  if (this.currentUser.id === this.user.id) {
+    return;
+  }
 
-    this.mensaje = '';
-    this.error = '';
+  this.mensaje = '';
+  this.error = '';
 
-    /*
-      Nota:
-      Este endpoint lo dejamos compatible con tu suscripcion.php actual.
-      En el siguiente paso conviene asegurar suscripcion.php para que tampoco
-      reciba seguidor_id desde Angular.
-    */
+  this.ensureCsrfAndRun(() => {
     this.http
-      .post<SuscripcionResponse>(this.suscripcionUrl, {
-        seguidor_id: this.currentUser.id,
-        seguido_id: this.user.id
-      })
+      .post<SuscripcionResponse>(
+        this.suscripcionUrl,
+        {
+          seguido_id: this.user?.id
+        },
+        {
+          withCredentials: true,
+          headers: this.authService.csrfHeaders()
+        }
+      )
       .subscribe({
         next: (res) => {
           if (!res.success) {
-            this.mensaje = res.error || this.translationService.getTranslation('No se pudo actualizar la suscripción');
+            this.mensaje =
+              res.error ||
+              this.translationService.getTranslation('No se pudo actualizar la suscripción');
             return;
           }
 
@@ -246,11 +249,46 @@ export class PerfilComponent implements OnInit {
           }
         },
         error: (err) => {
-          this.mensaje = err.error?.error || this.translationService.getTranslation('Error al actualizar suscripción');
+          if (err.status === 401) {
+            this.authService.clearSession();
+            this.router.navigate(['/login']);
+            return;
+          }
+
+          this.mensaje =
+            err.error?.error ||
+            this.translationService.getTranslation('Error al actualizar suscripción');
+
           console.error(err);
         }
       });
+  }, () => {
+    this.mensaje = this.translationService.getTranslation('No se pudo preparar la acción');
+  });
+}
+
+private ensureCsrfAndRun(action: () => void, onFail?: () => void): void {
+  if (this.authService.getCsrfToken()) {
+    action();
+    return;
   }
+
+  this.authService.fetchCsrfToken().subscribe({
+    next: (res) => {
+      if (!res.success || !res.csrfToken) {
+        onFail?.();
+        return;
+      }
+
+      this.authService.saveCsrfToken(res.csrfToken);
+      action();
+    },
+    error: (err) => {
+      onFail?.();
+      console.error(err);
+    }
+  });
+}
 
   imageUrl(path?: string | null, fallback: string = '/obras/paleta/portada.png'): string {
     const finalPath = path || fallback;

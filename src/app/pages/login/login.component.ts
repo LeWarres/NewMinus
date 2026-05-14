@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { TranslationService } from '../../services/translation.service';
 import { AuthService } from '../../services/auth.service';
@@ -27,6 +27,7 @@ interface LoginResponse {
   error?: string;
   csrfToken?: string;
   user?: LoginUser;
+  requiresVerification?: boolean;
 }
 
 @Component({
@@ -40,7 +41,7 @@ interface LoginResponse {
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   apiUrl = 'https://minuscreators.com/api/login.php';
 
   email = '';
@@ -48,30 +49,70 @@ export class LoginComponent {
 
   cargando = false;
   error = '';
+  mensaje = '';
+
   mostrarPassword = false;
+  mostrarReenviarVerificacion = false;
 
   constructor(
     private http: HttpClient,
     private router: Router,
+    private route: ActivatedRoute,
     private authService: AuthService,
     public translationService: TranslationService
   ) {}
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const registered = params.get('registered');
+      const verified = params.get('verified');
+      const reason = params.get('reason');
+
+      if (registered === '1') {
+        this.mensaje = this.translationService.getTranslation(
+          'Cuenta creada. Revisa tu correo para verificarla antes de iniciar sesión.'
+        );
+      }
+
+      if (verified === '1') {
+        this.mensaje = this.translationService.getTranslation(
+          'Correo verificado correctamente. Ya puedes iniciar sesión.'
+        );
+      }
+
+      if (verified === '0') {
+        if (reason === 'invalid') {
+          this.error = this.translationService.getTranslation(
+            'El enlace de verificación no es válido o ya expiró.'
+          );
+          return;
+        }
+
+        this.error = this.translationService.getTranslation(
+          'No se pudo verificar el correo.'
+        );
+      }
+    });
+  }
 
   togglePassword(): void {
     this.mostrarPassword = !this.mostrarPassword;
   }
 
   login(): void {
-    const email = this.email.trim();
-    const password = this.password.trim();
+    const email = this.email.trim().toLowerCase();
+    const password = this.password;
 
     if (!email || !password) {
       this.error = this.translationService.getTranslation('Completa email y contraseña');
+      this.mensaje = '';
       return;
     }
 
     this.cargando = true;
     this.error = '';
+    this.mensaje = '';
+    this.mostrarReenviarVerificacion = false;
 
     this.http.post<LoginResponse>(
       this.apiUrl,
@@ -97,8 +138,35 @@ export class LoginComponent {
       },
       error: (err) => {
         this.cargando = false;
-        this.error = err.error?.error || this.translationService.getTranslation('Error al iniciar sesión');
+
+        const serverError = err.error?.error || '';
+
+        if (err.status === 403 && err.error?.requiresVerification) {
+          this.error = serverError || this.translationService.getTranslation(
+            'Debes verificar tu correo antes de iniciar sesión'
+          );
+          this.mostrarReenviarVerificacion = true;
+          return;
+        }
+
+        this.error = serverError || this.translationService.getTranslation('Error al iniciar sesión');
         console.error(err);
+      }
+    });
+  }
+
+  goToForgotPassword(): void {
+    this.router.navigate(['/forgot-password'], {
+      queryParams: {
+        email: this.email.trim().toLowerCase() || null
+      }
+    });
+  }
+
+  goToResendVerification(): void {
+    this.router.navigate(['/reenviar-verificacion'], {
+      queryParams: {
+        email: this.email.trim().toLowerCase() || null
       }
     });
   }

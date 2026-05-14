@@ -1,4 +1,4 @@
-.login-container {
+.auth-container {
   position: relative;
   min-height: 100vh;
   width: 100%;
@@ -16,7 +16,7 @@
   overflow: hidden;
 }
 
-.login-overlay {
+.auth-overlay {
   position: absolute;
   inset: 0;
   background-image:
@@ -27,12 +27,12 @@
   pointer-events: none;
 }
 
-.login-card {
+.auth-card {
   position: relative;
   z-index: 1;
 
   width: 100%;
-  max-width: 980px;
+  max-width: 940px;
 
   display: grid;
   grid-template-columns: 0.95fr 1.05fr;
@@ -48,7 +48,7 @@
 
 .brand-panel {
   padding: 46px;
-  min-height: 560px;
+  min-height: 500px;
 
   display: flex;
   flex-direction: column;
@@ -92,7 +92,7 @@
 .brand-panel h1 {
   margin: 0;
   color: #fff7ea;
-  font-size: clamp(2rem, 4vw, 3.45rem);
+  font-size: clamp(2rem, 4vw, 3.2rem);
   line-height: 1;
   letter-spacing: -0.05em;
 }
@@ -130,7 +130,7 @@
   font-size: 14px;
 }
 
-.login-form {
+.auth-form {
   display: flex;
   flex-direction: column;
 }
@@ -202,37 +202,6 @@ input:focus {
   color: rgba(255, 255, 255, 0.72);
 
   cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.toggle-password:hover {
-  background: rgba(255, 255, 255, 0.11);
-}
-
-.login-links {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 14px;
-  flex-wrap: wrap;
-}
-
-.login-links button,
-.inline-action {
-  padding: 0;
-  border: none;
-  background: transparent;
-
-  color: #f4a63b;
-  font-size: 13px;
-  font-weight: 700;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.login-links button:hover,
-.inline-action:hover {
-  text-decoration: underline;
 }
 
 .submit-button {
@@ -257,22 +226,10 @@ input:focus {
   justify-content: center;
 
   box-shadow: 0 18px 35px rgba(244, 166, 59, 0.22);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    filter 0.2s ease;
-}
-
-.submit-button:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.04);
-  box-shadow: 0 22px 45px rgba(244, 166, 59, 0.28);
 }
 
 .submit-button:disabled {
   cursor: not-allowed;
-  transform: none;
-  filter: grayscale(0.2);
   opacity: 0.75;
 }
 
@@ -291,7 +248,7 @@ input:focus {
 
 .notice {
   padding: 13px 14px;
-  margin-bottom: 16px;
+  margin-top: 16px;
 
   border-radius: 16px;
   font-size: 13px;
@@ -310,34 +267,60 @@ input:focus {
   border: 1px solid rgba(255, 88, 88, 0.28);
 }
 
-.notice .inline-action {
-  display: block;
-  margin-top: 8px;
+.success-card {
+  padding: 26px;
+  border-radius: 22px;
+
+  background: rgba(39, 174, 96, 0.11);
+  border: 1px solid rgba(39, 174, 96, 0.28);
+
+  text-align: center;
 }
 
-.register-box {
+.success-icon {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+  background: rgba(39, 174, 96, 0.2);
+  border: 1px solid rgba(39, 174, 96, 0.35);
+
+  color: #6df09c;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.success-card h2 {
+  margin: 0;
+  color: #fff7ea;
+}
+
+.success-card p {
+  color: rgba(255, 247, 234, 0.76);
+  line-height: 1.6;
+}
+
+.bottom-link {
   margin-top: 22px;
   padding-top: 20px;
 
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-
-  color: rgba(255, 247, 234, 0.62);
-  font-size: 14px;
+  text-align: center;
 }
 
-.register-box a {
+.bottom-link a {
   color: #f4a63b;
   font-weight: 800;
   text-decoration: none;
 }
 
-.register-box a:hover {
+.bottom-link a:hover {
   text-decoration: underline;
 }
 
@@ -352,13 +335,13 @@ input:focus {
 }
 
 @media (max-width: 860px) {
-  .login-card {
+  .auth-card {
     grid-template-columns: 1fr;
-    max-width: 520px;
+    max-width: 540px;
   }
 
   .brand-panel {
-    min-height: 260px;
+    min-height: 240px;
     padding: 34px;
   }
 
@@ -368,7 +351,7 @@ input:focus {
 }
 
 @media (max-width: 480px) {
-  .login-container {
+  .auth-container {
     padding: 92px 14px 32px;
   }
 
@@ -379,11 +362,6 @@ input:focus {
 
   .form-panel {
     padding: 26px;
-  }
-
-  .login-links {
-    flex-direction: column;
-    align-items: flex-start;
   }
 
   .form-header h2 {

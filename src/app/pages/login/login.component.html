@@ -1,9 +1,48 @@
 <div class="login-container">
-  <div class="login-content">
-    <div class="login-box">
-      <h1 class="title">Minus Creators</h1>
+  <div class="login-overlay"></div>
 
-      <form (ngSubmit)="login()">
+  <main class="login-card">
+    <section class="brand-panel">
+      <div class="brand-badge">MINUS</div>
+
+      <h1>
+        {{ translationService.getTranslation('Bienvenido a Minus Creators') }}
+      </h1>
+
+      <p>
+        {{ translationService.getTranslation('Inicia sesión para subir obras, seguir creadores y continuar leyendo tus historias favoritas.') }}
+      </p>
+    </section>
+
+    <section class="form-panel">
+      <div class="form-header">
+        <h2>
+          {{ translationService.getTranslation('login') }}
+        </h2>
+
+        <p>
+          {{ translationService.getTranslation('Accede con tu correo verificado') }}
+        </p>
+      </div>
+
+      <div class="notice success" *ngIf="mensaje">
+        {{ mensaje }}
+      </div>
+
+      <div class="notice error" *ngIf="error">
+        {{ error }}
+
+        <button
+          *ngIf="mostrarReenviarVerificacion"
+          type="button"
+          class="inline-action"
+          (click)="goToResendVerification()"
+        >
+          {{ translationService.getTranslation('Reenviar verificación') }}
+        </button>
+      </div>
+
+      <form (ngSubmit)="login()" class="login-form">
         <label for="email">
           {{ translationService.getTranslation('mail') }}
         </label>
@@ -13,7 +52,8 @@
           type="email"
           name="email"
           [(ngModel)]="email"
-          placeholder="demo@minuscreators.com"
+          placeholder="tuemail@gmail.com"
+          autocomplete="email"
           required
         />
 
@@ -27,7 +67,8 @@
             [type]="mostrarPassword ? 'text' : 'password'"
             name="password"
             [(ngModel)]="password"
-            placeholder="123456"
+            placeholder="••••••••"
+            autocomplete="current-password"
             required
           />
 
@@ -35,18 +76,23 @@
             type="button"
             class="toggle-password"
             (click)="togglePassword()"
+            [attr.aria-label]="mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
           >
             {{ mostrarPassword ? '🙈' : '👁️' }}
           </button>
         </div>
 
-        <div class="NoContrasena">
-          <a href="#">
-            {{ translationService.getTranslation('NoContrasena') }}
-          </a>
+        <div class="login-links">
+          <button type="button" (click)="goToForgotPassword()">
+            {{ translationService.getTranslation('Olvidé mi contraseña') }}
+          </button>
+
+          <button type="button" (click)="goToResendVerification()">
+            {{ translationService.getTranslation('Reenviar verificación') }}
+          </button>
         </div>
 
-        <button type="submit" [disabled]="cargando">
+        <button type="submit" class="submit-button" [disabled]="cargando">
           <span *ngIf="!cargando">
             {{ translationService.getTranslation('login') }}
           </span>
@@ -55,15 +101,15 @@
         </button>
       </form>
 
-      <p class="error-message" *ngIf="error">
-        {{ error }}
-      </p>
+      <div class="register-box">
+        <span>
+          {{ translationService.getTranslation('No tienes cuenta') }}
+        </span>
 
-      <div class="register">
         <a routerLink="/signup">
           {{ translationService.getTranslation('registro') }}
         </a>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 </div>

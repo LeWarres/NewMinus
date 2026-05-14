@@ -5,14 +5,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 
 import { TranslationService } from '../../services/translation.service';
-
-interface CurrentUser {
-  id: number;
-  username: string;
-  email?: string;
-  role?: string;
-  imgPerfil?: string;
-}
+import { AuthService, CurrentUser } from '../../services/auth.service';
 
 interface Capitulo {
   id: number;
@@ -83,6 +76,8 @@ type ReadingMode = 'strip' | 'single' | 'double';
 export class ReaderComponent implements OnInit, OnDestroy {
   apiUrl = 'https://minuscreators.com/api/obra_detalle.php';
   suscripcionUrl = 'https://minuscreators.com/api/suscripcion.php';
+  registrarVistaUrl = 'https://minuscreators.com/api/registrar_vista.php';
+
   siteUrl = 'https://minuscreators.com';
 
   currentUser: CurrentUser | null = null;
@@ -106,18 +101,19 @@ export class ReaderComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
+    private authService: AuthService,
     public translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = this.getCurrentUser();
+    this.currentUser = this.authService.getCurrentUser();
 
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
       const capitulo = params.get('capitulo');
 
       if (!id) {
-        this.error = 'No se encontró la obra';
+        this.error = this.translationService.getTranslation('No se encontró la obra');
         return;
       }
 
@@ -135,30 +131,30 @@ export class ReaderComponent implements OnInit, OnDestroy {
   }
 
   @HostListener('window:keydown', ['$event'])
-onKeyboardNavigation(event: KeyboardEvent): void {
-  const target = event.target as HTMLElement;
-  const tagName = target?.tagName?.toLowerCase();
+  onKeyboardNavigation(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement;
+    const tagName = target?.tagName?.toLowerCase();
 
-  const isTyping =
-    tagName === 'input' ||
-    tagName === 'textarea' ||
-    tagName === 'select' ||
-    target?.isContentEditable;
+    const isTyping =
+      tagName === 'input' ||
+      tagName === 'textarea' ||
+      tagName === 'select' ||
+      target?.isContentEditable;
 
-  if (isTyping || this.cargando || !this.obra) {
-    return;
+    if (isTyping || this.cargando || !this.obra) {
+      return;
+    }
+
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      this.nextPage();
+    }
+
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      this.previousPage();
+    }
   }
-
-  if (event.key === 'ArrowRight') {
-    event.preventDefault();
-    this.nextPage();
-  }
-
-  if (event.key === 'ArrowLeft') {
-    event.preventDefault();
-    this.previousPage();
-  }
-}
 
   get isCurrentAuthor(): boolean {
     return !!this.currentUser && !!this.obra && this.currentUser.id === this.obra.usuarioId;
@@ -229,29 +225,35 @@ onKeyboardNavigation(event: KeyboardEvent): void {
     this.currentPageIndex = 0;
     this.scrollProgress = 0;
 
-    const viewerId = this.currentUser?.id || 0;
-
-    let url = `${this.apiUrl}?id=${id}&viewer_id=${viewerId}`;
+    let url = `${this.apiUrl}?id=${id}`;
 
     if (capitulo) {
       url += `&capitulo=${capitulo}`;
     }
 
-    this.http.get<ObraDetalleResponse>(url).subscribe({
+    this.http.get<ObraDetalleResponse>(
+      url,
+      {
+        withCredentials: true
+      }
+    ).subscribe({
       next: (res) => {
         this.cargando = false;
 
         if (!res.success || !res.obra) {
-          this.error = res.error || 'No se pudo cargar la obra';
+          this.error = res.error || this.translationService.getTranslation('No se pudo cargar la obra');
           return;
         }
 
         this.obra = res.obra;
+        this.currentUser = this.authService.getCurrentUser();
         this.selectedChapter = this.obra.capituloActual.numeroCapitulo;
 
         this.images = this.obra.paginas.map((pagina) => {
           return this.imageUrl(pagina.imagen);
         });
+
+        this.registrarVista(this.obra.id);
 
         window.scrollTo({
           top: 0,
@@ -266,8 +268,25 @@ onKeyboardNavigation(event: KeyboardEvent): void {
       },
       error: (err) => {
         this.cargando = false;
-        this.error = err.error?.error || 'Error al cargar la obra';
+        this.error = err.error?.error || this.translationService.getTranslation('Error al cargar la obra');
         console.error(err);
+      }
+    });
+  }
+
+  registrarVista(obraId: number): void {
+    this.http.post(
+      this.registrarVistaUrl,
+      {
+        obra_id: obraId
+      },
+      {
+        withCredentials: true
+      }
+    ).subscribe({
+      next: () => {},
+      error: (err) => {
+        console.error('No se pudo registrar vista', err);
       }
     });
   }
@@ -398,6 +417,8 @@ onKeyboardNavigation(event: KeyboardEvent): void {
       return;
     }
 
+    this.currentUser = this.authService.getCurrentUser();
+
     if (!this.currentUser) {
       this.router.navigate(['/login']);
       return;
@@ -407,38 +428,56 @@ onKeyboardNavigation(event: KeyboardEvent): void {
       return;
     }
 
+    const seguidoId = this.obra.usuarioId;
+
     this.mensaje = '';
 
-    this.http.post<SuscripcionResponse>(this.suscripcionUrl, {
-      seguidor_id: this.currentUser.id,
-      seguido_id: this.obra.usuarioId
-    }).subscribe({
-      next: (res) => {
-        if (!res.success) {
-          this.mensaje = res.error || 'No se pudo actualizar la suscripción';
-          return;
+    this.ensureCsrfAndRun(() => {
+      this.http.post<SuscripcionResponse>(
+        this.suscripcionUrl,
+        {
+          seguido_id: seguidoId
+        },
+        {
+          withCredentials: true,
+          headers: this.authService.csrfHeaders()
         }
+      ).subscribe({
+        next: (res) => {
+          if (!res.success) {
+            this.mensaje = res.error || this.translationService.getTranslation('No se pudo actualizar la suscripción');
+            return;
+          }
 
-        if (!this.obra) {
-          return;
+          if (!this.obra) {
+            return;
+          }
+
+          this.obra.estaSuscrito = !!res.suscrito;
+
+          const totalActual = this.obra.totalSuscriptores || 0;
+
+          if (res.suscrito) {
+            this.obra.totalSuscriptores = totalActual + 1;
+          } else {
+            this.obra.totalSuscriptores = Math.max(totalActual - 1, 0);
+          }
+
+          this.mensaje = res.mensaje || '';
+        },
+        error: (err) => {
+          if (err.status === 401) {
+            this.authService.clearSession();
+            this.router.navigate(['/login']);
+            return;
+          }
+
+          this.mensaje = err.error?.error || this.translationService.getTranslation('Error al actualizar suscripción');
+          console.error(err);
         }
-
-        this.obra.estaSuscrito = !!res.suscrito;
-
-        const totalActual = this.obra.totalSuscriptores || 0;
-
-        if (res.suscrito) {
-          this.obra.totalSuscriptores = totalActual + 1;
-        } else {
-          this.obra.totalSuscriptores = Math.max(totalActual - 1, 0);
-        }
-
-        this.mensaje = res.mensaje || '';
-      },
-      error: (err) => {
-        this.mensaje = err.error?.error || 'Error al actualizar suscripción';
-        console.error(err);
-      }
+      });
+    }, () => {
+      this.mensaje = this.translationService.getTranslation('No se pudo preparar la acción');
     });
   }
 
@@ -480,24 +519,6 @@ onKeyboardNavigation(event: KeyboardEvent): void {
     return this.hiddenPageIndexes.includes(index);
   }
 
-  private hidePage(index: number): void {
-    if (!this.hiddenPageIndexes.includes(index)) {
-      this.hiddenPageIndexes.push(index);
-    }
-  }
-
-  private updateScrollProgress(): void {
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-
-    if (docHeight <= 0) {
-      this.scrollProgress = 100;
-      return;
-    }
-
-    this.scrollProgress = Math.min(100, Math.max(0, Math.round((scrollTop / docHeight) * 100)));
-  }
-
   cargarDisqus(): void {
     if (!this.obra) {
       return;
@@ -511,10 +532,13 @@ onKeyboardNavigation(event: KeyboardEvent): void {
       return;
     }
 
-    (window as any).disqus_config = () => {
-      (window as any).page.url = window.location.href;
-      (window as any).page.identifier =
-        `obra-${this.obra?.id}-capitulo-${this.selectedChapter}`;
+    const obraId = this.obra.id;
+    const selectedChapter = this.selectedChapter;
+
+    (window as any).disqus_config = function () {
+      this.page = this.page || {};
+      this.page.url = window.location.href;
+      this.page.identifier = `obra-${obraId}-capitulo-${selectedChapter}`;
     };
 
     const script = document.createElement('script');
@@ -542,18 +566,44 @@ onKeyboardNavigation(event: KeyboardEvent): void {
     }
   }
 
-  private getCurrentUser(): CurrentUser | null {
-    const userRaw = localStorage.getItem('user');
-
-    if (!userRaw) {
-      return null;
+  private ensureCsrfAndRun(action: () => void, onFail?: () => void): void {
+    if (this.authService.getCsrfToken()) {
+      action();
+      return;
     }
 
-    try {
-      return JSON.parse(userRaw) as CurrentUser;
-    } catch {
-      localStorage.removeItem('user');
-      return null;
+    this.authService.fetchCsrfToken().subscribe({
+      next: (res) => {
+        if (!res.success || !res.csrfToken) {
+          onFail?.();
+          return;
+        }
+
+        this.authService.saveCsrfToken(res.csrfToken);
+        action();
+      },
+      error: (err) => {
+        onFail?.();
+        console.error(err);
+      }
+    });
+  }
+
+  private hidePage(index: number): void {
+    if (!this.hiddenPageIndexes.includes(index)) {
+      this.hiddenPageIndexes.push(index);
     }
+  }
+
+  private updateScrollProgress(): void {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+
+    if (docHeight <= 0) {
+      this.scrollProgress = 100;
+      return;
+    }
+
+    this.scrollProgress = Math.min(100, Math.max(0, Math.round((scrollTop / docHeight) * 100)));
   }
 }
