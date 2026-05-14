@@ -3,14 +3,20 @@
     <div>
       <span class="eyebrow">Minus Creators</span>
 
-      <h1>Descubre nuevas historias</h1>
+      <h1>
+        {{ translationService.getTranslation('Descubre nuevas historias') }}
+      </h1>
 
       <p>
-        Lee obras nuevas, continúa capítulos recientes y sigue a tus creadores favoritos.
+        {{ translationService.getTranslation('Lee obras nuevas, continúa capítulos recientes y sigue a tus creadores favoritos.') }}
       </p>
     </div>
 
-    <button type="button" class="random-story-btn" (click)="discoverRandomStory()">
+    <button
+      type="button"
+      class="random-story-btn"
+      (click)="discoverRandomStory()"
+    >
       {{ translationService.getTranslation('Descubrir') }}
     </button>
   </section>
@@ -18,8 +24,13 @@
   <section class="home-section">
     <div class="section-header">
       <div>
-        <h2>{{ translationService.getTranslation('Nuevas obras subidas') }}</h2>
-        <p>Obras recién publicadas por la comunidad.</p>
+        <h2>
+          {{ translationService.getTranslation('Nuevas obras subidas') }}
+        </h2>
+
+        <p>
+          {{ translationService.getTranslation('Obras recién publicadas por la comunidad.') }}
+        </p>
       </div>
 
       <a routerLink="/categorias">
@@ -28,14 +39,17 @@
     </div>
 
     <p *ngIf="cargandoObras" class="estado">
-      Cargando obras...
+      {{ translationService.getTranslation('Cargando obras') }}...
     </p>
 
     <p *ngIf="errorObras" class="estado error">
       {{ errorObras }}
     </p>
 
-    <div class="carousel-container" *ngIf="!cargandoObras && obrasNuevas.length > 0; else noObras">
+    <div
+      class="carousel-container"
+      *ngIf="!cargandoObras && obrasNuevas.length > 0; else noObras"
+    >
       <button
         type="button"
         class="carousel-btn prev-btn"
@@ -45,66 +59,14 @@
       </button>
 
       <div class="carousel-track" id="nuevas-obras">
-        <article
-          class="content-card"
+        <app-obra-card
+          class="carousel-card"
           *ngFor="let obra of obrasNuevas"
-          (click)="abrirObra(obra)"
-        >
-          <div class="cover-wrap">
-            <img
-              [src]="imageUrl(obra.portada)"
-              [alt]="obra.titulo"
-            />
-
-            <div class="badges compact-badges">
-              <div class="badge-left">
-                <span
-                  class="category-badge"
-                  [attr.title]="getMainCategoryLabel(obra.genero, obra.categorias)"
-                >
-                  {{ getMainCategoryLabel(obra.genero, obra.categorias) }}
-                </span>
-
-                <span
-                  class="extra-badge"
-                  *ngIf="getExtraCategoryCount(obra.genero, obra.categorias) > 0"
-                  [attr.title]="getExtraCategoryCount(obra.genero, obra.categorias) + ' categorías extra'"
-                >
-                  +{{ getExtraCategoryCount(obra.genero, obra.categorias) }}
-                </span>
-              </div>
-
-              <span
-                class="language-badge"
-                [attr.title]="getLanguageLabel(obra.idioma)"
-              >
-                {{ getLanguageFlag(obra.idioma) }}
-              </span>
-            </div>
-          </div>
-
-          <div class="card-body">
-            <span class="type-label">Nueva obra</span>
-
-            <h3>{{ obra.titulo }}</h3>
-
-            <p class="description" *ngIf="obra.descripcion">
-              {{ obra.descripcion }}
-            </p>
-
-            <button
-              type="button"
-              class="author-link"
-              (click)="abrirPerfilObra($event, obra)"
-            >
-              {{ translationService.getTranslation('Por') }} {{ obra.autor }}
-            </button>
-
-            <p class="views">
-              {{ obra.numVisitas }} {{ translationService.getTranslation('Vistas') }}
-            </p>
-          </div>
-        </article>
+          [obra]="obra"
+          [label]="translationService.getTranslation('Nueva obra')"
+          (openObra)="abrirObra($event)"
+          (openAutor)="abrirPerfilObra($event)"
+        ></app-obra-card>
       </div>
 
       <button
@@ -118,7 +80,7 @@
 
     <ng-template #noObras>
       <p class="estado" *ngIf="!cargandoObras && !errorObras">
-        Todavía no hay obras publicadas.
+        {{ translationService.getTranslation('Todavía no hay obras publicadas.') }}
       </p>
     </ng-template>
   </section>
@@ -126,8 +88,13 @@
   <section class="home-section">
     <div class="section-header">
       <div>
-        <h2>{{ translationService.getTranslation('Nuevos episodios') }}</h2>
-        <p>Capítulos recién agregados a obras existentes.</p>
+        <h2>
+          {{ translationService.getTranslation('Nuevos episodios') }}
+        </h2>
+
+        <p>
+          {{ translationService.getTranslation('Capítulos recién agregados a obras existentes.') }}
+        </p>
       </div>
 
       <a routerLink="/categorias">
@@ -136,14 +103,17 @@
     </div>
 
     <p *ngIf="cargandoCapitulos" class="estado">
-      Cargando capítulos...
+      {{ translationService.getTranslation('Cargando capítulos') }}...
     </p>
 
     <p *ngIf="errorCapitulos" class="estado error">
       {{ errorCapitulos }}
     </p>
 
-    <div class="carousel-container" *ngIf="!cargandoCapitulos && capitulosNuevos.length > 0; else noCapitulos">
+    <div
+      class="carousel-container"
+      *ngIf="!cargandoCapitulos && capitulosNuevos.length > 0; else noCapitulos"
+    >
       <button
         type="button"
         class="carousel-btn prev-btn"
@@ -153,72 +123,13 @@
       </button>
 
       <div class="carousel-track" id="nuevos-capitulos">
-        <article
-          class="content-card"
+        <app-capitulo-card
+          class="carousel-card"
           *ngFor="let item of capitulosNuevos"
-          (click)="abrirCapitulo(item)"
-        >
-          <div class="cover-wrap">
-            <img
-              [src]="imageUrl(item.portada)"
-              [alt]="item.tituloObra"
-            />
-
-            <div class="badges compact-badges">
-              <div class="badge-left">
-                <span
-                  class="category-badge"
-                  [attr.title]="getMainCategoryLabel(item.genero, item.categorias)"
-                >
-                  {{ getMainCategoryLabel(item.genero, item.categorias) }}
-                </span>
-
-                <span
-                  class="extra-badge"
-                  *ngIf="getExtraCategoryCount(item.genero, item.categorias) > 0"
-                  [attr.title]="getExtraCategoryCount(item.genero, item.categorias) + ' categorías extra'"
-                >
-                  +{{ getExtraCategoryCount(item.genero, item.categorias) }}
-                </span>
-              </div>
-
-              <span
-                class="language-badge"
-                [attr.title]="getLanguageLabel(item.idioma)"
-              >
-                {{ getLanguageFlag(item.idioma) }}
-              </span>
-            </div>
-          </div>
-
-          <div class="card-body">
-            <span class="type-label">
-              {{ translationService.getTranslation('Capitulo') }} {{ item.numeroCapitulo }}
-            </span>
-
-            <h3>{{ item.tituloObra }}</h3>
-
-            <p class="chapter-title" *ngIf="item.tituloCapitulo">
-              {{ item.tituloCapitulo }}
-            </p>
-
-            <p class="description" *ngIf="item.descripcionCapitulo || item.descripcionObra">
-              {{ item.descripcionCapitulo || item.descripcionObra }}
-            </p>
-
-            <button
-              type="button"
-              class="author-link"
-              (click)="abrirPerfilCapitulo($event, item)"
-            >
-              {{ translationService.getTranslation('Por') }} {{ item.autor }}
-            </button>
-
-            <p class="views">
-              {{ item.numVisitas }} {{ translationService.getTranslation('Vistas') }}
-            </p>
-          </div>
-        </article>
+          [item]="item"
+          (openCapitulo)="abrirCapitulo($event)"
+          (openAutor)="abrirPerfilCapitulo($event)"
+        ></app-capitulo-card>
       </div>
 
       <button
@@ -232,7 +143,7 @@
 
     <ng-template #noCapitulos>
       <p class="estado" *ngIf="!cargandoCapitulos && !errorCapitulos">
-        Todavía no hay capítulos publicados.
+        {{ translationService.getTranslation('Todavía no hay capítulos publicados.') }}
       </p>
     </ng-template>
   </section>
@@ -240,8 +151,13 @@
   <section class="home-section following-section" *ngIf="currentUser">
     <div class="section-header">
       <div>
-        <h2>{{ translationService.getTranslation('Noticias') }}</h2>
-        <p>Actualizaciones recientes de los creadores a los que estás suscrito.</p>
+        <h2>
+          {{ translationService.getTranslation('Noticias') }}
+        </h2>
+
+        <p>
+          {{ translationService.getTranslation('Actualizaciones recientes de los creadores a los que estás suscrito.') }}
+        </p>
       </div>
 
       <a routerLink="/following">
@@ -250,14 +166,17 @@
     </div>
 
     <p *ngIf="cargandoFollowing" class="estado">
-      Cargando lo que sigues...
+      {{ translationService.getTranslation('Cargando lo que sigues') }}...
     </p>
 
     <p *ngIf="errorFollowing" class="estado error">
       {{ errorFollowing }}
     </p>
 
-    <div class="carousel-container" *ngIf="!cargandoFollowing && followingItems.length > 0; else noFollowing">
+    <div
+      class="carousel-container"
+      *ngIf="!cargandoFollowing && followingItems.length > 0; else noFollowing"
+    >
       <button
         type="button"
         class="carousel-btn prev-btn"
@@ -267,68 +186,14 @@
       </button>
 
       <div class="carousel-track" id="following-home">
-        <article
-          class="content-card"
+        <app-capitulo-card
+          class="carousel-card"
           *ngFor="let item of followingItems"
-          (click)="abrirCapitulo(item)"
-        >
-          <div class="cover-wrap">
-            <img
-              [src]="imageUrl(item.portada)"
-              [alt]="item.tituloObra"
-            />
-
-            <div class="badges compact-badges">
-              <div class="badge-left">
-                <span
-                  class="category-badge"
-                  [attr.title]="getMainCategoryLabel(item.genero, item.categorias)"
-                >
-                  {{ getMainCategoryLabel(item.genero, item.categorias) }}
-                </span>
-
-                <span
-                  class="extra-badge"
-                  *ngIf="getExtraCategoryCount(item.genero, item.categorias) > 0"
-                  [attr.title]="getExtraCategoryCount(item.genero, item.categorias) + ' categorías extra'"
-                >
-                  +{{ getExtraCategoryCount(item.genero, item.categorias) }}
-                </span>
-              </div>
-
-              <span
-                class="language-badge"
-                [attr.title]="getLanguageLabel(item.idioma)"
-              >
-                {{ getLanguageFlag(item.idioma) }}
-              </span>
-            </div>
-          </div>
-
-          <div class="card-body">
-            <span class="type-label">
-              {{ translationService.getTranslation('Capitulo') }} {{ item.numeroCapitulo }}
-            </span>
-
-            <h3>{{ item.tituloObra }}</h3>
-
-            <p class="chapter-title" *ngIf="item.tituloCapitulo">
-              {{ item.tituloCapitulo }}
-            </p>
-
-            <button
-              type="button"
-              class="author-link"
-              (click)="abrirPerfilCapitulo($event, item)"
-            >
-              {{ translationService.getTranslation('Por') }} {{ item.autor }}
-            </button>
-
-            <p class="views">
-              {{ item.numVisitas }} {{ translationService.getTranslation('Vistas') }}
-            </p>
-          </div>
-        </article>
+          [item]="item"
+          [showDescription]="false"
+          (openCapitulo)="abrirCapitulo($event)"
+          (openAutor)="abrirPerfilCapitulo($event)"
+        ></app-capitulo-card>
       </div>
 
       <button
@@ -342,8 +207,9 @@
 
     <ng-template #noFollowing>
       <p class="estado" *ngIf="!cargandoFollowing && !errorFollowing">
-        Todavía no hay actualizaciones de tus suscripciones.
+        {{ translationService.getTranslation('Todavía no hay actualizaciones de tus suscripciones.') }}
       </p>
     </ng-template>
   </section>
 </div>
+

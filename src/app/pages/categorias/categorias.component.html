@@ -8,13 +8,13 @@
       </h1>
 
       <p>
-        Explora obras por categoría, idioma, popularidad y nombre.
+        {{ translationService.getTranslation('Explora obras por categoría, idioma, popularidad y nombre.') }}
       </p>
     </div>
 
     <div class="hero-count">
       <strong>{{ obras.length }}</strong>
-      <span>obras</span>
+      <span>{{ translationService.getTranslation('obras') }}</span>
     </div>
   </section>
 
@@ -27,18 +27,19 @@
           type="text"
           [(ngModel)]="busqueda"
           (keyup.enter)="cargarObras()"
-          placeholder="Buscar por título, descripción o autor"
+          [placeholder]="translationService.getTranslation('Buscar por título, descripción o autor')"
         />
       </div>
 
       <button type="button" class="search-action" (click)="cargarObras()">
-        Buscar
+        {{ translationService.getTranslation('Buscar') }}
       </button>
     </div>
 
     <div class="filters-grid">
       <label>
-        Categoría
+        {{ translationService.getTranslation('Categoría') }}
+
         <select
           [(ngModel)]="categoriaSeleccionada"
           (change)="cargarObras()"
@@ -53,7 +54,8 @@
       </label>
 
       <label>
-        Idioma de obra
+        {{ translationService.getTranslation('Idioma de obra') }}
+
         <select
           [(ngModel)]="idiomaObraSeleccionado"
           (change)="cargarObras()"
@@ -68,18 +70,25 @@
       </label>
 
       <label>
-        Ordenar por
+        {{ translationService.getTranslation('Ordenar por') }}
+
         <select
           [(ngModel)]="ordenSeleccionado"
           (change)="cargarObras()"
         >
-          <option value="recientes">Más recientes</option>
-          <option value="populares">Más populares</option>
+          <option value="recientes">
+            {{ translationService.getTranslation('Más recientes') }}
+          </option>
+
+          <option value="populares">
+            {{ translationService.getTranslation('Más populares') }}
+          </option>
         </select>
       </label>
 
       <label>
-        Idioma de interfaz
+        {{ translationService.getTranslation('Idioma de interfaz') }}
+
         <select
           [(ngModel)]="idiomaUI"
           (change)="cambiarIdiomaUI($event)"
@@ -90,7 +99,7 @@
       </label>
 
       <button type="button" class="clear-btn" (click)="limpiarFiltros()">
-        Limpiar filtros
+        {{ translationService.getTranslation('Limpiar filtros') }}
       </button>
     </div>
   </section>
@@ -111,13 +120,14 @@
       <h2>{{ getCategoriaActual() }}</h2>
 
       <p *ngIf="idiomaObraSeleccionado !== 'todos'">
-        Idioma: {{ getIdiomaLabel(idiomaObraSeleccionado) }}
+        {{ translationService.getTranslation('Idioma') }}:
+        {{ getIdiomaLabel(idiomaObraSeleccionado) }}
       </p>
     </div>
   </div>
 
   <p *ngIf="cargando" class="estado">
-    Cargando obras...
+    {{ translationService.getTranslation('Cargando obras') }}...
   </p>
 
   <p *ngIf="error" class="estado error">
@@ -125,7 +135,9 @@
   </p>
 
   <section class="usuarios-resultados" *ngIf="usuarios.length > 0">
-    <h2>Usuarios</h2>
+    <h2>
+      {{ translationService.getTranslation('Usuarios') }}
+    </h2>
 
     <article
       class="usuario-card"
@@ -135,6 +147,7 @@
       <img
         [src]="imageUrl(usuario.imgPerfil, '/obras/paleta/tres.png')"
         [alt]="usuario.username"
+        loading="lazy"
       />
 
       <div>
@@ -148,83 +161,38 @@
         </p>
 
         <p>
-          {{ usuario.totalSuscriptores }} Suscriptores ·
-          {{ usuario.totalObras }} Obras
+          {{ usuario.totalSuscriptores }}
+          {{ translationService.getTranslation('Suscriptores') }}
+          ·
+          {{ usuario.totalObras }}
+          {{ translationService.getTranslation('Obras') }}
         </p>
       </div>
     </article>
   </section>
 
   <div class="obras-grid" *ngIf="!cargando && obras.length > 0; else sinObras">
-    <article
-      class="obra-card"
+    <app-obra-card
       *ngFor="let obra of obras"
-      (click)="abrirObra(obra)"
-    >
-      <div class="cover-wrap">
-        <img
-          [src]="imageUrl(obra.portada)"
-          [alt]="obra.titulo"
-        />
-
-        <div class="badges compact-badges">
-          <div class="badge-left">
-            <span
-              class="category-badge"
-              [attr.title]="getMainCategoriaLabel(obra)"
-            >
-              {{ getMainCategoriaLabel(obra) }}
-            </span>
-
-            <span
-              class="extra-badge"
-              *ngIf="getExtraCategoriaCount(obra) > 0"
-              [attr.title]="getExtraCategoriaCount(obra) + ' categorías extra'"
-            >
-              +{{ getExtraCategoriaCount(obra) }}
-            </span>
-          </div>
-
-          <span
-            class="language-badge"
-            [attr.title]="getIdiomaLabel(obra.idioma)"
-          >
-            {{ getIdiomaFlag(obra.idioma) }}
-          </span>
-        </div>
-      </div>
-
-      <div class="obra-body">
-        <h3>{{ obra.titulo }}</h3>
-
-        <p class="descripcion" *ngIf="obra.descripcion">
-          {{ obra.descripcion }}
-        </p>
-
-        <div class="meta">
-          <button
-            type="button"
-            class="author-link"
-            (click)="abrirPerfil($event, obra)"
-          >
-            {{ translationService.getTranslation('Por') }} {{ obra.autor }}
-          </button>
-
-          <span>
-            {{ obra.numVisitas }} {{ translationService.getTranslation('Vistas') }}
-          </span>
-        </div>
-      </div>
-    </article>
+      [obra]="obra"
+      [label]="''"
+      (openObra)="abrirObra($event)"
+      (openAutor)="abrirPerfilObra($event)"
+    ></app-obra-card>
   </div>
 
   <ng-template #sinObras>
     <div class="empty-state" *ngIf="!cargando && !error">
-      <h3>No hay obras con estos filtros</h3>
-      <p>Prueba otra categoría, idioma o búsqueda.</p>
+      <h3>
+        {{ translationService.getTranslation('No hay obras con estos filtros') }}
+      </h3>
+
+      <p>
+        {{ translationService.getTranslation('Prueba otra categoría, idioma o búsqueda.') }}
+      </p>
 
       <button type="button" (click)="limpiarFiltros()">
-        Ver todas las obras
+        {{ translationService.getTranslation('Ver todas las obras') }}
       </button>
     </div>
   </ng-template>

@@ -6,34 +6,15 @@ import { Router, RouterModule } from '@angular/router';
 import { TranslationService } from '../../services/translation.service';
 import { AuthService, CurrentUser } from '../../services/auth.service';
 
-interface FollowingItem {
-  tipo: string;
-
-  obraId: number;
-  usuarioId: number | null;
-
-  tituloObra: string;
-  descripcionObra?: string;
-
-  genero?: string;
-  idioma?: string;
-  portada?: string;
-  numVisitas: number;
-
-  capituloId: number;
-  numeroCapitulo: number;
-  tituloCapitulo?: string;
-  descripcionCapitulo?: string;
-  fechaCreacion: string;
-
-  autor: string;
-  autorAvatar?: string;
-}
+import {
+  CapituloCardComponent,
+  CapituloCardItem
+} from '../../components/cards/capitulo-card/capitulo-card.component';
 
 interface FollowingResponse {
   success: boolean;
   error?: string;
-  items: FollowingItem[];
+  items: CapituloCardItem[];
 }
 
 @Component({
@@ -41,18 +22,18 @@ interface FollowingResponse {
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule
+    RouterModule,
+    CapituloCardComponent
   ],
   templateUrl: './following.component.html',
   styleUrl: './following.component.css'
 })
 export class FollowingComponent implements OnInit {
   apiUrl = 'https://minuscreators.com/api/following.php';
-  siteUrl = 'https://minuscreators.com';
 
   currentUser: CurrentUser | null = null;
 
-  items: FollowingItem[] = [];
+  items: CapituloCardItem[] = [];
 
   cargando = false;
   error = '';
@@ -79,10 +60,6 @@ export class FollowingComponent implements OnInit {
     this.cargando = true;
     this.error = '';
 
-    /*
-      Ya NO mandamos user_id.
-      following.php usa la sesión HttpOnly para saber quién eres.
-    */
     this.http
       .get<FollowingResponse>(
         `${this.apiUrl}?limite=50`,
@@ -121,7 +98,7 @@ export class FollowingComponent implements OnInit {
       });
   }
 
-  abrirItem(item: FollowingItem): void {
+  abrirItem(item: CapituloCardItem): void {
     this.router.navigate([
       '/obra',
       item.obraId,
@@ -130,27 +107,11 @@ export class FollowingComponent implements OnInit {
     ]);
   }
 
-  abrirPerfil(event: Event, item: FollowingItem): void {
-    event.stopPropagation();
-
+  abrirPerfil(item: CapituloCardItem): void {
     if (!item.usuarioId) {
       return;
     }
 
     this.router.navigate(['/perfil', item.usuarioId]);
-  }
-
-  imageUrl(path?: string | null, fallback: string = '/obras/paleta/portada.png'): string {
-    const finalPath = path || fallback;
-
-    if (finalPath.startsWith('http')) {
-      return finalPath;
-    }
-
-    if (finalPath.startsWith('/')) {
-      return finalPath;
-    }
-
-    return `${this.siteUrl}/${finalPath}`;
   }
 }

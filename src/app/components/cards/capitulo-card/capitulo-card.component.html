@@ -1,0 +1,79 @@
+<article
+  class="capitulo-card"
+  (click)="onOpenCapitulo()"
+>
+  <div class="cover-wrap">
+    <img
+      [src]="coverUrl"
+      [alt]="item.tituloObra"
+      loading="lazy"
+    />
+
+    <div class="compact-badges">
+      <div class="badge-left">
+        <span
+          class="category-badge"
+          [attr.title]="mainCategoryLabel"
+        >
+          {{ mainCategoryLabel }}
+        </span>
+
+        <span
+          class="extra-badge"
+          *ngIf="extraCategoryCount > 0"
+          [attr.title]="extraCategoryCount + ' categorías extra'"
+        >
+          +{{ extraCategoryCount }}
+        </span>
+      </div>
+
+      <span
+        class="language-badge"
+        [attr.title]="languageLabel"
+      >
+        <img
+          [src]="languageFlagUrl"
+          [alt]="languageLabel"
+          loading="lazy"
+        />
+      </span>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <span class="type-label">
+      {{ translationService.getTranslation('Capitulo') }} {{ item.numeroCapitulo }}
+    </span>
+
+    <h3>
+      {{ item.tituloObra }}
+    </h3>
+
+    <p class="chapter-title" *ngIf="item.tituloCapitulo">
+      {{ item.tituloCapitulo }}
+    </p>
+
+    <p
+      class="description"
+      *ngIf="showDescription && description"
+    >
+      {{ description }}
+    </p>
+
+    <button
+      type="button"
+      class="author-link"
+      (click)="onOpenAutor($event)"
+    >
+      {{ translationService.getTranslation('Por') }} {{ item.autor }}
+    </button>
+
+    <p class="views">
+    {{ item.numVisitas }} {{ translationService.getTranslation('Vistas') }}
+    </p>
+
+    <div class="card-actions" *ngIf="showActions">
+    <ng-content select="[card-actions]"></ng-content>
+    </div>
+  </div>
+</article>

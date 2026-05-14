@@ -1,11 +1,9 @@
 <div class="perfil" *ngIf="user; else loading">
-  <!-- Banner -->
   <div
     class="banner"
     [style.backgroundImage]="'url(' + imageUrl(user.imgBanner, '/obras/paleta/portada.png') + ')'"
   ></div>
 
-  <!-- Card principal del perfil -->
   <div class="contenido">
     <img
       class="avatar"
@@ -26,7 +24,6 @@
         {{ user.nacionalidad || translationService.getTranslation('Nacionalidad no especificada') }}
       </p>
 
-      <!-- Estadísticas -->
       <div class="stats">
         <div class="stat-card">
           <span class="stat-number">
@@ -59,7 +56,6 @@
         </div>
       </div>
 
-      <!-- Redes sociales -->
       <div class="redes">
         <a
           *ngIf="user.twitter"
@@ -89,7 +85,6 @@
         </a>
       </div>
 
-      <!-- Acciones -->
       <div class="acciones">
         <button
           class="boton"
@@ -120,8 +115,7 @@
     </div>
   </div>
 
-  <!-- Tabs -->
-  <nav class="menu profile-tabs">
+  <nav class="profile-tabs">
     <button
       type="button"
       [class.activo]="activeTab === 'news'"
@@ -147,78 +141,36 @@
     </button>
   </nav>
 
-  <!-- NEWS: últimos capítulos -->
-  <div
-    class="obras"
+  <section
+    class="cards-grid"
     *ngIf="activeTab === 'news' && displayedCapitulos.length > 0; else noCapitulosNews"
   >
-    <div
+    <app-capitulo-card
       *ngFor="let capitulo of displayedCapitulos"
-      class="obra"
-      (click)="abrirCapitulo(capitulo)"
+      [item]="capitulo"
+      [showActions]="isCurrentUser"
+      (openCapitulo)="abrirCapitulo($event)"
+      (openAutor)="abrirPerfilAutor()"
     >
-      <img
-        [src]="imageUrl(capitulo.portada, '/obras/paleta/portada.png')"
-        alt="Portada de la obra"
-        class="portada"
-      />
-
-      <div class="info">
-        <h3>{{ capitulo.tituloObra }}</h3>
-
-        <p>
-          {{ translationService.getTranslation('Capitulo') }}
-          {{ capitulo.numeroCapitulo }}
-
-          <span *ngIf="capitulo.tituloCapitulo">
-            - {{ capitulo.tituloCapitulo }}
-          </span>
-        </p>
-
-        <p>
-          {{ translationService.getTranslation('Idioma') }}:
-          {{ capitulo.idioma || translationService.getTranslation('Sin idioma') }}
-        </p>
-
-        <p>
-          {{ translationService.getTranslation('Género') }}:
-          {{ capitulo.genero || translationService.getTranslation('Sin género') }}
-        </p>
-
-        <p>
-          {{ capitulo.numVisitas }}
-          {{ translationService.getTranslation('Vistas') }}
-        </p>
-
-        <p>
-          {{ translationService.getTranslation('Fecha de creación') }}:
-          {{ capitulo.fechaCreacion }}
-        </p>
-
+      <div card-actions class="profile-card-actions" *ngIf="isCurrentUser">
         <button
           type="button"
-          class="botonEditar subir-capitulo-btn"
-          *ngIf="isCurrentUser"
-          [routerLink]="['/obra', capitulo.obraId, 'subir-capitulo']"
-          (click)="$event.stopPropagation()"
+          class="profile-card-action"
+          (click)="subirCapitulo($event, capitulo.obraId)"
         >
           {{ translationService.getTranslation('Subir capítulo') }}
         </button>
 
         <button
           type="button"
-          class="botonEditar subir-capitulo-btn"
-          *ngIf="isCurrentUser"
-          [routerLink]="['/obra', capitulo.obraId, 'admin']"
-          (click)="$event.stopPropagation()"
+          class="profile-card-action secondary"
+          (click)="administrarObra($event, capitulo.obraId)"
         >
           {{ translationService.getTranslation('Administrar obra') }}
         </button>
-
-        
       </div>
-    </div>
-  </div>
+    </app-capitulo-card>
+  </section>
 
   <ng-template #noCapitulosNews>
     <p class="no-obras" *ngIf="activeTab === 'news'">
@@ -226,67 +178,37 @@
     </p>
   </ng-template>
 
-  <!-- OBRAS / MOST POPULAR -->
-  <div
-    class="obras"
+  <section
+    class="cards-grid"
     *ngIf="activeTab !== 'news' && displayedObras.length > 0; else noObras"
   >
-    <div
+    <app-obra-card
       *ngFor="let obra of displayedObras"
-      class="obra"
-      [routerLink]="['/obra', obra.id]"
+      [obra]="obra"
+      [label]="''"
+      [showActions]="isCurrentUser"
+      (openObra)="abrirObra($event)"
+      (openAutor)="abrirPerfilAutor()"
     >
-      <img
-        [src]="imageUrl(obra.portada, '/obras/paleta/portada.png')"
-        alt="Portada de la obra"
-        class="portada"
-      />
-
-      <div class="info">
-        <h3>{{ obra.titulo }}</h3>
-
-        <p>
-          {{ translationService.getTranslation('Idioma') }}:
-          {{ obra.idioma || translationService.getTranslation('Sin idioma') }}
-        </p>
-
-        <p>
-          {{ translationService.getTranslation('Género') }}:
-          {{ obra.genero || translationService.getTranslation('Sin género') }}
-        </p>
-
-        <p>
-          {{ obra.numVisitas }}
-          {{ translationService.getTranslation('Vistas') }}
-        </p>
-
-        <p>
-          {{ translationService.getTranslation('Fecha de creación') }}:
-          {{ obra.fechaCreacion }}
-        </p>
-
+      <div card-actions class="profile-card-actions" *ngIf="isCurrentUser">
         <button
           type="button"
-          class="botonEditar subir-capitulo-btn"
-          *ngIf="isCurrentUser"
-          [routerLink]="['/obra', obra.id, 'subir-capitulo']"
-          (click)="$event.stopPropagation()"
+          class="profile-card-action"
+          (click)="subirCapitulo($event, obra.id)"
         >
           {{ translationService.getTranslation('Subir capítulo') }}
         </button>
 
         <button
-        type="button"
-        class="botonEditar subir-capitulo-btn"
-        *ngIf="isCurrentUser"
-        [routerLink]="['/obra', obra.id, 'admin']"
-        (click)="$event.stopPropagation()"
-      >
-        {{ translationService.getTranslation('Administrar obra') }}
-      </button>
+          type="button"
+          class="profile-card-action secondary"
+          (click)="administrarObra($event, obra.id)"
+        >
+          {{ translationService.getTranslation('Administrar obra') }}
+        </button>
       </div>
-    </div>
-  </div>
+    </app-obra-card>
+  </section>
 
   <ng-template #noObras>
     <p class="no-obras" *ngIf="activeTab !== 'news'">

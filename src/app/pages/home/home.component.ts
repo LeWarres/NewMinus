@@ -1,50 +1,25 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { TranslationService } from '../../services/translation.service';
 import { AuthService, CurrentUser } from '../../services/auth.service';
 
-interface Obra {
-  id: number;
-  usuarioId: number | null;
-  titulo: string;
-  descripcion?: string;
-  genero?: string;
-  categorias?: string[];
-  idioma?: string;
+import {
+  ObraCardComponent,
+  ObraCardItem
+} from '../../components/cards/obra-card/obra-card.component';
+
+import {
+  CapituloCardComponent,
+  CapituloCardItem
+} from '../../components/cards/capitulo-card/capitulo-card.component';
+
+interface Obra extends ObraCardItem {
   tipoEntrega?: string;
   serieConcluida?: boolean;
-  portada?: string;
-  numVisitas: number;
   fechaCreacion: string;
-  autor: string;
-}
-
-interface CapituloItem {
-  tipo: string;
-
-  obraId: number;
-  usuarioId: number | null;
-
-  tituloObra: string;
-  descripcionObra?: string;
-
-  genero?: string;
-  categorias?: string[];
-  idioma?: string;
-  portada?: string;
-  numVisitas: number;
-
-  capituloId: number;
-  numeroCapitulo: number;
-  tituloCapitulo?: string;
-  descripcionCapitulo?: string;
-  fechaCreacion: string;
-
-  autor: string;
-  autorAvatar?: string;
 }
 
 interface ObrasResponse {
@@ -56,7 +31,7 @@ interface ObrasResponse {
 interface CapitulosResponse {
   success: boolean;
   error?: string;
-  items: CapituloItem[];
+  items: CapituloCardItem[];
 }
 
 @Component({
@@ -64,14 +39,14 @@ interface CapitulosResponse {
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule
+    RouterModule,
+    ObraCardComponent,
+    CapituloCardComponent
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
 export class HomeComponent implements OnInit {
-  siteUrl = 'https://minuscreators.com';
-
   obrasUrl = 'https://minuscreators.com/api/listar_obras.php';
   capitulosUrl = 'https://minuscreators.com/api/capitulos_recientes.php';
   followingUrl = 'https://minuscreators.com/api/following.php';
@@ -79,10 +54,8 @@ export class HomeComponent implements OnInit {
   currentUser: CurrentUser | null = null;
 
   obrasNuevas: Obra[] = [];
-  capitulosNuevos: CapituloItem[] = [];
-  followingItems: CapituloItem[] = [];
-
-  isMobile = false;
+  capitulosNuevos: CapituloCardItem[] = [];
+  followingItems: CapituloCardItem[] = [];
 
   cargandoObras = false;
   cargandoCapitulos = false;
@@ -91,154 +64,6 @@ export class HomeComponent implements OnInit {
   errorObras = '';
   errorCapitulos = '';
   errorFollowing = '';
-
-  private categoryTranslationKeys: Record<string, string> = {
-    'accion': 'categoria_accion',
-    'aventura': 'categoria_aventura',
-    'comedia': 'categoria_comedia',
-    'drama': 'categoria_drama',
-    'fantasia': 'categoria_fantasia',
-    'romance': 'categoria_romance',
-    'terror': 'categoria_terror',
-    'ciencia-ficcion': 'categoria_ciencia_ficcion',
-    'misterio': 'categoria_misterio',
-    'suspenso': 'categoria_suspenso',
-    'sobrenatural': 'categoria_sobrenatural',
-    'psicologico': 'categoria_psicologico',
-    'slice-of-life': 'categoria_slice_of_life',
-    'vida-escolar': 'categoria_vida_escolar',
-    'deportes': 'categoria_deportes',
-    'artes-marciales': 'categoria_artes_marciales',
-    'mecha': 'categoria_mecha',
-    'isekai': 'categoria_isekai',
-    'historico': 'categoria_historico',
-    'musica': 'categoria_musica',
-    'cocina': 'categoria_cocina',
-    'magia': 'categoria_magia',
-    'superheroes': 'categoria_superheroes',
-    'crimen': 'categoria_crimen',
-    'post-apocaliptico': 'categoria_post_apocaliptico',
-    'cyberpunk': 'categoria_cyberpunk',
-    'steampunk': 'categoria_steampunk',
-    'guerra': 'categoria_guerra',
-    'parodia': 'categoria_parodia',
-    'tragedia': 'categoria_tragedia',
-    'shonen': 'categoria_shonen',
-    'shojo': 'categoria_shojo',
-    'seinen': 'categoria_seinen',
-    'josei': 'categoria_josei',
-    'kodomo': 'categoria_kodomo',
-    'boys-love': 'categoria_boys_love',
-    'girls-love': 'categoria_girls_love'
-  };
-
-  private categoryFallbacks: Record<string, string> = {
-    'accion': 'Acción',
-    'aventura': 'Aventura',
-    'comedia': 'Comedia',
-    'drama': 'Drama',
-    'fantasia': 'Fantasía',
-    'romance': 'Romance',
-    'terror': 'Terror',
-    'ciencia-ficcion': 'Ciencia ficción',
-    'misterio': 'Misterio',
-    'suspenso': 'Suspenso',
-    'sobrenatural': 'Sobrenatural',
-    'psicologico': 'Psicológico',
-    'slice-of-life': 'Slice of life',
-    'vida-escolar': 'Vida escolar',
-    'deportes': 'Deportes',
-    'artes-marciales': 'Artes marciales',
-    'mecha': 'Mecha',
-    'isekai': 'Isekai',
-    'historico': 'Histórico',
-    'musica': 'Música',
-    'cocina': 'Cocina',
-    'magia': 'Magia',
-    'superheroes': 'Superhéroes',
-    'crimen': 'Crimen',
-    'post-apocaliptico': 'Post-apocalíptico',
-    'cyberpunk': 'Cyberpunk',
-    'steampunk': 'Steampunk',
-    'guerra': 'Guerra',
-    'parodia': 'Parodia',
-    'tragedia': 'Tragedia',
-    'shonen': 'Shonen',
-    'shojo': 'Shojo',
-    'seinen': 'Seinen',
-    'josei': 'Josei',
-    'kodomo': 'Kodomo',
-    'boys-love': 'Boys Love',
-    'girls-love': 'Girls Love'
-  };
-
-  private languageTranslationKeys: Record<string, string> = {
-    GLOBAL: 'idioma_global',
-    ES: 'idioma_es',
-    EN: 'idioma_en',
-    JA: 'idioma_ja',
-    KO: 'idioma_ko',
-    ZH: 'idioma_zh',
-    FR: 'idioma_fr',
-    DE: 'idioma_de',
-    PT: 'idioma_pt',
-    IT: 'idioma_it',
-    RU: 'idioma_ru',
-    AR: 'idioma_ar',
-    HI: 'idioma_hi',
-    ID: 'idioma_id',
-    VI: 'idioma_vi',
-    TH: 'idioma_th',
-    TR: 'idioma_tr',
-    PL: 'idioma_pl',
-    NL: 'idioma_nl'
-  };
-
-  
-
-  private languageFallbacks: Record<string, string> = {
-    GLOBAL: 'Global',
-    ES: 'Español',
-    EN: 'English',
-    JA: 'Japanese',
-    KO: 'Korean',
-    ZH: 'Chinese',
-    FR: 'French',
-    DE: 'German',
-    PT: 'Portuguese',
-    IT: 'Italian',
-    RU: 'Russian',
-    AR: 'Arabic',
-    HI: 'Hindi',
-    ID: 'Indonesian',
-    VI: 'Vietnamese',
-    TH: 'Thai',
-    TR: 'Turkish',
-    PL: 'Polish',
-    NL: 'Dutch'
-  };
-
-  private languageFlags: Record<string, string> = {
-    GLOBAL: '🌐',
-    ES: '🇪🇸',
-    EN: '🇬🇧',
-    JA: '🇯🇵',
-    KO: '🇰🇷',
-    ZH: '🇨🇳',
-    FR: '🇫🇷',
-    DE: '🇩🇪',
-    PT: '🇵🇹',
-    IT: '🇮🇹',
-    RU: '🇷🇺',
-    AR: '🇸🇦',
-    HI: '🇮🇳',
-    ID: '🇮🇩',
-    VI: '🇻🇳',
-    TH: '🇹🇭',
-    TR: '🇹🇷',
-    PL: '🇵🇱',
-    NL: '🇳🇱'
-  };
 
   constructor(
     private http: HttpClient,
@@ -264,22 +89,12 @@ export class HomeComponent implements OnInit {
 
     this.currentUser = this.authService.getCurrentUser();
 
-    this.checkScreenSize();
     this.cargarObrasNuevas();
     this.cargarCapitulosNuevos();
 
     if (this.currentUser) {
       this.cargarFollowing();
     }
-  }
-
-  @HostListener('window:resize')
-  onResize(): void {
-    this.checkScreenSize();
-  }
-
-  checkScreenSize(): void {
-    this.isMobile = window.innerWidth <= 768;
   }
 
   cargarObrasNuevas(): void {
@@ -390,11 +205,11 @@ export class HomeComponent implements OnInit {
       });
   }
 
-  abrirObra(obra: Obra): void {
+  abrirObra(obra: { id: number }): void {
     this.router.navigate(['/obra', obra.id]);
   }
 
-  abrirCapitulo(item: CapituloItem): void {
+  abrirCapitulo(item: CapituloCardItem): void {
     this.router.navigate([
       '/obra',
       item.obraId,
@@ -403,9 +218,7 @@ export class HomeComponent implements OnInit {
     ]);
   }
 
-  abrirPerfilObra(event: Event, obra: Obra): void {
-    event.stopPropagation();
-
+  abrirPerfilObra(obra: { usuarioId: number | null }): void {
     if (!obra.usuarioId) {
       return;
     }
@@ -413,9 +226,7 @@ export class HomeComponent implements OnInit {
     this.router.navigate(['/perfil', obra.usuarioId]);
   }
 
-  abrirPerfilCapitulo(event: Event, item: CapituloItem): void {
-    event.stopPropagation();
-
+  abrirPerfilCapitulo(item: CapituloCardItem): void {
     if (!item.usuarioId) {
       return;
     }
@@ -469,7 +280,7 @@ export class HomeComponent implements OnInit {
     this.scrollCarousel(id, -1);
   }
 
-  scrollCarousel(id: string, direction: 1 | -1): void {
+  private scrollCarousel(id: string, direction: 1 | -1): void {
     const carousel = document.getElementById(id);
 
     if (!carousel) {
@@ -480,77 +291,5 @@ export class HomeComponent implements OnInit {
       left: direction * 320,
       behavior: 'smooth'
     });
-  }
-
-  imageUrl(path?: string | null, fallback: string = '/obras/paleta/portada.png'): string {
-    const finalPath = path || fallback;
-
-    if (finalPath.startsWith('http')) {
-      return finalPath;
-    }
-
-    if (finalPath.startsWith('/')) {
-      return finalPath;
-    }
-
-    return `${this.siteUrl}/${finalPath}`;
-  }
-
-  getCategoryValues(genero?: string, categorias?: string[]): string[] {
-    const values = categorias && categorias.length > 0
-      ? categorias
-      : (genero || '').split(',');
-
-    return Array.from(
-      new Set(
-        values
-          .map(item => item.trim())
-          .filter(Boolean)
-      )
-    );
-  }
-
-  getMainCategoryLabel(genero?: string, categorias?: string[]): string {
-    const values = this.getCategoryValues(genero, categorias);
-
-    if (values.length === 0) {
-      return this.translateWithFallback('Sin categoría', 'Sin categoría');
-    }
-
-    return this.getCategoryLabel(values[0]);
-  }
-
-  getExtraCategoryCount(genero?: string, categorias?: string[]): number {
-    const values = this.getCategoryValues(genero, categorias);
-    return Math.max(values.length - 1, 0);
-  }
-
-  getCategoryLabel(value?: string): string {
-    if (!value) {
-      return this.translateWithFallback('Sin categoría', 'Sin categoría');
-    }
-
-    const key = this.categoryTranslationKeys[value];
-    const fallback = this.categoryFallbacks[value] || value;
-
-    return key ? this.translateWithFallback(key, fallback) : fallback;
-  }
-
-  getLanguageLabel(value?: string): string {
-    const normalized = (value || 'GLOBAL').toUpperCase();
-    const key = this.languageTranslationKeys[normalized];
-    const fallback = this.languageFallbacks[normalized] || normalized;
-
-    return key ? this.translateWithFallback(key, fallback) : fallback;
-  }
-
-  getLanguageFlag(value?: string): string {
-    const normalized = (value || 'GLOBAL').toUpperCase();
-    return this.languageFlags[normalized] || '🌐';
-  }
-
-  private translateWithFallback(key: string, fallback: string): string {
-    const translated = this.translationService.getTranslation(key);
-    return translated && translated !== key ? translated : fallback;
   }
 }

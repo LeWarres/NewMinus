@@ -1,0 +1,75 @@
+<article
+  class="obra-card"
+  (click)="onOpenObra()"
+>
+  <div class="cover-wrap">
+    <img
+      [src]="coverUrl"
+      [alt]="obra.titulo"
+      loading="lazy"
+    />
+
+    <div class="badges compact-badges">
+      <div class="badge-left">
+        <span
+          class="category-badge"
+          [attr.title]="mainCategoryLabel"
+        >
+          {{ mainCategoryLabel }}
+        </span>
+
+        <span
+          class="extra-badge"
+          *ngIf="extraCategoryCount > 0"
+          [attr.title]="extraCategoryCount + ' categorías extra'"
+        >
+          +{{ extraCategoryCount }}
+        </span>
+      </div>
+
+      <span
+        class="language-badge"
+        [attr.title]="languageLabel"
+      >
+        <img
+          [src]="languageFlagUrl"
+          [alt]="languageLabel"
+          loading="lazy"
+        />
+      </span>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <span class="type-label" *ngIf="label">
+      {{ label }}
+    </span>
+
+    <h3>
+      {{ obra.titulo }}
+    </h3>
+
+    <p
+      class="description"
+      *ngIf="showDescription && obra.descripcion"
+    >
+      {{ obra.descripcion }}
+    </p>
+
+    <button
+      type="button"
+      class="author-link"
+      (click)="onOpenAutor($event)"
+    >
+      {{ translationService.getTranslation('Por') }} {{ obra.autor }}
+    </button>
+
+   <p class="views">
+  {{ obra.numVisitas }} {{ translationService.getTranslation('Vistas') }}
+</p>
+
+<div class="card-actions" *ngIf="showActions">
+  <ng-content select="[card-actions]"></ng-content>
+</div>
+  </div>
+</article>

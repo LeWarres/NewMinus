@@ -1,0 +1,78 @@
+import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+
+import { TranslationService } from '../../../services/translation.service';
+import { ContentMetadataService } from '../../../services/content-metadata.service';
+
+export interface ObraCardItem {
+  id: number;
+  usuarioId: number | null;
+  titulo: string;
+  descripcion?: string;
+  genero?: string;
+  categorias?: string[];
+  idioma?: string;
+  portada?: string;
+  numVisitas: number;
+  autor: string;
+}
+
+@Component({
+  selector: 'app-obra-card',
+  standalone: true,
+  imports: [
+    CommonModule
+  ],
+  templateUrl: './obra-card.component.html',
+  styleUrl: './obra-card.component.css'
+})
+export class ObraCardComponent {
+  @Input({ required: true }) obra!: ObraCardItem;
+
+  @Input() label = '';
+  @Input() showDescription = true;
+  @Input() showActions = false;
+  
+  @Output() openObra = new EventEmitter<ObraCardItem>();
+  @Output() openAutor = new EventEmitter<ObraCardItem>();
+
+  constructor(
+    public translationService: TranslationService,
+    public metadataService: ContentMetadataService
+  ) {}
+
+  onOpenObra(): void {
+    this.openObra.emit(this.obra);
+  }
+
+  onOpenAutor(event: Event): void {
+    event.stopPropagation();
+    this.openAutor.emit(this.obra);
+  }
+
+  get mainCategoryLabel(): string {
+    return this.metadataService.getMainCategoryLabel(
+      this.obra.genero,
+      this.obra.categorias
+    );
+  }
+
+  get extraCategoryCount(): number {
+    return this.metadataService.getExtraCategoryCount(
+      this.obra.genero,
+      this.obra.categorias
+    );
+  }
+
+  get languageLabel(): string {
+    return this.metadataService.getLanguageLabel(this.obra.idioma);
+  }
+
+  get languageFlagUrl(): string {
+    return this.metadataService.getLanguageFlagUrl(this.obra.idioma);
+  }
+
+  get coverUrl(): string {
+    return this.metadataService.imageUrl(this.obra.portada);
+  }
+}
