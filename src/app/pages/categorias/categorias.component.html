@@ -44,10 +44,10 @@
           (change)="cargarObras()"
         >
           <option
-            *ngFor="let categoria of categorias[idiomaUI]"
+            *ngFor="let categoria of categorias"
             [value]="categoria.value"
           >
-            {{ categoria.label }}
+            {{ getCategoriaLabel(categoria.value) }}
           </option>
         </select>
       </label>
@@ -58,10 +58,12 @@
           [(ngModel)]="idiomaObraSeleccionado"
           (change)="cargarObras()"
         >
-          <option value="todos">Todos</option>
-          <option value="ES">ES</option>
-          <option value="EN">EN</option>
-          <option value="FR">FR</option>
+          <option
+            *ngFor="let idioma of idiomasObra"
+            [value]="idioma.value"
+          >
+            {{ getIdiomaOptionLabel(idioma) }}
+          </option>
         </select>
       </label>
 
@@ -96,11 +98,11 @@
   <section class="category-chips">
     <button
       type="button"
-      *ngFor="let categoria of categorias[idiomaUI]"
+      *ngFor="let categoria of categorias"
       [class.active]="categoria.value === categoriaSeleccionada"
       (click)="seleccionarCategoria(categoria)"
     >
-      {{ categoria.label }}
+      {{ getCategoriaLabel(categoria.value) }}
     </button>
   </section>
 
@@ -109,7 +111,7 @@
       <h2>{{ getCategoriaActual() }}</h2>
 
       <p *ngIf="idiomaObraSeleccionado !== 'todos'">
-        Idioma: {{ idiomaObraSeleccionado }}
+        Idioma: {{ getIdiomaLabel(idiomaObraSeleccionado) }}
       </p>
     </div>
   </div>
@@ -121,36 +123,38 @@
   <p *ngIf="error" class="estado error">
     {{ error }}
   </p>
-<section class="usuarios-resultados" *ngIf="usuarios.length > 0">
-  <h2>Usuarios</h2>
 
-  <article
-    class="usuario-card"
-    *ngFor="let usuario of usuarios"
-    (click)="abrirPerfilUsuario(usuario)"
-  >
-    <img
-      [src]="imageUrl(usuario.imgPerfil, '/obras/paleta/tres.png')"
-      [alt]="usuario.username"
-    />
+  <section class="usuarios-resultados" *ngIf="usuarios.length > 0">
+    <h2>Usuarios</h2>
 
-    <div>
-      <h3>{{ usuario.username }}</h3>
+    <article
+      class="usuario-card"
+      *ngFor="let usuario of usuarios"
+      (click)="abrirPerfilUsuario(usuario)"
+    >
+      <img
+        [src]="imageUrl(usuario.imgPerfil, '/obras/paleta/tres.png')"
+        [alt]="usuario.username"
+      />
 
-      <p>
-        {{ usuario.role || 'creator' }}
-        <span *ngIf="usuario.nacionalidad">
-          · {{ usuario.nacionalidad }}
-        </span>
-      </p>
+      <div>
+        <h3>{{ usuario.username }}</h3>
 
-      <p>
-        {{ usuario.totalSuscriptores }} Suscriptores ·
-        {{ usuario.totalObras }} Obras
-      </p>
-    </div>
-  </article>
-</section>
+        <p>
+          {{ usuario.role || 'creator' }}
+          <span *ngIf="usuario.nacionalidad">
+            · {{ usuario.nacionalidad }}
+          </span>
+        </p>
+
+        <p>
+          {{ usuario.totalSuscriptores }} Suscriptores ·
+          {{ usuario.totalObras }} Obras
+        </p>
+      </div>
+    </article>
+  </section>
+
   <div class="obras-grid" *ngIf="!cargando && obras.length > 0; else sinObras">
     <article
       class="obra-card"
@@ -163,9 +167,30 @@
           [alt]="obra.titulo"
         />
 
-        <div class="badges">
-          <span>{{ getCategoriaLabel(obra.genero) }}</span>
-          <span>{{ obra.idioma || 'ES' }}</span>
+        <div class="badges compact-badges">
+          <div class="badge-left">
+            <span
+              class="category-badge"
+              [attr.title]="getMainCategoriaLabel(obra)"
+            >
+              {{ getMainCategoriaLabel(obra) }}
+            </span>
+
+            <span
+              class="extra-badge"
+              *ngIf="getExtraCategoriaCount(obra) > 0"
+              [attr.title]="getExtraCategoriaCount(obra) + ' categorías extra'"
+            >
+              +{{ getExtraCategoriaCount(obra) }}
+            </span>
+          </div>
+
+          <span
+            class="language-badge"
+            [attr.title]="getIdiomaLabel(obra.idioma)"
+          >
+            {{ getIdiomaFlag(obra.idioma) }}
+          </span>
         </div>
       </div>
 

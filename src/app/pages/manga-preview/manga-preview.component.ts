@@ -20,6 +20,7 @@ interface ObraPreview {
   titulo: string;
   descripcion?: string;
   genero?: string;
+  categorias?: string[];
   idioma?: string;
   tipoEntrega?: string;
   serieConcluida?: boolean;
@@ -81,6 +82,68 @@ export class MangaPreviewComponent implements OnInit {
   mensaje = '';
 
   showDetails = true;
+
+  categoriaLabels: Record<string, string> = {
+    'accion': 'Acción',
+    'aventura': 'Aventura',
+    'comedia': 'Comedia',
+    'drama': 'Drama',
+    'fantasia': 'Fantasía',
+    'romance': 'Romance',
+    'terror': 'Terror',
+    'ciencia-ficcion': 'Ciencia ficción',
+    'misterio': 'Misterio',
+    'suspenso': 'Suspenso',
+    'sobrenatural': 'Sobrenatural',
+    'psicologico': 'Psicológico',
+    'slice-of-life': 'Slice of life',
+    'vida-escolar': 'Vida escolar',
+    'deportes': 'Deportes',
+    'artes-marciales': 'Artes marciales',
+    'mecha': 'Mecha',
+    'isekai': 'Isekai',
+    'historico': 'Histórico',
+    'musica': 'Música',
+    'cocina': 'Cocina',
+    'magia': 'Magia',
+    'superheroes': 'Superhéroes',
+    'crimen': 'Crimen',
+    'post-apocaliptico': 'Post-apocalíptico',
+    'cyberpunk': 'Cyberpunk',
+    'steampunk': 'Steampunk',
+    'guerra': 'Guerra',
+    'parodia': 'Parodia',
+    'tragedia': 'Tragedia',
+    'shonen': 'Shonen',
+    'shojo': 'Shojo',
+    'seinen': 'Seinen',
+    'josei': 'Josei',
+    'kodomo': 'Kodomo',
+    'boys-love': 'Boys Love',
+    'girls-love': 'Girls Love'
+  };
+
+  idiomaLabels: Record<string, string> = {
+    GLOBAL: 'Global',
+    ES: 'Español',
+    EN: 'English',
+    JA: 'Japanese',
+    KO: 'Korean',
+    ZH: 'Chinese',
+    FR: 'French',
+    DE: 'German',
+    PT: 'Portuguese',
+    IT: 'Italian',
+    RU: 'Russian',
+    AR: 'Arabic',
+    HI: 'Hindi',
+    ID: 'Indonesian',
+    VI: 'Vietnamese',
+    TH: 'Thai',
+    TR: 'Turkish',
+    PL: 'Polish',
+    NL: 'Dutch'
+  };
 
   constructor(
     private http: HttpClient,
@@ -307,6 +370,43 @@ export class MangaPreviewComponent implements OnInit {
 
   get coverUrl(): string {
     return this.imageUrl(this.obra?.portada, '/obras/paleta/portada.png');
+  }
+
+  getCategoriasObra(): string[] {
+    if (!this.obra) {
+      return [];
+    }
+
+    if (this.obra.categorias && this.obra.categorias.length > 0) {
+      return this.obra.categorias;
+    }
+
+    if (!this.obra.genero) {
+      return [];
+    }
+
+    return this.obra.genero
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean);
+  }
+
+  getCategoriaLabel(value: string): string {
+    return this.categoriaLabels[value] || value;
+  }
+
+  getCategoriaLabels(max: number = 3): string[] {
+    return this.getCategoriasObra()
+      .slice(0, max)
+      .map(categoria => this.getCategoriaLabel(categoria));
+  }
+
+  getIdiomaLabel(value?: string): string {
+    if (!value) {
+      return 'Global';
+    }
+
+    return this.idiomaLabels[value.toUpperCase()] || value;
   }
 
   private ensureCsrfAndRun(action: () => void, onFail?: () => void): void {

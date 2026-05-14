@@ -1,5 +1,4 @@
 <div class="home-page">
-  <!-- Hero -->
   <section class="home-hero">
     <div>
       <span class="eyebrow">Minus Creators</span>
@@ -16,7 +15,6 @@
     </button>
   </section>
 
-  <!-- Nuevas obras -->
   <section class="home-section">
     <div class="section-header">
       <div>
@@ -58,9 +56,30 @@
               [alt]="obra.titulo"
             />
 
-            <div class="badges">
-              <span>{{ obra.genero || 'Sin género' }}</span>
-              <span>{{ obra.idioma || 'ES' }}</span>
+            <div class="badges compact-badges">
+              <div class="badge-left">
+                <span
+                  class="category-badge"
+                  [attr.title]="getMainCategoryLabel(obra.genero, obra.categorias)"
+                >
+                  {{ getMainCategoryLabel(obra.genero, obra.categorias) }}
+                </span>
+
+                <span
+                  class="extra-badge"
+                  *ngIf="getExtraCategoryCount(obra.genero, obra.categorias) > 0"
+                  [attr.title]="getExtraCategoryCount(obra.genero, obra.categorias) + ' categorías extra'"
+                >
+                  +{{ getExtraCategoryCount(obra.genero, obra.categorias) }}
+                </span>
+              </div>
+
+              <span
+                class="language-badge"
+                [attr.title]="getLanguageLabel(obra.idioma)"
+              >
+                {{ getLanguageFlag(obra.idioma) }}
+              </span>
             </div>
           </div>
 
@@ -104,7 +123,6 @@
     </ng-template>
   </section>
 
-  <!-- Nuevos capítulos -->
   <section class="home-section">
     <div class="section-header">
       <div>
@@ -146,9 +164,30 @@
               [alt]="item.tituloObra"
             />
 
-            <div class="badges">
-              <span>{{ item.genero || 'Sin género' }}</span>
-              <span>{{ item.idioma || 'ES' }}</span>
+            <div class="badges compact-badges">
+              <div class="badge-left">
+                <span
+                  class="category-badge"
+                  [attr.title]="getMainCategoryLabel(item.genero, item.categorias)"
+                >
+                  {{ getMainCategoryLabel(item.genero, item.categorias) }}
+                </span>
+
+                <span
+                  class="extra-badge"
+                  *ngIf="getExtraCategoryCount(item.genero, item.categorias) > 0"
+                  [attr.title]="getExtraCategoryCount(item.genero, item.categorias) + ' categorías extra'"
+                >
+                  +{{ getExtraCategoryCount(item.genero, item.categorias) }}
+                </span>
+              </div>
+
+              <span
+                class="language-badge"
+                [attr.title]="getLanguageLabel(item.idioma)"
+              >
+                {{ getLanguageFlag(item.idioma) }}
+              </span>
             </div>
           </div>
 
@@ -198,7 +237,6 @@
     </ng-template>
   </section>
 
-  <!-- Lo nuevo que sigues, solo si está logueado -->
   <section class="home-section following-section" *ngIf="currentUser">
     <div class="section-header">
       <div>
@@ -240,9 +278,30 @@
               [alt]="item.tituloObra"
             />
 
-            <div class="badges">
-              <span>{{ item.genero || 'Sin género' }}</span>
-              <span>{{ item.idioma || 'ES' }}</span>
+            <div class="badges compact-badges">
+              <div class="badge-left">
+                <span
+                  class="category-badge"
+                  [attr.title]="getMainCategoryLabel(item.genero, item.categorias)"
+                >
+                  {{ getMainCategoryLabel(item.genero, item.categorias) }}
+                </span>
+
+                <span
+                  class="extra-badge"
+                  *ngIf="getExtraCategoryCount(item.genero, item.categorias) > 0"
+                  [attr.title]="getExtraCategoryCount(item.genero, item.categorias) + ' categorías extra'"
+                >
+                  +{{ getExtraCategoryCount(item.genero, item.categorias) }}
+                </span>
+              </div>
+
+              <span
+                class="language-badge"
+                [attr.title]="getLanguageLabel(item.idioma)"
+              >
+                {{ getLanguageFlag(item.idioma) }}
+              </span>
             </div>
           </div>
 

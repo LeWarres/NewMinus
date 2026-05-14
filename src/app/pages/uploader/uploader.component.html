@@ -36,7 +36,6 @@
     </div>
 
     <div class="form-grid">
-      <!-- Título -->
       <label class="full">
         <span>
           {{ translationService.getTranslation('Título') }}
@@ -57,7 +56,6 @@
         </small>
       </label>
 
-      <!-- Descripción -->
       <label class="full">
         <span>
           {{ translationService.getTranslation('Descripción') }}
@@ -70,65 +68,58 @@
         ></textarea>
       </label>
 
-      <!-- Género -->
-      <label>
-        <span>
-          {{ translationService.getTranslation('Género') }}
-        </span>
+      <div class="category-panel full">
+        <div class="category-header">
+          <div>
+            <span class="panel-label">
+              {{ translationService.getTranslation('Categorías') }}
+            </span>
 
-        <select formControlName="genero">
-          <option value="">
-            {{ translationService.getTranslation('Selecciona un género') }}
-          </option>
+            <p>
+              {{ translationService.getTranslation('Selecciona hasta 3 categorías') }}
+            </p>
+          </div>
 
-          <option value="accion">
-            {{ translationService.getTranslation('Acción') }}
-          </option>
+          <strong>
+            {{ selectedCategories.length }}/{{ maxCategories }}
+          </strong>
+        </div>
 
-          <option value="drama">
-            {{ translationService.getTranslation('Drama') }}
-          </option>
+        <div class="category-grid">
+          <button
+            type="button"
+            *ngFor="let categoria of categorias"
+            class="category-chip"
+            [class.selected]="isCategorySelected(categoria.value)"
+            [disabled]="!isCategorySelected(categoria.value) && selectedCategories.length >= maxCategories"
+            (click)="toggleCategory(categoria.value)"
+          >
+            {{ categoria.label }}
+          </button>
+        </div>
 
-          <option value="comedia">
-            {{ translationService.getTranslation('Comedia') }}
-          </option>
+        <div class="selected-categories" *ngIf="selectedCategories.length > 0">
+          <span
+            *ngFor="let categoria of selectedCategories"
+            class="selected-category"
+          >
+            {{ getCategoryLabel(categoria) }}
+          </span>
+        </div>
+      </div>
 
-          <option value="romance">
-            {{ translationService.getTranslation('Romance') }}
-          </option>
-
-          <option value="fantasia">
-            {{ translationService.getTranslation('Fantasía') }}
-          </option>
-
-          <option value="terror">
-            {{ translationService.getTranslation('Terror') }}
-          </option>
-
-          <option value="aventura">
-            {{ translationService.getTranslation('Aventura') }}
-          </option>
-
-          <option value="ciencia-ficcion">
-            {{ translationService.getTranslation('Ciencia ficción') }}
-          </option>
-        </select>
-      </label>
-
-      <!-- Idioma -->
       <label>
         <span>
           {{ translationService.getTranslation('Idioma') }}
         </span>
 
         <select formControlName="idioma">
-          <option value="ES">ES</option>
-          <option value="EN">EN</option>
-          <option value="FR">FR</option>
+          <option *ngFor="let idioma of idiomas" [value]="idioma.value">
+            {{ idioma.label }}
+          </option>
         </select>
       </label>
 
-      <!-- Tipo de entrega -->
       <div class="radio-panel">
         <span class="panel-label">
           {{ translationService.getTranslation('Tipo de entrega') }}
@@ -157,7 +148,6 @@
         </div>
       </div>
 
-      <!-- Serie concluida -->
       <label class="checkbox-option">
         <input
           type="checkbox"
@@ -170,7 +160,6 @@
       </label>
     </div>
 
-    <!-- Portada -->
     <section class="upload-section">
       <div class="upload-title">
         <div>
@@ -260,7 +249,6 @@
       </div>
     </section>
 
-    <!-- Capítulo 1 -->
     <section class="upload-section">
       <div class="upload-title">
         <div>
@@ -348,12 +336,10 @@
       </div>
     </section>
 
-    <!-- Respuesta -->
     <p *ngIf="respuesta" class="response-message">
       {{ respuesta }}
     </p>
 
-    <!-- Botón de envío -->
     <button
       type="submit"
       class="submit-btn"

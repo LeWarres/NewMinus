@@ -17,6 +17,11 @@ interface UploadResponse {
   portada?: string;
 }
 
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
 @Component({
   selector: 'app-uploader',
   standalone: true,
@@ -43,6 +48,74 @@ export class UploaderComponent {
   respuesta = '';
 
   maxFileSize = 10 * 1024 * 1024;
+  maxCategories = 3;
+
+  selectedCategories: string[] = [];
+
+  idiomas: SelectOption[] = [
+    { value: 'GLOBAL', label: 'Global' },
+    { value: 'ES', label: 'Español / Spanish' },
+    { value: 'EN', label: 'English' },
+    { value: 'JA', label: '日本語 / Japanese' },
+    { value: 'KO', label: '한국어 / Korean' },
+    { value: 'ZH', label: '中文 / Chinese' },
+    { value: 'FR', label: 'Français / French' },
+    { value: 'DE', label: 'Deutsch / German' },
+    { value: 'PT', label: 'Português / Portuguese' },
+    { value: 'IT', label: 'Italiano / Italian' },
+    { value: 'RU', label: 'Русский / Russian' },
+    { value: 'AR', label: 'العربية / Arabic' },
+    { value: 'HI', label: 'हिन्दी / Hindi' },
+    { value: 'ID', label: 'Bahasa Indonesia' },
+    { value: 'VI', label: 'Tiếng Việt / Vietnamese' },
+    { value: 'TH', label: 'ไทย / Thai' },
+    { value: 'TR', label: 'Türkçe / Turkish' },
+    { value: 'PL', label: 'Polski / Polish' },
+    { value: 'NL', label: 'Nederlands / Dutch' }
+  ];
+
+  categorias: SelectOption[] = [
+    { value: 'accion', label: 'Acción' },
+    { value: 'aventura', label: 'Aventura' },
+    { value: 'comedia', label: 'Comedia' },
+    { value: 'drama', label: 'Drama' },
+    { value: 'fantasia', label: 'Fantasía' },
+    { value: 'romance', label: 'Romance' },
+    { value: 'terror', label: 'Terror' },
+    { value: 'ciencia-ficcion', label: 'Ciencia ficción' },
+
+    { value: 'misterio', label: 'Misterio' },
+    { value: 'suspenso', label: 'Suspenso' },
+    { value: 'sobrenatural', label: 'Sobrenatural' },
+    { value: 'psicologico', label: 'Psicológico' },
+    { value: 'slice-of-life', label: 'Slice of life' },
+    { value: 'vida-escolar', label: 'Vida escolar' },
+    { value: 'deportes', label: 'Deportes' },
+    { value: 'artes-marciales', label: 'Artes marciales' },
+    { value: 'mecha', label: 'Mecha' },
+    { value: 'isekai', label: 'Isekai' },
+    { value: 'historico', label: 'Histórico' },
+    { value: 'musica', label: 'Música' },
+    { value: 'cocina', label: 'Cocina' },
+    { value: 'magia', label: 'Magia' },
+    { value: 'superheroes', label: 'Superhéroes' },
+    { value: 'crimen', label: 'Crimen' },
+    { value: 'post-apocaliptico', label: 'Post-apocalíptico' },
+    { value: 'cyberpunk', label: 'Cyberpunk' },
+    { value: 'steampunk', label: 'Steampunk' },
+    { value: 'guerra', label: 'Guerra' },
+    { value: 'parodia', label: 'Parodia' },
+    { value: 'tragedia', label: 'Tragedia' },
+
+    { value: 'shonen', label: 'Shonen' },
+    { value: 'shojo', label: 'Shojo' },
+    { value: 'seinen', label: 'Seinen' },
+    { value: 'josei', label: 'Josei' },
+    { value: 'kodomo', label: 'Kodomo' },
+    { value: 'boys-love', label: 'Boys Love' },
+    { value: 'girls-love', label: 'Girls Love' },
+    { value: 'NSFW', label: 'NSFW' }
+  ];
 
   formulario!: FormGroup;
 
@@ -56,8 +129,7 @@ export class UploaderComponent {
     this.formulario = this.fb.group({
       titulo: ['', Validators.required],
       descripcion: [''],
-      genero: [''],
-      idioma: ['ES'],
+      idioma: ['GLOBAL'],
       tipoEntrega: ['serie'],
       serieConcluida: [false]
     });
@@ -69,6 +141,34 @@ export class UploaderComponent {
 
   triggerFileInputPages(): void {
     this.fileInputPages.nativeElement.click();
+  }
+
+  isCategorySelected(value: string): boolean {
+    return this.selectedCategories.includes(value);
+  }
+
+  toggleCategory(value: string): void {
+    if (this.isCategorySelected(value)) {
+      this.selectedCategories = this.selectedCategories.filter((categoria) => categoria !== value);
+      this.respuesta = '';
+      return;
+    }
+
+    if (this.selectedCategories.length >= this.maxCategories) {
+      this.respuesta = this.translationService.getTranslation('Solo puedes seleccionar hasta 3 categorías');
+      return;
+    }
+
+    this.selectedCategories = [
+      ...this.selectedCategories,
+      value
+    ];
+
+    this.respuesta = '';
+  }
+
+  getCategoryLabel(value: string): string {
+    return this.categorias.find((categoria) => categoria.value === value)?.label || value;
   }
 
   onFileSelected(event: Event): void {
@@ -213,6 +313,11 @@ export class UploaderComponent {
       return;
     }
 
+    if (this.selectedCategories.length > this.maxCategories) {
+      this.respuesta = this.translationService.getTranslation('Solo puedes seleccionar hasta 3 categorías');
+      return;
+    }
+
     if (!this.selectedFile) {
       this.respuesta = this.translationService.getTranslation('Debes seleccionar una portada');
       return;
@@ -223,10 +328,6 @@ export class UploaderComponent {
       return;
     }
 
-    /*
-      Esto solo es para experiencia de usuario.
-      La seguridad real la valida PHP con require_auth().
-    */
     const currentUser = this.authService.getCurrentUser();
 
     if (!currentUser) {
@@ -237,15 +338,18 @@ export class UploaderComponent {
     const valores = this.formulario.value;
     const formData = new FormData();
 
-    /*
-      IMPORTANTE:
-      Ya NO mandamos usuario_id.
-      upload.php obtiene el usuario desde la sesión segura HttpOnly.
-    */
     formData.append('titulo', valores.titulo || '');
     formData.append('descripcion', valores.descripcion || '');
-    formData.append('genero', valores.genero || '');
-    formData.append('idioma', valores.idioma || 'ES');
+
+    /*
+      Compatibilidad:
+      - categorias: JSON nuevo
+      - genero: texto separado por coma para mantener la columna actual
+    */
+    formData.append('categorias', JSON.stringify(this.selectedCategories));
+    formData.append('genero', this.selectedCategories.join(','));
+
+    formData.append('idioma', valores.idioma || 'GLOBAL');
     formData.append('tipoEntrega', valores.tipoEntrega || 'serie');
     formData.append('serieConcluida', valores.serieConcluida ? '1' : '0');
 
@@ -258,10 +362,6 @@ export class UploaderComponent {
     this.cargando = true;
     this.respuesta = '';
 
-    /*
-      Si por alguna razón no hay CSRF en localStorage,
-      pedimos uno antes de subir.
-    */
     if (!this.authService.getCsrfToken()) {
       this.authService.fetchCsrfToken().subscribe({
         next: (csrfRes) => {
@@ -309,12 +409,12 @@ export class UploaderComponent {
         this.formulario.reset({
           titulo: '',
           descripcion: '',
-          genero: '',
-          idioma: 'ES',
+          idioma: 'GLOBAL',
           tipoEntrega: 'serie',
           serieConcluida: false
         });
 
+        this.selectedCategories = [];
         this.selectedFile = null;
         this.selectedPages = [];
 

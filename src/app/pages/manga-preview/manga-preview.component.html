@@ -14,7 +14,6 @@
   <div class="overlay"></div>
 
   <div class="content">
-    <!-- Capítulos desktop -->
     <div class="left-panel" *ngIf="!isMobileView">
       <div class="episodes-header">
         <h2>Capítulos</h2>
@@ -56,7 +55,6 @@
       </div>
     </div>
 
-    <!-- Info obra -->
     <div class="right-panel">
       <div class="cover-container">
         <img
@@ -69,13 +67,24 @@
       <div class="movie-info">
         <div class="card">
           <div class="header-tags">
-            <span class="lang-tag">{{ obra.idioma || 'ES' }}</span>
+            <span class="lang-tag">{{ getIdiomaLabel(obra.idioma) }}</span>
+
             <span class="series-tag">
               {{ obra.tipoEntrega || 'serie' }}
             </span>
-            <span class="genre-tag" *ngIf="obra.genero">
-              {{ obra.genero }}
-            </span>
+
+            <ng-container *ngIf="getCategoriaLabels(3).length > 0; else sinCategoriasPreview">
+              <span
+                class="genre-tag"
+                *ngFor="let categoria of getCategoriaLabels(3)"
+              >
+                {{ categoria }}
+              </span>
+            </ng-container>
+
+            <ng-template #sinCategoriasPreview>
+              <span class="genre-tag">Sin categoría</span>
+            </ng-template>
           </div>
 
           <h1 class="title">
@@ -194,7 +203,6 @@
         </div>
       </div>
 
-      <!-- Capítulos móvil -->
       <div class="episode-container" *ngIf="isMobileView">
         <div class="episodes-header mobile">
           <h2>Capítulos</h2>
