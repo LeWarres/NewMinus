@@ -72,7 +72,7 @@ export class ContentMetadataService {
   };
 
   private flagFiles: Record<string, string> = {
-    GLOBAL: 'global.svg',
+    GLOBAL: 'un.svg',
     ES: 'es.svg',
     EN: 'us.svg',
     JA: 'jp.svg',

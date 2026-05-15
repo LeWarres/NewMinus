@@ -21,21 +21,29 @@
     </p>
 
     <form (ngSubmit)="onSubmit()" class="form-fields">
-      <!-- Banner -->
       <section class="banner-section">
         <div class="section-title">
-          <span class="section-kicker">
-            {{ translationService.getTranslation('Banner') }}
-          </span>
+          <div>
+            <span class="section-kicker">
+              {{ translationService.getTranslation('Banner') }}
+            </span>
 
-          <p>
-            {{ translationService.getTranslation('Imagen de portada de tu perfil') }}
-          </p>
+            <p>
+              {{ translationService.getTranslation('Imagen de portada de tu perfil') }}
+            </p>
+          </div>
+
+          <small class="helper-text">
+            {{ translationService.getTranslation('JPG, PNG, WEBP') }} ·
+            {{ translationService.getTranslation('Max') }}
+            {{ formatSize(maxBannerFileSize) }} ·
+            {{ translationService.getTranslation('Se optimizará a WEBP') }}
+          </small>
         </div>
 
         <div class="banner-container">
           <img
-            [src]="imageUrl(profile.imgBanner, '/obras/paleta/portada.png')"
+            [src]="bannerPreviewUrl || imageUrl(profile.imgBanner, '/obras/paleta/portada.png')"
             alt="Banner"
           />
 
@@ -51,13 +59,17 @@
             (change)="onBannerImageSelected($event)"
           />
         </div>
+
+        <p *ngIf="selectedBannerImage" class="helper-text">
+          {{ translationService.getTranslation('Banner seleccionado') }}:
+          {{ selectedBannerImage.name }} · {{ formatSize(selectedBannerImage.size) }}
+        </p>
       </section>
 
-      <!-- Avatar y usuario -->
       <section class="profile-header">
         <div class="profile-photo-section">
           <img
-            [src]="imageUrl(profile.imgPerfil, '/obras/paleta/tres.png')"
+            [src]="profilePreviewUrl || imageUrl(profile.imgPerfil, '/obras/paleta/tres.png')"
             alt="Foto de perfil"
           />
 
@@ -90,24 +102,38 @@
           <p class="helper-text">
             {{ translationService.getTranslation('Este nombre será visible para otros usuarios') }}
           </p>
+
+          <p class="helper-text">
+            {{ translationService.getTranslation('Imagen de perfil') }}:
+            {{ translationService.getTranslation('JPG, PNG, WEBP') }} ·
+            {{ translationService.getTranslation('Max') }}
+            {{ formatSize(maxProfileFileSize) }} ·
+            {{ translationService.getTranslation('Se optimizará a WEBP') }}
+          </p>
+
+          <p *ngIf="selectedProfileImage" class="helper-text">
+            {{ translationService.getTranslation('Imagen de perfil seleccionada') }}:
+            {{ selectedProfileImage.name }} · {{ formatSize(selectedProfileImage.size) }}
+          </p>
         </div>
       </section>
 
-      <!-- Datos principales -->
       <section class="form-section">
         <div class="section-title">
-          <span class="section-kicker">
-            {{ translationService.getTranslation('Información') }}
-          </span>
+          <div>
+            <span class="section-kicker">
+              {{ translationService.getTranslation('Información') }}
+            </span>
 
-          <p>
-            {{ translationService.getTranslation('Datos básicos de tu cuenta') }}
-          </p>
+            <p>
+              {{ translationService.getTranslation('Datos básicos de tu cuenta') }}
+            </p>
+          </div>
         </div>
 
         <div class="form-grid">
           <label>
-            Email
+            {{ translationService.getTranslation('mail') }}
 
             <input
               type="email"
@@ -131,7 +157,10 @@
                 {{ translationService.getTranslation('Selecciona un país') }}
               </option>
 
-              <option *ngFor="let country of countries" [value]="country.name">
+              <option
+                *ngFor="let country of countries"
+                [value]="country.name"
+              >
                 {{ country.name }}
               </option>
             </select>
@@ -139,16 +168,51 @@
         </div>
       </section>
 
-      <!-- Redes sociales -->
+      <section class="form-section reading-languages-section">
+        <div class="section-title">
+          <div>
+            <span class="section-kicker">
+              {{ translationService.getTranslation('Idiomas de lectura') }}
+            </span>
+
+            <p>
+              {{ translationService.getTranslation('Elige los idiomas en los que quieres leer obras') }}
+            </p>
+          </div>
+
+          <strong class="selected-count">
+            {{ selectedReadingLanguages.length }}
+          </strong>
+        </div>
+
+        <div class="reading-languages-grid">
+          <button
+            type="button"
+            class="reading-language-chip"
+            *ngFor="let language of readingLanguages"
+            [class.selected]="isReadingLanguageSelected(language.value)"
+            (click)="toggleReadingLanguage(language.value)"
+          >
+            {{ getReadingLanguageLabel(language) }}
+          </button>
+        </div>
+
+        <p class="helper-text">
+          {{ translationService.getTranslation('Estas preferencias se usarán para recomendarte obras en el Home.') }}
+        </p>
+      </section>
+
       <section class="form-section">
         <div class="section-title">
-          <span class="section-kicker">
-            {{ translationService.getTranslation('Redes sociales') }}
-          </span>
+          <div>
+            <span class="section-kicker">
+              {{ translationService.getTranslation('Redes sociales') }}
+            </span>
 
-          <p>
-            {{ translationService.getTranslation('Agrega enlaces para que tus lectores te encuentren') }}
-          </p>
+            <p>
+              {{ translationService.getTranslation('Agrega enlaces para que tus lectores te encuentren') }}
+            </p>
+          </div>
         </div>
 
         <div class="form-grid">
@@ -205,7 +269,11 @@
         </div>
       </section>
 
-      <button type="submit" class="save-button" [disabled]="cargando">
+      <button
+        type="submit"
+        class="save-button"
+        [disabled]="cargando"
+      >
         {{
           cargando
             ? translationService.getTranslation('Guardando')

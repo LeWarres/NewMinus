@@ -17,7 +17,20 @@ export interface CapituloCardItem {
   categorias?: string[];
   idioma?: string;
   portada?: string;
+
+  /*
+    IMPORTANTE:
+    En tarjetas de capítulo, numVisitas representa las vistas del capítulo,
+    no las vistas globales de la obra.
+  */
   numVisitas: number;
+
+  /*
+    Opcional:
+    Si algún PHP también manda las vistas globales de la obra,
+    las guardamos aparte para no confundirlas.
+  */
+  obraNumVisitas?: number;
 
   capituloId: number;
   numeroCapitulo: number;
@@ -89,5 +102,9 @@ export class CapituloCardComponent {
 
   get description(): string {
     return this.item.descripcionCapitulo || this.item.descripcionObra || '';
+  }
+
+  get chapterViews(): number {
+    return this.item.numVisitas || 0;
   }
 }

@@ -98,9 +98,16 @@ export class ObraAdminComponent implements OnInit {
   coverFile: File | null = null;
   coverPreview = '';
 
+  maxCoverFileSize = 5 * 1024 * 1024;
+  maxPageFileSize = 8 * 1024 * 1024;
+  maxTotalPagesSize = 300 * 1024 * 1024;
+
   selectedChapterFiles: Record<number, File[]> = {};
   pageUploadMessages: Record<number, string> = {};
   subiendoPaginas: Record<number, boolean> = {};
+
+  eliminarObraUrl = 'https://minuscreators.com/api/eliminar_obra.php';
+  eliminandoObra = false;
 
   generos = [
     { label: 'Acción', value: 'accion' },
@@ -345,8 +352,10 @@ export class ObraAdminComponent implements OnInit {
 
     const file = input.files[0];
 
-    if (!this.esImagenValida(file)) {
-      this.mensajeObra = this.translationService.getTranslation('La portada debe ser una imagen válida');
+    if (!this.esImagenValida(file, this.maxCoverFileSize)) {
+      this.mensajeObra =
+        this.translationService.getTranslation('La portada debe ser JPG, PNG o WEBP y pesar máximo') +
+        ` ${this.formatSize(this.maxCoverFileSize)}`;
       input.value = '';
       return;
     }
@@ -415,29 +424,55 @@ export class ObraAdminComponent implements OnInit {
     });
   }
 
-  onChapterPagesSelected(event: Event, capitulo: AdminCapitulo): void {
-    const input = event.target as HTMLInputElement;
 
-    if (!input.files || input.files.length === 0) {
-      return;
-    }
+  getSelectedChapterFilesTotalSize(capituloId: number): number {
+  const files = this.selectedChapterFiles[capituloId] || [];
+  return files.reduce((total, file) => total + file.size, 0);
+}
 
-    const files = Array.from(input.files);
-    const validos = files.filter((file) => this.esImagenValida(file));
+onChapterPagesSelected(event: Event, capitulo: AdminCapitulo): void {
+  const input = event.target as HTMLInputElement;
 
-    if (validos.length !== files.length) {
-      this.pageUploadMessages[capitulo.id] = this.translationService.getTranslation('Algunas páginas no se agregaron');
-    } else {
-      this.pageUploadMessages[capitulo.id] = '';
-    }
-
-    this.selectedChapterFiles[capitulo.id] = [
-      ...(this.selectedChapterFiles[capitulo.id] || []),
-      ...validos
-    ];
-
-    input.value = '';
+  if (!input.files || input.files.length === 0) {
+    return;
   }
+
+  const files = Array.from(input.files);
+  const actuales = this.selectedChapterFiles[capitulo.id] || [];
+
+  let totalActual = this.getSelectedChapterFilesTotalSize(capitulo.id);
+  const validos: File[] = [];
+  let omitidos = 0;
+
+  for (const file of files) {
+    if (!this.esImagenValida(file, this.maxPageFileSize)) {
+      omitidos++;
+      continue;
+    }
+
+    if (totalActual + file.size > this.maxTotalPagesSize) {
+      omitidos++;
+      continue;
+    }
+
+    validos.push(file);
+    totalActual += file.size;
+  }
+
+  this.selectedChapterFiles[capitulo.id] = [
+    ...actuales,
+    ...validos
+  ];
+
+  if (omitidos > 0) {
+    this.pageUploadMessages[capitulo.id] =
+      this.translationService.getTranslation('Algunas páginas no se agregaron por límite de tamaño');
+  } else {
+    this.pageUploadMessages[capitulo.id] = '';
+  }
+
+  input.value = '';
+}
 
   removeSelectedChapterFile(capituloId: number, index: number): void {
     const files = this.selectedChapterFiles[capituloId] || [];
@@ -452,6 +487,12 @@ export class ObraAdminComponent implements OnInit {
     this.pageUploadMessages[capitulo.id] =
       this.translationService.getTranslation('Selecciona al menos una imagen');
     return;
+  }
+
+  if (this.getSelectedChapterFilesTotalSize(capitulo.id) > this.maxTotalPagesSize) {
+  this.pageUploadMessages[capitulo.id] =
+    this.translationService.getTranslation('El peso total de las páginas es demasiado grande');
+  return;
   }
 
   const formData = new FormData();
@@ -632,15 +673,80 @@ export class ObraAdminComponent implements OnInit {
     return err.error?.error || fallback;
   }
 
-  private esImagenValida(file: File): boolean {
+
+  eliminarObra(): void {
+  if (!this.obra) {
+    return;
+  }
+
+const confirmacion = prompt(
+  `${this.translationService.getTranslation('Esta acción eliminará la obra completa, todos sus capítulos y todas sus imágenes. Escribe ELIMINAR para confirmar')}: ${this.obra.titulo}`
+);
+
+if (confirmacion !== 'ELIMINAR' && confirmacion !== 'DELETE') {
+  return;
+}
+
+  this.eliminandoObra = true;
+  this.mensajeObra = '';
+
+  const payload = {
+    obra_id: this.obra.id
+  };
+
+  this.ensureCsrfAndRun(() => {
+    this.http.post<GenericResponse>(
+      this.eliminarObraUrl,
+      payload,
+      {
+        withCredentials: true,
+        headers: this.authService.csrfHeaders()
+      }
+    ).subscribe({
+      next: (res) => {
+        this.eliminandoObra = false;
+
+        if (!res.success) {
+          this.mensajeObra =
+            res.error ||
+            this.translationService.getTranslation('No se pudo eliminar la obra');
+          return;
+        }
+
+        const user = this.authService.getCurrentUser();
+
+        if (user) {
+          this.router.navigate(['/perfil', user.id]);
+          return;
+        }
+
+        this.router.navigate(['/']);
+      },
+      error: (err) => {
+        this.eliminandoObra = false;
+
+        this.mensajeObra =
+          this.getFriendlyError(
+            err,
+            this.translationService.getTranslation('Error al eliminar la obra')
+          );
+
+        console.error(err);
+      }
+    });
+  }, () => {
+    this.eliminandoObra = false;
+    this.mensajeObra = this.translationService.getTranslation('No se pudo preparar la acción');
+  });
+}
+
+  private esImagenValida(file: File, maxSize: number): boolean {
     const tiposPermitidos = [
       'image/jpeg',
       'image/png',
       'image/webp'
     ];
 
-    const maxFileSize = 10 * 1024 * 1024;
-
-    return tiposPermitidos.includes(file.type) && file.size <= maxFileSize;
+    return tiposPermitidos.includes(file.type) && file.size <= maxSize;
   }
 }

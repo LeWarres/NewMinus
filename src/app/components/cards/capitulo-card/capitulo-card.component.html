@@ -69,8 +69,8 @@
     </button>
 
     <p class="views">
-    {{ item.numVisitas }} {{ translationService.getTranslation('Vistas') }}
-    </p>
+  {{ chapterViews }} {{ translationService.getTranslation('Vistas') }}
+</p>
 
     <div class="card-actions" *ngIf="showActions">
     <ng-content select="[card-actions]"></ng-content>

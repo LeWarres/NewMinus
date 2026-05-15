@@ -253,7 +253,11 @@ export class ReaderComponent implements OnInit, OnDestroy {
           return this.imageUrl(pagina.imagen);
         });
 
-        this.registrarVista(this.obra.id);
+        this.registrarVista(
+        this.obra.id,
+        this.obra.capituloActual.id,
+        this.obra.capituloActual.numeroCapitulo
+      );
 
         window.scrollTo({
           top: 0,
@@ -274,22 +278,28 @@ export class ReaderComponent implements OnInit, OnDestroy {
     });
   }
 
-  registrarVista(obraId: number): void {
-    this.http.post(
-      this.registrarVistaUrl,
-      {
-        obra_id: obraId
-      },
-      {
-        withCredentials: true
-      }
-    ).subscribe({
-      next: () => {},
-      error: (err) => {
-        console.error('No se pudo registrar vista', err);
-      }
-    });
-  }
+ registrarVista(
+  obraId: number,
+  capituloId: number,
+  numeroCapitulo: number
+): void {
+  this.http.post(
+    this.registrarVistaUrl,
+    {
+      obra_id: obraId,
+      capitulo_id: capituloId,
+      numero_capitulo: numeroCapitulo
+    },
+    {
+      withCredentials: true
+    }
+  ).subscribe({
+    next: () => {},
+    error: (err) => {
+      console.error('No se pudo registrar vista del capítulo', err);
+    }
+  });
+}
 
   setReadingMode(mode: ReadingMode): void {
     this.readingMode = mode;

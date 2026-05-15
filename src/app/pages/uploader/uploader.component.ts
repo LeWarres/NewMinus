@@ -47,8 +47,16 @@ export class UploaderComponent {
   cargando = false;
   respuesta = '';
 
-  maxFileSize = 10 * 1024 * 1024;
   maxCategories = 3;
+
+  maxCoverFileSize = 5 * 1024 * 1024;
+  maxPageFileSize = 8 * 1024 * 1024;
+
+  /*
+    No hay límite por cantidad de páginas.
+    Este límite solo controla el peso total seleccionado antes de optimizar.
+  */
+  maxTotalPagesSize = 300 * 1024 * 1024;
 
   selectedCategories: string[] = [];
 
@@ -83,7 +91,6 @@ export class UploaderComponent {
     { value: 'romance', label: 'Romance' },
     { value: 'terror', label: 'Terror' },
     { value: 'ciencia-ficcion', label: 'Ciencia ficción' },
-
     { value: 'misterio', label: 'Misterio' },
     { value: 'suspenso', label: 'Suspenso' },
     { value: 'sobrenatural', label: 'Sobrenatural' },
@@ -106,7 +113,6 @@ export class UploaderComponent {
     { value: 'guerra', label: 'Guerra' },
     { value: 'parodia', label: 'Parodia' },
     { value: 'tragedia', label: 'Tragedia' },
-
     { value: 'shonen', label: 'Shonen' },
     { value: 'shojo', label: 'Shojo' },
     { value: 'seinen', label: 'Seinen' },
@@ -114,7 +120,7 @@ export class UploaderComponent {
     { value: 'kodomo', label: 'Kodomo' },
     { value: 'boys-love', label: 'Boys Love' },
     { value: 'girls-love', label: 'Girls Love' },
-    { value: 'NSFW', label: 'NSFW' }
+    { value: 'nsfw', label: 'NSFW' }
   ];
 
   formulario!: FormGroup;
@@ -135,6 +141,10 @@ export class UploaderComponent {
     });
   }
 
+  get selectedPagesTotalSize(): number {
+    return this.selectedPages.reduce((total, file) => total + file.size, 0);
+  }
+
   triggerFileInput(): void {
     this.fileInput.nativeElement.click();
   }
@@ -149,13 +159,17 @@ export class UploaderComponent {
 
   toggleCategory(value: string): void {
     if (this.isCategorySelected(value)) {
-      this.selectedCategories = this.selectedCategories.filter((categoria) => categoria !== value);
+      this.selectedCategories = this.selectedCategories.filter(
+        categoria => categoria !== value
+      );
       this.respuesta = '';
       return;
     }
 
     if (this.selectedCategories.length >= this.maxCategories) {
-      this.respuesta = this.translationService.getTranslation('Solo puedes seleccionar hasta 3 categorías');
+      this.respuesta = this.translationService.getTranslation(
+        'Solo puedes seleccionar hasta 3 categorías'
+      );
       return;
     }
 
@@ -168,7 +182,7 @@ export class UploaderComponent {
   }
 
   getCategoryLabel(value: string): string {
-    return this.categorias.find((categoria) => categoria.value === value)?.label || value;
+    return this.categorias.find(categoria => categoria.value === value)?.label || value;
   }
 
   onFileSelected(event: Event): void {
@@ -180,8 +194,11 @@ export class UploaderComponent {
 
     const file = input.files[0];
 
-    if (!this.esImagenValida(file)) {
-      this.respuesta = this.translationService.getTranslation('La portada debe ser una imagen válida');
+    if (!this.esImagenValida(file, this.maxCoverFileSize)) {
+      this.respuesta =
+        this.translationService.getTranslation('La portada debe ser JPG, PNG o WEBP y pesar máximo') +
+        ` ${this.formatSize(this.maxCoverFileSize)}`;
+
       input.value = '';
       return;
     }
@@ -223,8 +240,11 @@ export class UploaderComponent {
 
     const file = event.dataTransfer.files[0];
 
-    if (!this.esImagenValida(file)) {
-      this.respuesta = this.translationService.getTranslation('La portada debe ser una imagen válida');
+    if (!this.esImagenValida(file, this.maxCoverFileSize)) {
+      this.respuesta =
+        this.translationService.getTranslation('La portada debe ser JPG, PNG o WEBP y pesar máximo') +
+        ` ${this.formatSize(this.maxCoverFileSize)}`;
+
       return;
     }
 
@@ -255,18 +275,37 @@ export class UploaderComponent {
   }
 
   agregarPaginas(files: File[]): void {
-    const archivosValidos = files.filter((file) => this.esImagenValida(file));
+    let totalActual = this.selectedPagesTotalSize;
+    const paginasValidas: File[] = [];
+    let omitidos = 0;
 
-    if (archivosValidos.length !== files.length) {
-      this.respuesta = this.translationService.getTranslation('Algunas páginas no se agregaron');
-    } else {
-      this.respuesta = '';
+    for (const file of files) {
+      if (!this.esImagenValida(file, this.maxPageFileSize)) {
+        omitidos++;
+        continue;
+      }
+
+      if (totalActual + file.size > this.maxTotalPagesSize) {
+        omitidos++;
+        continue;
+      }
+
+      paginasValidas.push(file);
+      totalActual += file.size;
     }
 
     this.selectedPages = [
       ...this.selectedPages,
-      ...archivosValidos
+      ...paginasValidas
     ];
+
+    if (omitidos > 0) {
+      this.respuesta =
+        this.translationService.getTranslation('Algunas páginas no se agregaron por límite de tamaño');
+      return;
+    }
+
+    this.respuesta = '';
   }
 
   removeFile(event?: Event): void {
@@ -314,7 +353,9 @@ export class UploaderComponent {
     }
 
     if (this.selectedCategories.length > this.maxCategories) {
-      this.respuesta = this.translationService.getTranslation('Solo puedes seleccionar hasta 3 categorías');
+      this.respuesta = this.translationService.getTranslation(
+        'Solo puedes seleccionar hasta 3 categorías'
+      );
       return;
     }
 
@@ -325,6 +366,12 @@ export class UploaderComponent {
 
     if (this.selectedPages.length === 0) {
       this.respuesta = this.translationService.getTranslation('Debes agregar al menos una página');
+      return;
+    }
+
+    if (this.selectedPagesTotalSize > this.maxTotalPagesSize) {
+      this.respuesta =
+        this.translationService.getTranslation('El peso total de las páginas es demasiado grande');
       return;
     }
 
@@ -341,11 +388,6 @@ export class UploaderComponent {
     formData.append('titulo', valores.titulo || '');
     formData.append('descripcion', valores.descripcion || '');
 
-    /*
-      Compatibilidad:
-      - categorias: JSON nuevo
-      - genero: texto separado por coma para mantener la columna actual
-    */
     formData.append('categorias', JSON.stringify(this.selectedCategories));
     formData.append('genero', this.selectedCategories.join(','));
 
@@ -400,11 +442,15 @@ export class UploaderComponent {
         this.cargando = false;
 
         if (!res.success) {
-          this.respuesta = res.error || this.translationService.getTranslation('No se pudo guardar la obra');
+          this.respuesta =
+            res.error ||
+            this.translationService.getTranslation('No se pudo guardar la obra');
           return;
         }
 
-        this.respuesta = res.mensaje || this.translationService.getTranslation('Obra guardada correctamente');
+        this.respuesta =
+          res.mensaje ||
+          this.translationService.getTranslation('Obra guardada correctamente');
 
         this.formulario.reset({
           titulo: '',
@@ -440,23 +486,28 @@ export class UploaderComponent {
         }
 
         if (err.status === 403) {
-          this.respuesta = err.error?.error || this.translationService.getTranslation('No tienes permiso para realizar esta acción');
+          this.respuesta =
+            err.error?.error ||
+            this.translationService.getTranslation('No tienes permiso para realizar esta acción');
           return;
         }
 
-        this.respuesta = err.error?.error || this.translationService.getTranslation('Error al guardar la obra');
+        this.respuesta =
+          err.error?.error ||
+          this.translationService.getTranslation('Error al guardar la obra');
+
         console.error(err);
       }
     });
   }
 
-  private esImagenValida(file: File): boolean {
+  private esImagenValida(file: File, maxSize: number): boolean {
     const tiposPermitidos = [
       'image/jpeg',
       'image/png',
       'image/webp'
     ];
 
-    return tiposPermitidos.includes(file.type) && file.size <= this.maxFileSize;
+    return tiposPermitidos.includes(file.type) && file.size <= maxSize;
   }
 }

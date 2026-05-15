@@ -719,7 +719,41 @@ select option {
 .upload-pages-btn {
   width: fit-content;
 }
+.danger-action {
+  border: none;
+  border-radius: 999px;
 
+  padding: 12px 18px;
+
+  background: linear-gradient(135deg, #ff4d5a, #e03542);
+  color: #ffffff;
+
+  font-weight: 900;
+  cursor: pointer;
+
+  box-shadow:
+    0 10px 22px rgba(255, 77, 90, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+
+  transition:
+    transform 0.16s ease,
+    background 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.danger-action:hover:not(:disabled) {
+  transform: translateY(-2px);
+
+  background: linear-gradient(135deg, #ff6570, #ec3e4b);
+  box-shadow:
+    0 14px 28px rgba(255, 77, 90, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.26);
+}
+
+.danger-action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 @media (max-width: 650px) {
   .cover-editor {
     grid-template-columns: 1fr;

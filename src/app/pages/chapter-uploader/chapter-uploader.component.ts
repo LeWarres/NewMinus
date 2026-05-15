@@ -42,7 +42,13 @@ export class ChapterUploaderComponent implements OnInit {
   cargando = false;
   respuesta = '';
 
-  maxFileSize = 10 * 1024 * 1024;
+  maxPageFileSize = 8 * 1024 * 1024;
+
+  /*
+    Sin límite por cantidad de páginas.
+    Este límite solo controla el peso total antes de optimizar.
+  */
+  maxTotalPagesSize = 300 * 1024 * 1024;
 
   constructor(
     private route: ActivatedRoute,
@@ -53,10 +59,6 @@ export class ChapterUploaderComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    /*
-      Esto es solo para UX.
-      La seguridad real la valida PHP con la sesión HttpOnly.
-    */
     const currentUser = this.authService.getCurrentUser();
 
     if (!currentUser) {
@@ -71,6 +73,10 @@ export class ChapterUploaderComponent implements OnInit {
     }
   }
 
+  get selectedPagesTotalSize(): number {
+    return this.selectedPages.reduce((total, file) => total + file.size, 0);
+  }
+
   onFilesSelectedPages(event: Event): void {
     const input = event.target as HTMLInputElement;
 
@@ -79,20 +85,43 @@ export class ChapterUploaderComponent implements OnInit {
     }
 
     const files = Array.from(input.files);
-    const validos = files.filter((file) => this.esImagenValida(file));
+    this.agregarPaginas(files);
 
-    if (validos.length !== files.length) {
-      this.respuesta = this.translationService.getTranslation('Algunas páginas no se agregaron');
-    } else {
-      this.respuesta = '';
+    input.value = '';
+  }
+
+  agregarPaginas(files: File[]): void {
+    let totalActual = this.selectedPagesTotalSize;
+    const paginasValidas: File[] = [];
+    let omitidos = 0;
+
+    for (const file of files) {
+      if (!this.esImagenValida(file, this.maxPageFileSize)) {
+        omitidos++;
+        continue;
+      }
+
+      if (totalActual + file.size > this.maxTotalPagesSize) {
+        omitidos++;
+        continue;
+      }
+
+      paginasValidas.push(file);
+      totalActual += file.size;
     }
 
     this.selectedPages = [
       ...this.selectedPages,
-      ...validos
+      ...paginasValidas
     ];
 
-    input.value = '';
+    if (omitidos > 0) {
+      this.respuesta =
+        this.translationService.getTranslation('Algunas páginas no se agregaron por límite de tamaño');
+      return;
+    }
+
+    this.respuesta = '';
   }
 
   removePage(index: number): void {
@@ -136,13 +165,14 @@ export class ChapterUploaderComponent implements OnInit {
       return;
     }
 
+    if (this.selectedPagesTotalSize > this.maxTotalPagesSize) {
+      this.respuesta =
+        this.translationService.getTranslation('El peso total de las páginas es demasiado grande');
+      return;
+    }
+
     const formData = new FormData();
 
-    /*
-      IMPORTANTE:
-      Ya NO mandamos current_user_id ni usuario_id.
-      PHP valida el usuario con require_auth().
-    */
     formData.append('obra_id', String(this.obraId));
     formData.append('numero_capitulo', this.numeroCapitulo.trim() || '0');
     formData.append('titulo', this.tituloCapitulo.trim() || '');
@@ -193,11 +223,15 @@ export class ChapterUploaderComponent implements OnInit {
         this.cargando = false;
 
         if (!res.success) {
-          this.respuesta = res.error || this.translationService.getTranslation('No se pudo subir el capítulo');
+          this.respuesta =
+            res.error ||
+            this.translationService.getTranslation('No se pudo subir el capítulo');
           return;
         }
 
-        this.respuesta = res.mensaje || this.translationService.getTranslation('Capítulo subido correctamente');
+        this.respuesta =
+          res.mensaje ||
+          this.translationService.getTranslation('Capítulo subido correctamente');
 
         this.selectedPages = [];
         this.tituloCapitulo = '';
@@ -225,28 +259,35 @@ export class ChapterUploaderComponent implements OnInit {
         }
 
         if (err.status === 403) {
-          this.respuesta = err.error?.error || this.translationService.getTranslation('No tienes permiso para realizar esta acción');
+          this.respuesta =
+            err.error?.error ||
+            this.translationService.getTranslation('No tienes permiso para realizar esta acción');
           return;
         }
 
         if (err.status === 409) {
-          this.respuesta = err.error?.error || this.translationService.getTranslation('Ya existe un capítulo con ese número');
+          this.respuesta =
+            err.error?.error ||
+            this.translationService.getTranslation('Ya existe un capítulo con ese número');
           return;
         }
 
-        this.respuesta = err.error?.error || this.translationService.getTranslation('Error al subir capítulo');
+        this.respuesta =
+          err.error?.error ||
+          this.translationService.getTranslation('Error al subir capítulo');
+
         console.error(err);
       }
     });
   }
 
-  private esImagenValida(file: File): boolean {
+  private esImagenValida(file: File, maxSize: number): boolean {
     const tiposPermitidos = [
       'image/jpeg',
       'image/png',
       'image/webp'
     ];
 
-    return tiposPermitidos.includes(file.type) && file.size <= this.maxFileSize;
+    return tiposPermitidos.includes(file.type) && file.size <= maxSize;
   }
 }

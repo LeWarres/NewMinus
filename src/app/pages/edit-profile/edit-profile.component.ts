@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -18,6 +18,7 @@ interface UserProfile {
   twitter?: string;
   facebook?: string;
   instagram?: string;
+  idiomasLectura?: string[];
 }
 
 interface PerfilResponse {
@@ -26,11 +27,21 @@ interface PerfilResponse {
   user?: UserProfile;
 }
 
+interface EditProfileUser extends CurrentUser {
+  idiomasLectura?: string[];
+}
+
 interface EditProfileResponse {
   success: boolean;
   mensaje?: string;
   error?: string;
-  user?: CurrentUser;
+  user?: EditProfileUser;
+}
+
+interface ReadingLanguageOption {
+  value: string;
+  labelKey: string;
+  nativeLabel: string;
 }
 
 @Component({
@@ -43,7 +54,7 @@ interface EditProfileResponse {
   templateUrl: './edit-profile.component.html',
   styleUrl: './edit-profile.component.css'
 })
-export class EditProfileComponent implements OnInit {
+export class EditProfileComponent implements OnInit, OnDestroy {
   apiPerfilUrl = 'https://minuscreators.com/api/perfil.php';
   apiEditarUrl = 'https://minuscreators.com/api/editar_perfil.php';
   siteUrl = 'https://minuscreators.com';
@@ -57,7 +68,8 @@ export class EditProfileComponent implements OnInit {
     imgBanner: '',
     facebook: '',
     twitter: '',
-    instagram: ''
+    instagram: '',
+    idiomasLectura: []
   };
 
   currentUser: CurrentUser | null = null;
@@ -68,11 +80,14 @@ export class EditProfileComponent implements OnInit {
   profilePreviewUrl = '';
   bannerPreviewUrl = '';
 
+  selectedReadingLanguages: string[] = [];
+
   mensaje = '';
   error = '';
   cargando = false;
 
-  maxFileSize = 10 * 1024 * 1024;
+  maxProfileFileSize = 3 * 1024 * 1024;
+  maxBannerFileSize = 5 * 1024 * 1024;
 
   countries = [
     { name: 'México' },
@@ -83,6 +98,27 @@ export class EditProfileComponent implements OnInit {
     { name: 'España' },
     { name: 'Estados Unidos' },
     { name: 'Otro' }
+  ];
+
+  readingLanguages: ReadingLanguageOption[] = [
+    { value: 'ES', labelKey: 'idioma_es', nativeLabel: 'Español' },
+    { value: 'EN', labelKey: 'idioma_en', nativeLabel: 'English' },
+    { value: 'JA', labelKey: 'idioma_ja', nativeLabel: '日本語' },
+    { value: 'KO', labelKey: 'idioma_ko', nativeLabel: '한국어' },
+    { value: 'ZH', labelKey: 'idioma_zh', nativeLabel: '中文' },
+    { value: 'FR', labelKey: 'idioma_fr', nativeLabel: 'Français' },
+    { value: 'DE', labelKey: 'idioma_de', nativeLabel: 'Deutsch' },
+    { value: 'PT', labelKey: 'idioma_pt', nativeLabel: 'Português' },
+    { value: 'IT', labelKey: 'idioma_it', nativeLabel: 'Italiano' },
+    { value: 'RU', labelKey: 'idioma_ru', nativeLabel: 'Русский' },
+    { value: 'AR', labelKey: 'idioma_ar', nativeLabel: 'العربية' },
+    { value: 'HI', labelKey: 'idioma_hi', nativeLabel: 'हिन्दी' },
+    { value: 'ID', labelKey: 'idioma_id', nativeLabel: 'Bahasa Indonesia' },
+    { value: 'VI', labelKey: 'idioma_vi', nativeLabel: 'Tiếng Việt' },
+    { value: 'TH', labelKey: 'idioma_th', nativeLabel: 'ไทย' },
+    { value: 'TR', labelKey: 'idioma_tr', nativeLabel: 'Türkçe' },
+    { value: 'PL', labelKey: 'idioma_pl', nativeLabel: 'Polski' },
+    { value: 'NL', labelKey: 'idioma_nl', nativeLabel: 'Nederlands' }
   ];
 
   constructor(
@@ -113,7 +149,15 @@ export class EditProfileComponent implements OnInit {
       return;
     }
 
+    this.selectedReadingLanguages = [
+      this.getDefaultReadingLanguage()
+    ];
+
     this.cargarPerfil(id);
+  }
+
+  ngOnDestroy(): void {
+    this.revokePreviewUrls();
   }
 
   cargarPerfil(id: number): void {
@@ -127,14 +171,20 @@ export class EditProfileComponent implements OnInit {
     ).subscribe({
       next: (res) => {
         if (!res.success || !res.user) {
-          this.error = res.error || this.translationService.getTranslation('No se pudo cargar el perfil');
+          this.error =
+            res.error ||
+            this.translationService.getTranslation('No se pudo cargar el perfil');
           return;
         }
 
         this.profile = res.user;
+        this.selectedReadingLanguages = this.resolveInitialReadingLanguages(res.user);
       },
       error: (err) => {
-        this.error = err.error?.error || this.translationService.getTranslation('Error al cargar perfil');
+        this.error =
+          err.error?.error ||
+          this.translationService.getTranslation('Error al cargar perfil');
+
         console.error(err);
       }
     });
@@ -149,8 +199,10 @@ export class EditProfileComponent implements OnInit {
 
     const file = input.files[0];
 
-    if (!this.esImagenValida(file)) {
-      this.error = this.translationService.getTranslation('La imagen de perfil debe ser una imagen válida');
+    if (!this.esImagenValida(file, this.maxProfileFileSize)) {
+      this.error =
+        this.translationService.getTranslation('La imagen de perfil debe ser JPG, PNG o WEBP y pesar máximo') +
+        ` ${this.formatSize(this.maxProfileFileSize)}`;
       input.value = '';
       return;
     }
@@ -161,7 +213,6 @@ export class EditProfileComponent implements OnInit {
 
     this.selectedProfileImage = file;
     this.profilePreviewUrl = URL.createObjectURL(file);
-    this.profile.imgPerfil = this.profilePreviewUrl;
     this.error = '';
 
     input.value = '';
@@ -176,8 +227,10 @@ export class EditProfileComponent implements OnInit {
 
     const file = input.files[0];
 
-    if (!this.esImagenValida(file)) {
-      this.error = this.translationService.getTranslation('El banner debe ser una imagen válida');
+    if (!this.esImagenValida(file, this.maxBannerFileSize)) {
+      this.error =
+        this.translationService.getTranslation('El banner debe ser JPG, PNG o WEBP y pesar máximo') +
+        ` ${this.formatSize(this.maxBannerFileSize)}`;
       input.value = '';
       return;
     }
@@ -188,10 +241,45 @@ export class EditProfileComponent implements OnInit {
 
     this.selectedBannerImage = file;
     this.bannerPreviewUrl = URL.createObjectURL(file);
-    this.profile.imgBanner = this.bannerPreviewUrl;
     this.error = '';
 
     input.value = '';
+  }
+
+  isReadingLanguageSelected(value: string): boolean {
+    return this.selectedReadingLanguages.includes(value);
+  }
+
+  toggleReadingLanguage(value: string): void {
+    if (this.isReadingLanguageSelected(value)) {
+      this.selectedReadingLanguages = this.selectedReadingLanguages.filter(
+        idioma => idioma !== value
+      );
+
+      this.error = '';
+      return;
+    }
+
+    this.selectedReadingLanguages = [
+      ...this.selectedReadingLanguages,
+      value
+    ];
+
+    this.error = '';
+  }
+
+  getReadingLanguageLabel(language: ReadingLanguageOption): string {
+    const translated = this.translationService.getTranslation(language.labelKey);
+
+    if (!translated || translated === language.labelKey) {
+      return language.nativeLabel;
+    }
+
+    if (translated === language.nativeLabel) {
+      return translated;
+    }
+
+    return `${translated} / ${language.nativeLabel}`;
   }
 
   onSubmit(): void {
@@ -200,6 +288,7 @@ export class EditProfileComponent implements OnInit {
 
     const username = this.profile.username.trim();
     const email = this.profile.email.trim().toLowerCase();
+    const idiomasLectura = this.getSelectedReadingLanguages();
 
     if (!username || !email) {
       this.error = this.translationService.getTranslation('Usuario y email son obligatorios');
@@ -211,21 +300,34 @@ export class EditProfileComponent implements OnInit {
       return;
     }
 
+    if (idiomasLectura.length === 0) {
+      this.error = this.translationService.getTranslation('Selecciona al menos un idioma de lectura');
+      return;
+    }
+
+    if (this.selectedProfileImage && !this.esImagenValida(this.selectedProfileImage, this.maxProfileFileSize)) {
+      this.error =
+        this.translationService.getTranslation('La imagen de perfil debe ser JPG, PNG o WEBP y pesar máximo') +
+        ` ${this.formatSize(this.maxProfileFileSize)}`;
+      return;
+    }
+
+    if (this.selectedBannerImage && !this.esImagenValida(this.selectedBannerImage, this.maxBannerFileSize)) {
+      this.error =
+        this.translationService.getTranslation('El banner debe ser JPG, PNG o WEBP y pesar máximo') +
+        ` ${this.formatSize(this.maxBannerFileSize)}`;
+      return;
+    }
+
     const formData = new FormData();
 
-    /*
-      Ya NO mandamos:
-      - id
-      - current_user_id
-
-      PHP obtiene el usuario real desde la sesión HttpOnly.
-    */
     formData.append('username', username);
     formData.append('email', email);
     formData.append('nacionalidad', this.profile.nacionalidad || '');
     formData.append('facebook', this.profile.facebook || '');
     formData.append('twitter', this.profile.twitter || '');
     formData.append('instagram', this.profile.instagram || '');
+    formData.append('idiomasLectura', JSON.stringify(idiomasLectura));
 
     if (this.selectedProfileImage) {
       formData.append('imgPerfil', this.selectedProfileImage);
@@ -250,25 +352,21 @@ export class EditProfileComponent implements OnInit {
           this.cargando = false;
 
           if (!res.success) {
-            this.error = res.error || this.translationService.getTranslation('No se pudo actualizar el perfil');
+            this.error =
+              res.error ||
+              this.translationService.getTranslation('No se pudo actualizar el perfil');
             return;
           }
 
-          this.mensaje = res.mensaje || this.translationService.getTranslation('Perfil actualizado');
+          this.mensaje =
+            res.mensaje ||
+            this.translationService.getTranslation('Perfil actualizado');
 
           if (res.user) {
             this.authService.saveSession(res.user);
           }
 
-          if (this.profilePreviewUrl) {
-            URL.revokeObjectURL(this.profilePreviewUrl);
-            this.profilePreviewUrl = '';
-          }
-
-          if (this.bannerPreviewUrl) {
-            URL.revokeObjectURL(this.bannerPreviewUrl);
-            this.bannerPreviewUrl = '';
-          }
+          this.revokePreviewUrls();
 
           this.selectedProfileImage = null;
           this.selectedBannerImage = null;
@@ -286,16 +384,23 @@ export class EditProfileComponent implements OnInit {
           }
 
           if (err.status === 403) {
-            this.error = err.error?.error || this.translationService.getTranslation('No tienes permiso para realizar esta acción');
+            this.error =
+              err.error?.error ||
+              this.translationService.getTranslation('No tienes permiso para realizar esta acción');
             return;
           }
 
           if (err.status === 409) {
-            this.error = err.error?.error || this.translationService.getTranslation('El email o usuario ya está en uso');
+            this.error =
+              err.error?.error ||
+              this.translationService.getTranslation('El email o usuario ya está en uso');
             return;
           }
 
-          this.error = err.error?.error || this.translationService.getTranslation('Error al actualizar perfil');
+          this.error =
+            err.error?.error ||
+            this.translationService.getTranslation('Error al actualizar perfil');
+
           console.error(err);
         }
       });
@@ -317,6 +422,80 @@ export class EditProfileComponent implements OnInit {
     }
 
     return `${this.siteUrl}/${finalPath}`;
+  }
+
+  formatSize(bytes: number): string {
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+
+    const kb = bytes / 1024;
+
+    if (kb < 1024) {
+      return `${kb.toFixed(2)} KB`;
+    }
+
+    const mb = kb / 1024;
+    return `${mb.toFixed(2)} MB`;
+  }
+
+  private resolveInitialReadingLanguages(user: UserProfile): string[] {
+    const fromProfile = this.normalizeReadingLanguages(user.idiomasLectura);
+
+    if (fromProfile.length > 0) {
+      return fromProfile;
+    }
+
+    const cachedUser = this.authService.getCurrentUser() as
+      | (CurrentUser & { idiomasLectura?: string[] })
+      | null;
+
+    const fromSession = this.normalizeReadingLanguages(cachedUser?.idiomasLectura);
+
+    if (fromSession.length > 0) {
+      return fromSession;
+    }
+
+    return [
+      this.getDefaultReadingLanguage()
+    ];
+  }
+
+  private normalizeReadingLanguages(idiomas?: string[] | null): string[] {
+    if (!Array.isArray(idiomas)) {
+      return [];
+    }
+
+    const allowed = this.readingLanguages.map(language => language.value);
+    const normalizados: string[] = [];
+
+    for (const idioma of idiomas) {
+      const valor = String(idioma || '').trim().toUpperCase();
+
+      if (!allowed.includes(valor)) {
+        continue;
+      }
+
+      if (!normalizados.includes(valor)) {
+        normalizados.push(valor);
+      }
+    }
+
+    return normalizados;
+  }
+
+  private getSelectedReadingLanguages(): string[] {
+    return this.normalizeReadingLanguages(this.selectedReadingLanguages);
+  }
+
+  private getDefaultReadingLanguage(): string {
+    const currentLanguage = this.translationService.getCurrentLanguage();
+
+    if (currentLanguage === 'es') {
+      return 'ES';
+    }
+
+    return 'EN';
   }
 
   private ensureCsrfAndRun(action: () => void, onFail?: () => void): void {
@@ -342,13 +521,25 @@ export class EditProfileComponent implements OnInit {
     });
   }
 
-  private esImagenValida(file: File): boolean {
+  private revokePreviewUrls(): void {
+    if (this.profilePreviewUrl) {
+      URL.revokeObjectURL(this.profilePreviewUrl);
+      this.profilePreviewUrl = '';
+    }
+
+    if (this.bannerPreviewUrl) {
+      URL.revokeObjectURL(this.bannerPreviewUrl);
+      this.bannerPreviewUrl = '';
+    }
+  }
+
+  private esImagenValida(file: File, maxSize: number): boolean {
     const tiposPermitidos = [
       'image/jpeg',
       'image/png',
       'image/webp'
     ];
 
-    return tiposPermitidos.includes(file.type) && file.size <= this.maxFileSize;
+    return tiposPermitidos.includes(file.type) && file.size <= maxSize;
   }
 }
