@@ -82,6 +82,14 @@ export class UploaderComponent {
     { value: 'NL', label: 'Nederlands / Dutch' }
   ];
 
+  tipoObraOptions: SelectOption[] = [
+    { value: 'comic', label: 'Comic' },
+    { value: 'manga', label: 'Manga' },
+    { value: 'libro', label: 'Libro' },
+    { value: 'novela', label: 'Novela' },
+    { value: 'artwork', label: 'Artwork' }
+  ];
+
   categorias: SelectOption[] = [
     { value: 'accion', label: 'Acción' },
     { value: 'aventura', label: 'Aventura' },
@@ -136,8 +144,7 @@ export class UploaderComponent {
       titulo: ['', Validators.required],
       descripcion: [''],
       idioma: ['GLOBAL'],
-      tipoEntrega: ['serie'],
-      serieConcluida: [false]
+      tipoEntrega: ['manga', Validators.required]
     });
   }
 
@@ -392,8 +399,7 @@ export class UploaderComponent {
     formData.append('genero', this.selectedCategories.join(','));
 
     formData.append('idioma', valores.idioma || 'GLOBAL');
-    formData.append('tipoEntrega', valores.tipoEntrega || 'serie');
-    formData.append('serieConcluida', valores.serieConcluida ? '1' : '0');
+    formData.append('tipoEntrega', valores.tipoEntrega || 'manga');
 
     formData.append('portada', this.selectedFile);
 
@@ -456,8 +462,7 @@ export class UploaderComponent {
           titulo: '',
           descripcion: '',
           idioma: 'GLOBAL',
-          tipoEntrega: 'serie',
-          serieConcluida: false
+          tipoEntrega: 'manga'
         });
 
         this.selectedCategories = [];

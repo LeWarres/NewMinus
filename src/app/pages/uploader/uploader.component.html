@@ -132,42 +132,26 @@
 
       <div class="radio-panel">
         <span class="panel-label">
-          {{ translationService.getTranslation('Tipo de entrega') }}
+          {{ translationService.getTranslation('Tipo de obra') }}
         </span>
 
         <div class="radio-options">
-          <label class="radio-option">
+          <label
+            class="radio-option"
+            *ngFor="let tipo of tipoObraOptions"
+          >
             <input
               type="radio"
               formControlName="tipoEntrega"
-              value="one-shot"
+              [value]="tipo.value"
             />
 
-            <span>One shot</span>
-          </label>
-
-          <label class="radio-option">
-            <input
-              type="radio"
-              formControlName="tipoEntrega"
-              value="serie"
-            />
-
-            <span>{{ translationService.getTranslation('Serie') }}</span>
+            <span>
+              {{ translationService.getTranslation(tipo.label) }}
+            </span>
           </label>
         </div>
       </div>
-
-      <label class="checkbox-option">
-        <input
-          type="checkbox"
-          formControlName="serieConcluida"
-        />
-
-        <span>
-          {{ translationService.getTranslation('Serie concluida') }}
-        </span>
-      </label>
     </div>
 
     <section class="upload-section">

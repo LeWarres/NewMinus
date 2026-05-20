@@ -322,6 +322,10 @@
   font-weight: 900;
 }
 
+.swap-page-btn {
+  margin-top: 4px;
+}
+
 .reader-mode-buttons button:hover,
 .reader-mode-buttons button.active,
 .favorite-btn:hover {

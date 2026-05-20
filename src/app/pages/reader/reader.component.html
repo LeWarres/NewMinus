@@ -127,6 +127,16 @@
             >
               {{ translationService.getTranslation('Double Page') }}
             </button>
+
+            <button
+              type="button"
+              class="swap-page-btn"
+              *ngIf="readingMode === 'double'"
+              [class.active]="isDoublePageSwapped"
+              (click)="toggleDoublePageSwap()"
+            >
+              Swap Page
+            </button>
           </div>
         </div>
 

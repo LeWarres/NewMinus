@@ -94,6 +94,7 @@ export class ReaderComponent implements OnInit {
   isFavorite = false;
 
   readingMode: ReadingMode = 'strip';
+  isDoublePageSwapped = false;
   currentPageIndex = 0;
   scrollProgress = 0;
 
@@ -190,10 +191,12 @@ export class ReaderComponent implements OnInit {
 
   get currentSpreadImages(): string[] {
     if (this.readingMode === 'double') {
-      return [
+      const spread = [
         this.images[this.currentPageIndex],
         this.images[this.currentPageIndex + 1]
       ].filter(Boolean);
+
+      return this.isDoublePageSwapped ? [...spread].reverse() : spread;
     }
 
     return [
@@ -415,6 +418,14 @@ export class ReaderComponent implements OnInit {
       'capitulo',
       nextChapter.numeroCapitulo
     ]);
+  }
+
+  toggleDoublePageSwap(): void {
+    if (this.readingMode !== 'double') {
+      return;
+    }
+
+    this.isDoublePageSwapped = !this.isDoublePageSwapped;
   }
 
   toggleFavorite(): void {

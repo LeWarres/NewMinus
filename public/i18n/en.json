@@ -418,5 +418,11 @@
   "Esta obra todavía no tiene comentarios.": "This work does not have comments yet.",
   "Máximo 1000 caracteres": "Maximum 1000 characters",
     "El comentario no puede estar vacío": "The comment cannot be empty",
-  "Comentario guardado correctamente": "Comment saved successfully"
+  "Comentario guardado correctamente": "Comment saved successfully",
+  "Tipo de obra": "Tipo de obra",
+  "Comic": "Comic",
+  "Manga": "Manga",
+  "Libro": "Libro",
+  "Novela": "Novela",
+  "Artwork": "Artwork"
 }
