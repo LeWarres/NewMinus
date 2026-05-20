@@ -9,6 +9,14 @@
       loading="lazy"
     />
 
+    <span
+      class="work-type-badge"
+      *ngIf="workTypeLabel"
+      [attr.title]="workTypeLabel"
+    >
+      {{ workTypeLabel }}
+    </span>
+
     <div class="badges compact-badges">
       <div class="badge-left">
         <span
@@ -68,7 +76,7 @@
       class="card-rating"
       [class.empty]="!hasRating"
       [attr.title]="ratingTitle"
-      aria-label="Rating"
+      [attr.aria-label]="translationService.getTranslation('Calificación') + ' ' + ratingTitle"
     >
       <span class="rating-stars rating-stars-base">
         ★★★★★

@@ -1,0 +1,62 @@
+.file-action {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 12px 18px;
+  border-radius: 999px;
+
+  background:
+    linear-gradient(135deg, rgba(46, 49, 103, 0.96), rgba(37, 42, 84, 0.96));
+
+  color: #c7ff16;
+  border: 1px solid rgba(199, 255, 22, 0.26);
+
+  font-weight: 900;
+  cursor: pointer;
+
+  transition:
+    transform 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease;
+}
+
+.file-action:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #c7ff16, #9ee600);
+  color: #14172b;
+}
+
+.file-action input {
+  display: none;
+}
+
+.selected-file {
+  margin: 0;
+  color: #fff1c8;
+  font-weight: 800;
+}
+
+.save-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform .16s, background .16s;
+
+  background: linear-gradient(135deg, #c7ff16, #9ee600);
+  color: #14172b;
+  box-shadow: 0 10px 22px rgba(199, 255, 22, .22), inset 0 1px 0 rgba(255, 255, 255, .32);
+}
+
+.save-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #d7ff4a, #b9f112);
+}
+
+.save-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}

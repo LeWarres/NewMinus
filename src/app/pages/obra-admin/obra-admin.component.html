@@ -20,32 +20,32 @@
           {{ translationService.getTranslation('Gestiona la información de tu obra y sus capítulos') }}
         </p>
 
-<div class="hero-actions">
-  <button type="button" class="secondary-action" (click)="volverPerfil()">
-    ← {{ translationService.getTranslation('Mi perfil') }}
-  </button>
+        <div class="hero-actions">
+          <button type="button" class="secondary-action" (click)="volverPerfil()">
+            ← {{ translationService.getTranslation('Mi perfil') }}
+          </button>
 
-  <button type="button" class="secondary-action" (click)="verPreview()">
-    {{ translationService.getTranslation('Ver preview') }}
-  </button>
+          <button type="button" class="secondary-action" (click)="verPreview()">
+            {{ translationService.getTranslation('Ver preview') }}
+          </button>
 
-  <button type="button" class="primary-action" (click)="subirCapitulo()">
-    + {{ translationService.getTranslation('Subir capítulo') }}
-  </button>
+          <button type="button" class="primary-action" (click)="subirCapitulo()">
+            + {{ translationService.getTranslation('Subir capítulo') }}
+          </button>
 
-  <button
-    type="button"
-    class="danger-action"
-    (click)="eliminarObra()"
-    [disabled]="eliminandoObra"
-  >
-    {{
-      eliminandoObra
-        ? translationService.getTranslation('Eliminando')
-        : translationService.getTranslation('Eliminar obra')
-    }}
-  </button>
-</div>
+          <button
+            type="button"
+            class="danger-action"
+            (click)="eliminarObra()"
+            [disabled]="eliminandoObra"
+          >
+            {{
+              eliminandoObra
+                ? translationService.getTranslation('Eliminando')
+                : translationService.getTranslation('Eliminar obra')
+            }}
+          </button>
+        </div>
       </div>
 
       <div class="hero-cover">
@@ -78,64 +78,17 @@
               {{ translationService.getTranslation('Información de la obra') }}
             </h2>
           </div>
-
-          <button
-            type="button"
-            class="save-btn"
-            (click)="guardarObra()"
-            [disabled]="guardandoObra"
-          >
-            {{
-              guardandoObra
-                ? translationService.getTranslation('Guardando')
-                : translationService.getTranslation('Guardar cambios')
-            }}
-          </button>
         </div>
 
-        <div class="cover-editor">
-          <div class="cover-preview">
-            <img
-              [src]="coverPreview || imageUrl(obra.portada)"
-              [alt]="obra.titulo"
-            />
-          </div>
-
-          <div class="cover-actions">
-            <label class="file-action">
-              {{ translationService.getTranslation('Cambiar portada') }}
-
-              <input
-                type="file"
-                accept="image/jpeg, image/png, image/webp"
-                (change)="onCoverSelected($event)"
-              />
-            </label>
-
-            <p class="selected-file">
-              {{ translationService.getTranslation('JPG, PNG, WEBP') }} ·
-              {{ translationService.getTranslation('Max') }} {{ formatSize(maxCoverFileSize) }} ·
-              {{ translationService.getTranslation('Se optimizará a WEBP') }}
-            </p>
-
-            <p *ngIf="coverFile" class="selected-file">
-              {{ coverFile.name }} · {{ formatSize(coverFile.size) }}
-            </p>
-
-            <button
-              type="button"
-              class="save-btn"
-              (click)="guardarPortada()"
-              [disabled]="!coverFile || guardandoPortada"
-            >
-              {{
-                guardandoPortada
-                  ? translationService.getTranslation('Guardando')
-                  : translationService.getTranslation('Guardar portada')
-              }}
-            </button>
-          </div>
-        </div>
+        <app-obra-cover-editor
+          [obraTitulo]="obra.titulo"
+          [portada]="obra.portada || ''"
+          [coverPreview]="coverPreview"
+          [coverFile]="coverFile"
+          [maxCoverFileSize]="maxCoverFileSize"
+          [siteUrl]="siteUrl"
+          (coverSelected)="onCoverFileSelected($event)"
+        ></app-obra-cover-editor>
 
         <div class="form-grid">
           <label class="full">
@@ -157,22 +110,13 @@
             ></textarea>
           </label>
 
-          <label>
-            {{ translationService.getTranslation('Género') }}
-
-            <select [(ngModel)]="obra.genero">
-              <option value="">
-                {{ translationService.getTranslation('Sin género') }}
-              </option>
-
-              <option
-                *ngFor="let genero of generos"
-                [value]="genero.value"
-              >
-                {{ genero.label }}
-              </option>
-            </select>
-          </label>
+          <app-obra-category-selector
+            class="full"
+            [categorias]="categorias"
+            [selectedCategories]="selectedCategories"
+            [maxCategories]="maxCategories"
+            (toggleCategory)="toggleCategory($event)"
+          ></app-obra-category-selector>
 
           <label>
             {{ translationService.getTranslation('Idioma') }}
@@ -188,27 +132,16 @@
           </label>
 
           <label>
-            {{ translationService.getTranslation('Tipo de entrega') }}
+            {{ translationService.getTranslation('Tipo de obra') }}
 
             <select [(ngModel)]="obra.tipoEntrega">
               <option
                 *ngFor="let tipo of tiposEntrega"
                 [value]="tipo.value"
               >
-                {{ tipo.label }}
+                {{ translationService.getTranslation(tipo.label) }}
               </option>
             </select>
-          </label>
-
-          <label class="checkbox-label">
-            <input
-              type="checkbox"
-              [(ngModel)]="obra.serieConcluida"
-            />
-
-            <span>
-              {{ translationService.getTranslation('Serie concluida') }}
-            </span>
           </label>
         </div>
 
@@ -236,16 +169,18 @@
           </div>
 
           <div>
-            <strong>{{ obra.idioma || 'ES' }}</strong>
+            <strong>{{ obra.idioma || 'GLOBAL' }}</strong>
             <span>{{ translationService.getTranslation('Idioma') }}</span>
           </div>
 
           <div>
-            <strong>
-              {{ obra.genero || translationService.getTranslation('Sin género') }}
-            </strong>
+            <strong>{{ getTipoObraLabel(obra.tipoEntrega) }}</strong>
+            <span>{{ translationService.getTranslation('Tipo de obra') }}</span>
+          </div>
 
-            <span>{{ translationService.getTranslation('Género') }}</span>
+          <div>
+            <strong>{{ getSelectedCategoriesLabel() }}</strong>
+            <span>{{ translationService.getTranslation('Categorías') }}</span>
           </div>
         </div>
 
@@ -284,184 +219,19 @@
         class="chapters-list"
         *ngIf="obra.capitulos.length > 0; else noChapters"
       >
-        <article
-          class="chapter-item"
+        <app-obra-chapter-item
           *ngFor="let capitulo of obra.capitulos"
-        >
-          <div class="chapter-number">
-            <span>
-              {{ translationService.getTranslation('Capitulo') }}
-            </span>
-
-            <strong>
-              {{ capitulo.numeroCapitulo }}
-            </strong>
-          </div>
-
-          <div class="chapter-form">
-            <label>
-              {{ translationService.getTranslation('Título del capítulo') }}
-
-              <input
-                type="text"
-                [(ngModel)]="capitulo.titulo"
-                [placeholder]="translationService.getTranslation('Título del capítulo')"
-              />
-            </label>
-
-            <label>
-              {{ translationService.getTranslation('Descripción del capítulo') }}
-
-              <textarea
-                [(ngModel)]="capitulo.descripcion"
-                [placeholder]="translationService.getTranslation('Descripción del capítulo')"
-              ></textarea>
-            </label>
-
-            <div class="chapter-pages-manager">
-              <h3>
-                {{ translationService.getTranslation('Páginas del capítulo') }}
-              </h3>
-
-              <div
-                class="pages-grid"
-                *ngIf="capitulo.paginas.length > 0; else noPages"
-              >
-                <div
-                  class="page-thumb"
-                  *ngFor="let pagina of capitulo.paginas"
-                >
-                  <img
-                    [src]="imageUrl(pagina.imagen)"
-                    [alt]="translationService.getTranslation('Página') + ' ' + pagina.numeroPagina"
-                  />
-
-                  <span>
-                    {{ translationService.getTranslation('Página') }}
-                    {{ pagina.numeroPagina }}
-                  </span>
-
-                  <button
-                    type="button"
-                    class="delete-page-btn"
-                    (click)="eliminarPagina(capitulo, pagina)"
-                  >
-                    {{ translationService.getTranslation('Eliminar') }}
-                  </button>
-                </div>
-              </div>
-
-              <ng-template #noPages>
-                <p class="empty-pages">
-                  {{ translationService.getTranslation('Este capítulo no tiene páginas') }}
-                </p>
-              </ng-template>
-
-              <div class="add-pages-box">
-                <label class="file-action">
-                  + {{ translationService.getTranslation('Agregar imágenes') }}
-
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/jpeg, image/png, image/webp"
-                    (change)="onChapterPagesSelected($event, capitulo)"
-                  />
-                </label>
-
-                <p class="selected-file">
-            {{ translationService.getTranslation('JPG, PNG, WEBP') }} ·
-            {{ translationService.getTranslation('Max') }} {{ formatSize(maxCoverFileSize) }} ·
-            {{ translationService.getTranslation('Se optimizará a WEBP') }}
-                </p>
-
-                <p
-                  class="selected-file"
-                  *ngIf="selectedChapterFiles[capitulo.id]?.length"
-                >
-                  {{ translationService.getTranslation('Peso total seleccionado') }}:
-                  {{ formatSize(getSelectedChapterFilesTotalSize(capitulo.id)) }}
-                </p>
-
-                <div
-                  class="selected-pages"
-                  *ngIf="selectedChapterFiles[capitulo.id]?.length"
-                >
-                  <div
-                    class="selected-page-item"
-                    *ngFor="let file of selectedChapterFiles[capitulo.id]; let i = index"
-                  >
-                    <span>
-                      {{ file.name }} · {{ formatSize(file.size) }}
-                    </span>
-
-                    <button
-                      type="button"
-                      (click)="removeSelectedChapterFile(capitulo.id, i)"
-                    >
-                      ×
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  class="save-btn upload-pages-btn"
-                  (click)="subirPaginasCapitulo(capitulo)"
-                  [disabled]="subiendoPaginas[capitulo.id] || !selectedChapterFiles[capitulo.id]?.length"
-                >
-                  {{
-                    subiendoPaginas[capitulo.id]
-                      ? translationService.getTranslation('Subiendo')
-                      : translationService.getTranslation('Subir imágenes')
-                  }}
-                </button>
-
-                <p
-                  class="message"
-                  *ngIf="pageUploadMessages[capitulo.id]"
-                >
-                  {{ pageUploadMessages[capitulo.id] }}
-                </p>
-              </div>
-            </div>
-
-            <p class="chapter-date">
-              {{ translationService.getTranslation('Fecha de creación') }}:
-              {{ capitulo.creadoEn }}
-            </p>
-
-            <p
-              class="message"
-              *ngIf="capituloMensajes[capitulo.id]"
-            >
-              {{ capituloMensajes[capitulo.id] }}
-            </p>
-          </div>
-
-          <div class="chapter-actions">
-            <button
-              type="button"
-              class="secondary-action"
-              (click)="leerCapitulo(capitulo)"
-            >
-              {{ translationService.getTranslation('Leer') }}
-            </button>
-
-            <button
-              type="button"
-              class="save-btn"
-              (click)="guardarCapitulo(capitulo)"
-              [disabled]="guardandoCapitulo[capitulo.id]"
-            >
-              {{
-                guardandoCapitulo[capitulo.id]
-                  ? translationService.getTranslation('Guardando')
-                  : translationService.getTranslation('Guardar')
-              }}
-            </button>
-          </div>
-        </article>
+          [capitulo]="capitulo"
+          [selectedFiles]="selectedChapterFiles[capitulo.id] || []"
+          [maxPageFileSize]="maxPageFileSize"
+          [pageUploadMessage]="pageUploadMessages[capitulo.id] || ''"
+          [capituloMensaje]="capituloMensajes[capitulo.id] || ''"
+          [siteUrl]="siteUrl"
+          (leerCapitulo)="leerCapitulo(capitulo)"
+          (eliminarPagina)="eliminarPagina(capitulo, $event)"
+          (chapterFilesSelected)="onChapterPagesSelected($event, capitulo)"
+          (removeSelectedFile)="removeSelectedChapterFile(capitulo.id, $event)"
+        ></app-obra-chapter-item>
       </div>
 
       <ng-template #noChapters>
@@ -483,6 +253,26 @@
           </button>
         </div>
       </ng-template>
+    </section>
+
+    <section class="save-all-bar">
+      <div>
+        <strong>{{ translationService.getTranslation(i18nKeys.saveAll) }}</strong>
+        <p>{{ translationService.getTranslation(i18nKeys.saveAllDescription) }}</p>
+      </div>
+
+      <button
+        type="button"
+        class="save-btn"
+        (click)="guardarTodo()"
+        [disabled]="guardandoTodo"
+      >
+        {{
+          guardandoTodo
+            ? translationService.getTranslation(i18nKeys.saving)
+            : translationService.getTranslation(i18nKeys.saveAll)
+        }}
+      </button>
     </section>
   </ng-container>
 </div>

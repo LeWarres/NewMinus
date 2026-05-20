@@ -95,6 +95,9 @@
   "Agregar imágenes": "Add images",
   "Subiendo": "Uploading...",
   "Subir imágenes": "Upload images",
+  "Guardar todo": "Save all",
+  "Este botón guardará obra, portada, capítulos y cambios de páginas pendientes": "This button will save work, cover, chapters, and pending page changes",
+  "Las imágenes se subirán al presionar Guardar todo": "Images will be uploaded when pressing Save all",
   "Registrar obra": "Register work",
   "Sube una obra nueva con su portada y el capítulo inicial": "Upload a new work with its cover and first chapter.",
   "Campos requeridos": "Required fields",
@@ -424,5 +427,6 @@
   "Manga": "Manga",
   "Libro": "Libro",
   "Novela": "Novela",
-  "Artwork": "Artwork"
+  "Artwork": "Artwork",
+  "No se confirmaron imágenes insertadas": "No se confirmaron imágenes insertadas"
 }

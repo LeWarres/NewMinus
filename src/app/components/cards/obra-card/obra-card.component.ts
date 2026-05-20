@@ -13,6 +13,13 @@ export interface ObraCardItem {
   categorias?: string[];
   idioma?: string;
   portada?: string;
+
+  /*
+    Tipo de obra:
+    comic, manga, libro, novela, artwork.
+  */
+  tipoEntrega?: string;
+
   numVisitas: number;
   autor: string;
 
@@ -81,6 +88,28 @@ export class ObraCardComponent {
 
   get coverUrl(): string {
     return this.metadataService.imageUrl(this.obra.portada);
+  }
+
+  get workTypeLabel(): string {
+    const normalized = String(this.obra.tipoEntrega || '')
+      .trim()
+      .toLowerCase();
+
+    const labels: Record<string, string> = {
+      comic: 'Comic',
+      manga: 'Manga',
+      libro: 'Libro',
+      novela: 'Novela',
+      artwork: 'Artwork'
+    };
+
+    const label = labels[normalized];
+
+    if (!label) {
+      return '';
+    }
+
+    return this.translationService.getTranslation(label);
   }
 
   get ratingAverage(): number {

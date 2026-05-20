@@ -1,0 +1,154 @@
+<article class="chapter-item">
+  <div class="chapter-number">
+    <span>
+      {{ translationService.getTranslation('Capitulo') }}
+    </span>
+
+    <strong>
+      {{ capitulo.numeroCapitulo }}
+    </strong>
+  </div>
+
+  <div class="chapter-form">
+    <label>
+      {{ translationService.getTranslation('Título del capítulo') }}
+
+      <input
+        type="text"
+        [(ngModel)]="capitulo.titulo"
+        [placeholder]="translationService.getTranslation('Título del capítulo')"
+      />
+    </label>
+
+    <label>
+      {{ translationService.getTranslation('Descripción del capítulo') }}
+
+      <textarea
+        [(ngModel)]="capitulo.descripcion"
+        [placeholder]="translationService.getTranslation('Descripción del capítulo')"
+      ></textarea>
+    </label>
+
+    <div class="chapter-pages-manager">
+      <h3>
+        {{ translationService.getTranslation('Páginas del capítulo') }}
+      </h3>
+
+      <div
+        class="pages-grid"
+        *ngIf="capitulo.paginas.length > 0 || selectedFiles.length > 0; else noPages"
+      >
+        <div
+          class="page-thumb"
+          *ngFor="let pagina of capitulo.paginas"
+        >
+          <img
+            [src]="imageUrl(pagina.imagen)"
+            [alt]="translationService.getTranslation('Página') + ' ' + pagina.numeroPagina"
+          />
+
+          <span>
+            {{ translationService.getTranslation('Página') }}
+            {{ pagina.numeroPagina }}
+          </span>
+
+          <button
+            type="button"
+            class="delete-page-btn"
+            (click)="eliminarPagina.emit(pagina)"
+          >
+            {{ translationService.getTranslation('Eliminar') }}
+          </button>
+        </div>
+
+        <div
+          class="page-thumb page-thumb-pending"
+          *ngFor="let file of selectedFiles; let i = index"
+        >
+          <img
+            [src]="selectedFilePreviews[i]"
+            [alt]="translationService.getTranslation('Nueva página') + ' ' + file.name"
+          />
+
+          <span>
+            {{ translationService.getTranslation('Nueva') }} · {{ file.name }}
+          </span>
+
+          <button
+            type="button"
+            class="delete-page-btn"
+            (click)="removeSelectedFile.emit(i)"
+          >
+            {{ translationService.getTranslation('Eliminar') }}
+          </button>
+        </div>
+      </div>
+
+      <ng-template #noPages>
+        <p class="empty-pages">
+          {{ translationService.getTranslation('Este capítulo no tiene páginas') }}
+        </p>
+      </ng-template>
+
+      <div class="add-pages-box">
+        <label class="file-action">
+          + {{ translationService.getTranslation('Agregar imágenes') }}
+
+          <input
+            type="file"
+            multiple
+            accept="image/jpeg, image/png, image/webp"
+            (change)="onChapterPagesSelected($event)"
+          />
+        </label>
+
+        <p class="selected-file">
+          {{ translationService.getTranslation('JPG, PNG, WEBP') }} ·
+          {{ translationService.getTranslation('Max') }} {{ formatSize(maxPageFileSize) }} ·
+          {{ translationService.getTranslation('Se optimizará a WEBP') }}
+        </p>
+
+        <p
+          class="selected-file"
+          *ngIf="selectedFiles.length"
+        >
+          {{ translationService.getTranslation('Peso total seleccionado') }}:
+          {{ formatSize(selectedTotalSize) }}
+        </p>
+
+        <p class="pending-save-hint" *ngIf="selectedFiles.length">
+          {{ translationService.getTranslation('Las imágenes se subirán al presionar Guardar todo') }}
+        </p>
+
+        <p
+          class="message"
+          *ngIf="pageUploadMessage"
+        >
+          {{ pageUploadMessage }}
+        </p>
+      </div>
+    </div>
+
+    <p class="chapter-date">
+      {{ translationService.getTranslation('Fecha de creación') }}:
+      {{ capitulo.creadoEn }}
+    </p>
+
+    <p
+      class="message"
+      *ngIf="capituloMensaje"
+    >
+      {{ capituloMensaje }}
+    </p>
+  </div>
+
+  <div class="chapter-actions">
+    <button
+      type="button"
+      class="secondary-action"
+      (click)="leerCapitulo.emit()"
+    >
+      {{ translationService.getTranslation('Leer') }}
+    </button>
+  </div>
+</article>

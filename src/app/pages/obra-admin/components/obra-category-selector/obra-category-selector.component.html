@@ -1,0 +1,42 @@
+<div class="category-panel full">
+  <div class="category-header">
+    <div>
+      <span class="panel-label">
+        {{ translationService.getTranslation('Categorías') }}
+      </span>
+
+      <p>
+        {{ translationService.getTranslation('Selecciona hasta 3 categorías') }}
+      </p>
+    </div>
+
+    <strong>
+      {{ selectedCategories.length }}/{{ maxCategories }}
+    </strong>
+  </div>
+
+  <div class="category-grid">
+    <button
+      type="button"
+      *ngFor="let categoria of categorias"
+      class="category-chip"
+      [class.selected]="isCategorySelected(categoria.value)"
+      [disabled]="!isCategorySelected(categoria.value) && selectedCategories.length >= maxCategories"
+      (click)="toggleCategory.emit(categoria.value)"
+    >
+      {{ translationService.getTranslation(categoria.label) }}
+    </button>
+  </div>
+
+  <div
+    class="selected-categories"
+    *ngIf="selectedCategories.length > 0"
+  >
+    <span
+      *ngFor="let categoria of selectedCategories"
+      class="selected-category"
+    >
+      {{ translationService.getTranslation(getCategoryLabel(categoria)) }}
+    </span>
+  </div>
+</div>

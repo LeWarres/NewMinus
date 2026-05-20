@@ -18,25 +18,10 @@ export interface CapituloCardItem {
   idioma?: string;
   portada?: string;
 
-  /*
-    IMPORTANTE:
-    En tarjetas de capítulo, numVisitas representa las vistas del capítulo,
-    no las vistas globales de la obra.
-  */
+  tipoEntrega?: string;
+
   numVisitas: number;
-
-  /*
-    Opcional:
-    Si algún PHP también manda las vistas globales de la obra,
-    las guardamos aparte para no confundirlas.
-  */
   obraNumVisitas?: number;
-
-  /*
-    Promedio de calificación de la obra.
-    Aunque esta tarjeta sea de capítulo, el rating pertenece a la obra.
-    Viene desde los PHP como promedioCalificacion.
-  */
   promedioCalificacion?: number;
 
   capituloId: number;
@@ -113,6 +98,28 @@ export class CapituloCardComponent {
 
   get chapterViews(): number {
     return this.item.numVisitas || 0;
+  }
+
+  get workTypeLabel(): string {
+    const normalized = String(this.item.tipoEntrega || '')
+      .trim()
+      .toLowerCase();
+
+    const labels: Record<string, string> = {
+      comic: 'Comic',
+      manga: 'Manga',
+      libro: 'Libro',
+      novela: 'Novela',
+      artwork: 'Artwork'
+    };
+
+    const label = labels[normalized];
+
+    if (!label) {
+      return '';
+    }
+
+    return this.translationService.getTranslation(label);
   }
 
   get ratingAverage(): number {

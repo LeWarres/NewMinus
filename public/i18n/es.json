@@ -95,6 +95,9 @@
   "Agregar imágenes": "Agregar imágenes",
   "Subiendo": "Subiendo...",
   "Subir imágenes": "Subir imágenes",
+  "Guardar todo": "Guardar todo",
+  "Este botón guardará obra, portada, capítulos y cambios de páginas pendientes": "Este botón guardará obra, portada, capítulos y cambios de páginas pendientes",
+  "Las imágenes se subirán al presionar Guardar todo": "Las imágenes se subirán al presionar Guardar todo",
   "Registrar obra": "Registrar obra",
   "Sube una obra nueva con su portada y el capítulo inicial": "Sube una obra nueva con su portada y el capítulo inicial.",
   "Campos requeridos": "Campos requeridos",
@@ -423,12 +426,7 @@
   "Máximo 1000 caracteres": "Máximo 1000 caracteres",
       "El comentario no puede estar vacío": "El comentario no puede estar vacío",
   "Comentario guardado correctamente": "Comentario guardado correctamente",
-"Tipo de obra": "Tipo de obra",
-  "Comic": "Comic",
-  "Manga": "Manga",
-  "Libro": "Libro",
-  "Novela": "Novela",
-  "Artwork": "Artwork"
+  "No se confirmaron imágenes insertadas": "No se confirmaron imágenes insertadas"
 
 
 }

@@ -62,7 +62,10 @@ interface PerfilCapituloApi {
   genero?: string;
   categorias?: string[];
   idioma?: string;
+  tipoEntrega?: string;
   numVisitas: number;
+  obraNumVisitas?: number;
+  promedioCalificacion?: number;
 }
 
 interface PerfilObra extends ObraCardItem {
@@ -283,25 +286,33 @@ export class PerfilComponent implements OnInit {
     };
   }
 
-  private mapCapitulo(capitulo: PerfilCapituloApi, user: User): PerfilCapitulo {
-    return {
-      tipo: 'capitulo',
-      obraId: capitulo.obraId,
-      usuarioId: user.id,
-      tituloObra: capitulo.tituloObra,
-      descripcionObra: '',
-      genero: capitulo.genero,
-      categorias: capitulo.categorias,
-      idioma: capitulo.idioma,
-      portada: capitulo.portada,
-      numVisitas: capitulo.numVisitas || 0,
-      capituloId: capitulo.capituloId,
-      numeroCapitulo: capitulo.numeroCapitulo,
-      tituloCapitulo: capitulo.tituloCapitulo,
-      descripcionCapitulo: capitulo.descripcionCapitulo,
-      fechaCreacion: capitulo.fechaCreacion,
-      autor: user.username,
-      autorAvatar: user.imgPerfil
-    };
-  }
+private mapCapitulo(capitulo: PerfilCapituloApi, user: User): PerfilCapitulo {
+  return {
+    tipo: 'capitulo',
+    obraId: capitulo.obraId,
+    usuarioId: user.id,
+
+    tituloObra: capitulo.tituloObra,
+    descripcionObra: '',
+
+    genero: capitulo.genero,
+    categorias: capitulo.categorias,
+    idioma: capitulo.idioma,
+    portada: capitulo.portada,
+    tipoEntrega: capitulo.tipoEntrega,
+
+    numVisitas: capitulo.numVisitas || 0,
+    obraNumVisitas: capitulo.obraNumVisitas || 0,
+    promedioCalificacion: capitulo.promedioCalificacion || 0,
+
+    capituloId: capitulo.capituloId,
+    numeroCapitulo: capitulo.numeroCapitulo,
+    tituloCapitulo: capitulo.tituloCapitulo,
+    descripcionCapitulo: capitulo.descripcionCapitulo,
+    fechaCreacion: capitulo.fechaCreacion,
+
+    autor: user.username,
+    autorAvatar: user.imgPerfil
+  };
+}
 }

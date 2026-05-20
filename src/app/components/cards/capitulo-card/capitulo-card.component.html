@@ -9,6 +9,15 @@
       loading="lazy"
     />
 
+    <!-- NUEVO: badge superior izquierdo -->
+    <span
+      class="work-type-badge"
+      *ngIf="workTypeLabel"
+      [attr.title]="workTypeLabel"
+    >
+      {{ workTypeLabel }}
+    </span>
+
     <div class="compact-badges">
       <div class="badge-left">
         <span

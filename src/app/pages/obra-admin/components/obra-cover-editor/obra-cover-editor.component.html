@@ -1,0 +1,34 @@
+<div class="cover-editor">
+  <div class="cover-preview">
+    <img
+      [src]="coverPreview || imageUrl(portada)"
+      [alt]="obraTitulo"
+    />
+  </div>
+
+  <div class="cover-actions">
+    <label class="file-action">
+      {{ translationService.getTranslation('Cambiar portada') }}
+
+      <input
+        type="file"
+        accept="image/jpeg, image/png, image/webp"
+        (change)="onCoverSelected($event)"
+      />
+    </label>
+
+    <p class="selected-file">
+      {{ translationService.getTranslation('JPG, PNG, WEBP') }} ·
+      {{ translationService.getTranslation('Max') }} {{ formatSize(maxCoverFileSize) }} ·
+      {{ translationService.getTranslation('Se optimizará a WEBP') }}
+    </p>
+
+    <p *ngIf="coverFile" class="selected-file">
+      {{ coverFile.name }} · {{ formatSize(coverFile.size) }}
+    </p>
+
+    <p class="save-hint" *ngIf="coverFile">
+      {{ translationService.getTranslation('La portada se guardará al presionar Guardar todo') }}
+    </p>
+  </div>
+</div>
