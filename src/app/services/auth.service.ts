@@ -12,12 +12,8 @@ export interface CurrentUser {
   twitter?: string;
   facebook?: string;
   instagram?: string;
-
-  /*
-    Idiomas que el usuario quiere leer.
-    Ejemplo: ['ES', 'EN', 'JA']
-  */
   idiomasLectura?: string[];
+  mostrarNsfw?: boolean;
 }
 
 interface MeResponse {
@@ -47,12 +43,9 @@ export interface RegisterPayload {
   nacionalidad?: string;
   website?: string;
   turnstileToken?: string;
-
-  /*
-    Nuevos campos para recomendaciones por idioma.
-  */
   idiomasLectura?: string[];
   idiomaInterfaz?: string;
+  mostrarNsfw?: boolean;
 }
 
 export interface RegisterResponse {
@@ -65,6 +58,7 @@ export interface RegisterResponse {
   requiresVerification?: boolean;
   email?: string;
   idiomasLectura?: string[];
+  mostrarNsfw?: boolean;
 }
 
 @Injectable({
@@ -142,9 +136,9 @@ export class AuthService {
         nacionalidad: payload.nacionalidad || '',
         website: payload.website || '',
         turnstileToken: payload.turnstileToken || '',
-
         idiomasLectura: payload.idiomasLectura || [],
-        idiomaInterfaz: payload.idiomaInterfaz || 'en'
+        idiomaInterfaz: payload.idiomaInterfaz || 'en',
+        mostrarNsfw: payload.mostrarNsfw ? 1 : 0
       },
       {
         withCredentials: true,

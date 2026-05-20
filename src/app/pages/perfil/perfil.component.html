@@ -61,6 +61,7 @@
           *ngIf="user.twitter"
           [href]="user.twitter"
           target="_blank"
+          rel="noopener noreferrer"
           class="enlace"
         >
           Twitter
@@ -70,6 +71,7 @@
           *ngIf="user.facebook"
           [href]="user.facebook"
           target="_blank"
+          rel="noopener noreferrer"
           class="enlace"
         >
           Facebook
@@ -79,6 +81,7 @@
           *ngIf="user.instagram"
           [href]="user.instagram"
           target="_blank"
+          rel="noopener noreferrer"
           class="enlace"
         >
           Instagram
@@ -86,18 +89,16 @@
       </div>
 
       <div class="acciones">
-        <button
-          class="boton"
-          type="button"
+        <app-subscribe-button
+          class="profile-subscribe"
           *ngIf="!isCurrentUser"
-          (click)="toggleSubscription()"
-        >
-          {{
-            estaSuscrito
-              ? translationService.getTranslation('Desuscribirse')
-              : translationService.getTranslation('Suscribirse')
-          }}
-        </button>
+          [targetUserId]="user.id"
+          [currentUserId]="currentUser?.id || null"
+          [isSubscribed]="estaSuscrito"
+          [totalSubscribers]="user.totalSuscriptores || 0"
+          [showCount]="false"
+          (subscriptionChange)="onSubscriptionChange($event)"
+        ></app-subscribe-button>
 
         <button
           class="botonEditar"

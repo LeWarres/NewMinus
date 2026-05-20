@@ -268,8 +268,47 @@
   text-decoration: underline;
 }
 
-.views {
+/* Rating promedio */
+.card-rating {
+  position: relative;
+
+  width: max-content;
   margin: 10px 0 0;
+
+  display: inline-flex;
+
+  font-size: 15px;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.rating-stars {
+  display: block;
+  white-space: nowrap;
+}
+
+.rating-stars-base {
+  color: rgba(255, 255, 255, 0.22);
+}
+
+.rating-stars-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+
+  overflow: hidden;
+
+  color: #c7ff16;
+  text-shadow: 0 0 12px rgba(199, 255, 22, 0.35);
+
+  pointer-events: none;
+}
+
+.card-rating.empty .rating-stars-fill {
+  width: 0 !important;
+}
+
+.views {
+  margin: 8px 0 0;
 
   color: #c7c9ef;
   font-size: 13px;
@@ -326,5 +365,9 @@
 
   .language-badge img {
     border-radius: 4px;
+  }
+
+  .card-rating {
+    font-size: 14px;
   }
 }

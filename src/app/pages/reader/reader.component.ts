@@ -1,11 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 
 import { TranslationService } from '../../services/translation.service';
 import { AuthService, CurrentUser } from '../../services/auth.service';
+
+import {
+  SubscribeButtonComponent,
+  SubscriptionChange
+} from '../../components/subscribe-button/subscribe-button.component';
+
+import { CommentsSectionComponent } from '../../components/comments-section/comments-section.component';
 
 interface Capitulo {
   id: number;
@@ -53,13 +60,6 @@ interface ObraDetalleResponse {
   obra?: ObraDetalle;
 }
 
-interface SuscripcionResponse {
-  success: boolean;
-  suscrito?: boolean;
-  mensaje?: string;
-  error?: string;
-}
-
 type ReadingMode = 'strip' | 'single' | 'double';
 
 @Component({
@@ -68,15 +68,16 @@ type ReadingMode = 'strip' | 'single' | 'double';
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule
+    RouterModule,
+    SubscribeButtonComponent,
+    CommentsSectionComponent
   ],
   templateUrl: './reader.component.html',
   styleUrl: './reader.component.css'
 })
-export class ReaderComponent implements OnInit, OnDestroy {
-  apiUrl = 'https://minuscreators.com/api/obra_detalle.php';
-  suscripcionUrl = 'https://minuscreators.com/api/suscripcion.php';
-  registrarVistaUrl = 'https://minuscreators.com/api/registrar_vista.php';
+export class ReaderComponent implements OnInit {
+  private apiUrl = 'https://minuscreators.com/api/obra_detalle.php';
+  private registrarVistaUrl = 'https://minuscreators.com/api/registrar_vista.php';
 
   siteUrl = 'https://minuscreators.com';
 
@@ -88,7 +89,6 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   cargando = false;
   error = '';
-  mensaje = '';
 
   selectedChapter = 1;
   isFavorite = false;
@@ -119,10 +119,6 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
       this.cargarObra(id, capitulo || undefined);
     });
-  }
-
-  ngOnDestroy(): void {
-    this.removerDisqus();
   }
 
   @HostListener('window:scroll')
@@ -214,13 +210,16 @@ export class ReaderComponent implements OnInit, OnDestroy {
       return 100;
     }
 
-    return Math.min(100, Math.round(((this.currentPageIndex + 1) / this.totalPages) * 100));
+    return Math.min(
+      100,
+      Math.round(((this.currentPageIndex + 1) / this.totalPages) * 100)
+    );
   }
 
   cargarObra(id: string, capitulo?: string): void {
     this.cargando = true;
     this.error = '';
-    this.mensaje = '';
+
     this.hiddenPageIndexes = [];
     this.currentPageIndex = 0;
     this.scrollProgress = 0;
@@ -241,7 +240,9 @@ export class ReaderComponent implements OnInit, OnDestroy {
         this.cargando = false;
 
         if (!res.success || !res.obra) {
-          this.error = res.error || this.translationService.getTranslation('No se pudo cargar la obra');
+          this.error =
+            res.error ||
+            this.translationService.getTranslation('No se pudo cargar la obra');
           return;
         }
 
@@ -254,10 +255,10 @@ export class ReaderComponent implements OnInit, OnDestroy {
         });
 
         this.registrarVista(
-        this.obra.id,
-        this.obra.capituloActual.id,
-        this.obra.capituloActual.numeroCapitulo
-      );
+          this.obra.id,
+          this.obra.capituloActual.id,
+          this.obra.capituloActual.numeroCapitulo
+        );
 
         window.scrollTo({
           top: 0,
@@ -267,39 +268,50 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
         setTimeout(() => {
           this.updateScrollProgress();
-          this.cargarDisqus();
         }, 300);
       },
       error: (err) => {
         this.cargando = false;
-        this.error = err.error?.error || this.translationService.getTranslation('Error al cargar la obra');
+        this.error =
+          err.error?.error ||
+          this.translationService.getTranslation('Error al cargar la obra');
+
         console.error(err);
       }
     });
   }
 
- registrarVista(
-  obraId: number,
-  capituloId: number,
-  numeroCapitulo: number
-): void {
-  this.http.post(
-    this.registrarVistaUrl,
-    {
-      obra_id: obraId,
-      capitulo_id: capituloId,
-      numero_capitulo: numeroCapitulo
-    },
-    {
-      withCredentials: true
+  registrarVista(
+    obraId: number,
+    capituloId: number,
+    numeroCapitulo: number
+  ): void {
+    this.http.post(
+      this.registrarVistaUrl,
+      {
+        obra_id: obraId,
+        capitulo_id: capituloId,
+        numero_capitulo: numeroCapitulo
+      },
+      {
+        withCredentials: true
+      }
+    ).subscribe({
+      next: () => {},
+      error: (err) => {
+        console.error('No se pudo registrar vista del capítulo', err);
+      }
+    });
+  }
+
+  onSubscriptionChange(event: SubscriptionChange): void {
+    if (!this.obra) {
+      return;
     }
-  ).subscribe({
-    next: () => {},
-    error: (err) => {
-      console.error('No se pudo registrar vista del capítulo', err);
-    }
-  });
-}
+
+    this.obra.estaSuscrito = event.isSubscribed;
+    this.obra.totalSuscriptores = event.totalSubscribers;
+  }
 
   setReadingMode(mode: ReadingMode): void {
     this.readingMode = mode;
@@ -324,7 +336,10 @@ export class ReaderComponent implements OnInit, OnDestroy {
     }
 
     const step = this.readingMode === 'double' ? 2 : 1;
-    this.currentPageIndex = Math.min(this.currentPageIndex + step, this.totalPages - 1);
+    this.currentPageIndex = Math.min(
+      this.currentPageIndex + step,
+      this.totalPages - 1
+    );
   }
 
   previousPage(): void {
@@ -422,75 +437,6 @@ export class ReaderComponent implements OnInit, OnDestroy {
     this.router.navigate(['/obra', this.obra.id]);
   }
 
-  toggleSubscription(): void {
-    if (!this.obra || !this.obra.usuarioId) {
-      return;
-    }
-
-    this.currentUser = this.authService.getCurrentUser();
-
-    if (!this.currentUser) {
-      this.router.navigate(['/login']);
-      return;
-    }
-
-    if (this.currentUser.id === this.obra.usuarioId) {
-      return;
-    }
-
-    const seguidoId = this.obra.usuarioId;
-
-    this.mensaje = '';
-
-    this.ensureCsrfAndRun(() => {
-      this.http.post<SuscripcionResponse>(
-        this.suscripcionUrl,
-        {
-          seguido_id: seguidoId
-        },
-        {
-          withCredentials: true,
-          headers: this.authService.csrfHeaders()
-        }
-      ).subscribe({
-        next: (res) => {
-          if (!res.success) {
-            this.mensaje = res.error || this.translationService.getTranslation('No se pudo actualizar la suscripción');
-            return;
-          }
-
-          if (!this.obra) {
-            return;
-          }
-
-          this.obra.estaSuscrito = !!res.suscrito;
-
-          const totalActual = this.obra.totalSuscriptores || 0;
-
-          if (res.suscrito) {
-            this.obra.totalSuscriptores = totalActual + 1;
-          } else {
-            this.obra.totalSuscriptores = Math.max(totalActual - 1, 0);
-          }
-
-          this.mensaje = res.mensaje || '';
-        },
-        error: (err) => {
-          if (err.status === 401) {
-            this.authService.clearSession();
-            this.router.navigate(['/login']);
-            return;
-          }
-
-          this.mensaje = err.error?.error || this.translationService.getTranslation('Error al actualizar suscripción');
-          console.error(err);
-        }
-      });
-    }, () => {
-      this.mensaje = this.translationService.getTranslation('No se pudo preparar la acción');
-    });
-  }
-
   imageUrl(path?: string | null, fallback: string = '/obras/paleta/portada.png'): string {
     const finalPath = path || fallback;
 
@@ -503,14 +449,6 @@ export class ReaderComponent implements OnInit, OnDestroy {
     }
 
     return `${this.siteUrl}/${finalPath}`;
-  }
-
-  getInitial(name: string): string {
-    if (!name || name.trim() === '') {
-      return '?';
-    }
-
-    return name.trim().charAt(0).toUpperCase();
   }
 
   onPageImageError(index: number): void {
@@ -529,76 +467,6 @@ export class ReaderComponent implements OnInit, OnDestroy {
     return this.hiddenPageIndexes.includes(index);
   }
 
-  cargarDisqus(): void {
-    if (!this.obra) {
-      return;
-    }
-
-    this.removerDisqus();
-
-    const disqusContainer = document.getElementById('disqus_thread');
-
-    if (!disqusContainer) {
-      return;
-    }
-
-    const obraId = this.obra.id;
-    const selectedChapter = this.selectedChapter;
-
-    (window as any).disqus_config = function () {
-      this.page = this.page || {};
-      this.page.url = window.location.href;
-      this.page.identifier = `obra-${obraId}-capitulo-${selectedChapter}`;
-    };
-
-    const script = document.createElement('script');
-    script.src = 'https://minuscreators.disqus.com/embed.js';
-    script.setAttribute('data-timestamp', String(+new Date()));
-    script.async = true;
-
-    document.body.appendChild(script);
-  }
-
-  removerDisqus(): void {
-    const scripts = document.querySelectorAll('script[src*="disqus.com/embed.js"]');
-    scripts.forEach(script => script.remove());
-
-    const disqusContainer = document.getElementById('disqus_thread');
-
-    if (disqusContainer) {
-      disqusContainer.innerHTML = '';
-    }
-
-    const disqusThread = document.getElementById('dsq-app');
-
-    if (disqusThread) {
-      disqusThread.remove();
-    }
-  }
-
-  private ensureCsrfAndRun(action: () => void, onFail?: () => void): void {
-    if (this.authService.getCsrfToken()) {
-      action();
-      return;
-    }
-
-    this.authService.fetchCsrfToken().subscribe({
-      next: (res) => {
-        if (!res.success || !res.csrfToken) {
-          onFail?.();
-          return;
-        }
-
-        this.authService.saveCsrfToken(res.csrfToken);
-        action();
-      },
-      error: (err) => {
-        onFail?.();
-        console.error(err);
-      }
-    });
-  }
-
   private hidePage(index: number): void {
     if (!this.hiddenPageIndexes.includes(index)) {
       this.hiddenPageIndexes.push(index);
@@ -614,6 +482,9 @@ export class ReaderComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.scrollProgress = Math.min(100, Math.max(0, Math.round((scrollTop / docHeight) * 100)));
+    this.scrollProgress = Math.min(
+      100,
+      Math.max(0, Math.round((scrollTop / docHeight) * 100))
+    );
   }
 }

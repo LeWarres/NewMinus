@@ -1,6 +1,14 @@
 import { Injectable } from '@angular/core';
 import { TranslationService } from './translation.service';
 
+export interface ContentLanguageOption {
+  value: string;
+  label: string;
+  nativeLabel: string;
+  shortLabel: string;
+  flagUrl: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -8,6 +16,28 @@ export class ContentMetadataService {
   private siteUrl = 'https://minuscreators.com';
 
   private flagBasePath = 'flags';
+
+  private languageOrder = [
+    'GLOBAL',
+    'ES',
+    'EN',
+    'JA',
+    'KO',
+    'ZH',
+    'FR',
+    'DE',
+    'PT',
+    'IT',
+    'RU',
+    'AR',
+    'HI',
+    'ID',
+    'VI',
+    'TH',
+    'TR',
+    'PL',
+    'NL'
+  ];
 
   private categoryFallbacks: Record<string, { es: string; en: string }> = {
     'accion': { es: 'Acción', en: 'Action' },
@@ -46,7 +76,8 @@ export class ContentMetadataService {
     'josei': { es: 'Josei', en: 'Josei' },
     'kodomo': { es: 'Kodomo', en: 'Kodomo' },
     'boys-love': { es: 'Boys Love', en: 'Boys Love' },
-    'girls-love': { es: 'Girls Love', en: 'Girls Love' }
+    'girls-love': { es: 'Girls Love', en: 'Girls Love' },
+    'nsfw': { es: 'NSFW', en: 'NSFW' }
   };
 
   private languageFallbacks: Record<string, { es: string; en: string }> = {
@@ -69,6 +100,28 @@ export class ContentMetadataService {
     TR: { es: 'Turco', en: 'Turkish' },
     PL: { es: 'Polaco', en: 'Polish' },
     NL: { es: 'Neerlandés', en: 'Dutch' }
+  };
+
+  private nativeLanguageLabels: Record<string, string> = {
+    GLOBAL: 'Global',
+    ES: 'Español',
+    EN: 'English',
+    JA: '日本語',
+    KO: '한국어',
+    ZH: '中文',
+    FR: 'Français',
+    DE: 'Deutsch',
+    PT: 'Português',
+    IT: 'Italiano',
+    RU: 'Русский',
+    AR: 'العربية',
+    HI: 'हिन्दी',
+    ID: 'Bahasa Indonesia',
+    VI: 'Tiếng Việt',
+    TH: 'ไทย',
+    TR: 'Türkçe',
+    PL: 'Polski',
+    NL: 'Nederlands'
   };
 
   private flagFiles: Record<string, string> = {
@@ -96,6 +149,18 @@ export class ContentMetadataService {
   constructor(
     private translationService: TranslationService
   ) {}
+
+  getAvailableLanguages(includeGlobal = false): ContentLanguageOption[] {
+    return this.languageOrder
+      .filter(value => includeGlobal || value !== 'GLOBAL')
+      .map(value => ({
+        value,
+        label: this.getLanguageLabel(value),
+        nativeLabel: this.getLanguageNativeLabel(value),
+        shortLabel: value,
+        flagUrl: this.getLanguageFlagUrl(value)
+      }));
+  }
 
   getCategoryValues(genero?: string, categorias?: string[]): string[] {
     if (categorias && categorias.length > 0) {
@@ -153,6 +218,11 @@ export class ContentMetadataService {
     return this.translateWithFallback(`idioma.${normalized}`, fallback);
   }
 
+  getLanguageNativeLabel(value?: string): string {
+    const normalized = this.normalizeLanguage(value);
+    return this.nativeLanguageLabels[normalized] || normalized;
+  }
+
   getLanguageFlagUrl(value?: string): string {
     const normalized = this.normalizeLanguage(value);
     const fileName = this.flagFiles[normalized] || this.flagFiles['GLOBAL'];
@@ -184,7 +254,7 @@ export class ContentMetadataService {
 
   private getCurrentLanguage(): 'es' | 'en' {
     const language = this.translationService.getCurrentLanguage();
-    return language === 'en' ? 'en' : 'es';
+    return language === 'es' ? 'es' : 'en';
   }
 
   private getCategoryFallback(value: string): string {

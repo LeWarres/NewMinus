@@ -1,7 +1,9 @@
 <div class="categorias">
   <section class="categorias-hero">
     <div>
-      <span class="eyebrow">Minus Creators</span>
+      <span class="eyebrow">
+        {{ translationService.getTranslation('Minus Creators') }}
+      </span>
 
       <h1>
         {{ translationService.getTranslation('Géneros') }}
@@ -26,12 +28,12 @@
         <input
           type="text"
           [(ngModel)]="busqueda"
-          (keyup.enter)="cargarObras()"
+          (keyup.enter)="buscarDesdeInput()"
           [placeholder]="translationService.getTranslation('Buscar por título, descripción o autor')"
         />
       </div>
 
-      <button type="button" class="search-action" (click)="cargarObras()">
+      <button type="button" class="search-action" (click)="buscarDesdeInput()">
         {{ translationService.getTranslation('Buscar') }}
       </button>
     </div>
@@ -42,7 +44,7 @@
 
         <select
           [(ngModel)]="categoriaSeleccionada"
-          (change)="cargarObras()"
+          (change)="cambiarFiltros()"
         >
           <option
             *ngFor="let categoria of categorias"
@@ -58,7 +60,7 @@
 
         <select
           [(ngModel)]="idiomaObraSeleccionado"
-          (change)="cargarObras()"
+          (change)="cambiarFiltros()"
         >
           <option
             *ngFor="let idioma of idiomasObra"
@@ -70,11 +72,32 @@
       </label>
 
       <label>
+        {{ translationService.getTranslation('Contenido NSFW') }}
+
+        <select
+          [(ngModel)]="filtroNsfw"
+          (change)="cambiarFiltros()"
+        >
+          <option value="incluir">
+            {{ translationService.getTranslation('Con contenido NSFW') }}
+          </option>
+
+          <option value="ocultar">
+            {{ translationService.getTranslation('Sin contenido NSFW') }}
+          </option>
+
+          <option value="solo">
+            {{ translationService.getTranslation('Solo contenido NSFW') }}
+          </option>
+        </select>
+      </label>
+
+      <label>
         {{ translationService.getTranslation('Ordenar por') }}
 
         <select
           [(ngModel)]="ordenSeleccionado"
-          (change)="cargarObras()"
+          (change)="cambiarFiltros()"
         >
           <option value="recientes">
             {{ translationService.getTranslation('Más recientes') }}
@@ -83,18 +106,6 @@
           <option value="populares">
             {{ translationService.getTranslation('Más populares') }}
           </option>
-        </select>
-      </label>
-
-      <label>
-        {{ translationService.getTranslation('Idioma de interfaz') }}
-
-        <select
-          [(ngModel)]="idiomaUI"
-          (change)="cambiarIdiomaUI($event)"
-        >
-          <option value="es">Español</option>
-          <option value="en">English</option>
         </select>
       </label>
 
@@ -119,9 +130,18 @@
     <div>
       <h2>{{ getCategoriaActual() }}</h2>
 
-      <p *ngIf="idiomaObraSeleccionado !== 'todos'">
+      <p>
         {{ translationService.getTranslation('Idioma') }}:
         {{ getIdiomaLabel(idiomaObraSeleccionado) }}
+      </p>
+
+      <p>
+        {{ translationService.getTranslation('Contenido NSFW') }}:
+        {{ getFiltroNsfwLabel() }}
+      </p>
+
+      <p *ngIf="hasActiveFilters()">
+        {{ translationService.getTranslation('Filtros aplicados') }}
       </p>
     </div>
   </div>
@@ -154,7 +174,8 @@
         <h3>{{ usuario.username }}</h3>
 
         <p>
-          {{ usuario.role || 'creator' }}
+          {{ translationService.getTranslation(usuario.role || 'creator') }}
+
           <span *ngIf="usuario.nacionalidad">
             · {{ usuario.nacionalidad }}
           </span>

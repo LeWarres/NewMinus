@@ -64,12 +64,30 @@
       {{ translationService.getTranslation('Por') }} {{ obra.autor }}
     </button>
 
-   <p class="views">
-  {{ obra.numVisitas }} {{ translationService.getTranslation('Vistas') }}
-</p>
+    <div
+      class="card-rating"
+      [class.empty]="!hasRating"
+      [attr.title]="ratingTitle"
+      aria-label="Rating"
+    >
+      <span class="rating-stars rating-stars-base">
+        ★★★★★
+      </span>
 
-<div class="card-actions" *ngIf="showActions">
-  <ng-content select="[card-actions]"></ng-content>
-</div>
+      <span
+        class="rating-stars rating-stars-fill"
+        [style.width.%]="ratingFillPercent"
+      >
+        ★★★★★
+      </span>
+    </div>
+
+    <p class="views">
+      {{ obra.numVisitas }} {{ translationService.getTranslation('Vistas') }}
+    </p>
+
+    <div class="card-actions" *ngIf="showActions">
+      <ng-content select="[card-actions]"></ng-content>
+    </div>
   </div>
 </article>

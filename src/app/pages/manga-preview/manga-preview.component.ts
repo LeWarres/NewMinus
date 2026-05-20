@@ -5,6 +5,14 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { TranslationService } from '../../services/translation.service';
 import { AuthService, CurrentUser } from '../../services/auth.service';
+import { ContentMetadataService } from '../../services/content-metadata.service';
+import { RatingStarsComponent } from '../../components/rating-stars/rating-stars.component';
+import {
+  SubscribeButtonComponent,
+  SubscriptionChange
+} from '../../components/subscribe-button/subscribe-button.component';
+
+import { CommentsSectionComponent } from '../../components/comments-section/comments-section.component';
 
 interface Capitulo {
   id: number;
@@ -12,6 +20,13 @@ interface Capitulo {
   titulo: string;
   descripcion?: string;
   creadoEn: string;
+  numVisitas?: number;
+  portada?: string;
+}
+
+interface CategoriaPreviewItem {
+  value: string;
+  label: string;
 }
 
 interface ObraPreview {
@@ -47,29 +62,22 @@ interface ObraPreviewResponse {
   obra?: ObraPreview;
 }
 
-interface SuscripcionResponse {
-  success: boolean;
-  suscrito?: boolean;
-  mensaje?: string;
-  error?: string;
-}
-
 @Component({
   selector: 'app-manga-preview',
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule
+    RouterModule,
+    SubscribeButtonComponent,
+    CommentsSectionComponent,
+    RatingStarsComponent
   ],
   templateUrl: './manga-preview.component.html',
   styleUrl: './manga-preview.component.css'
 })
 export class MangaPreviewComponent implements OnInit {
-  apiUrl = 'https://minuscreators.com/api/obra_preview.php';
-  suscripcionUrl = 'https://minuscreators.com/api/suscripcion.php';
-  registrarVistaUrl = 'https://minuscreators.com/api/registrar_vista.php';
-
-  siteUrl = 'https://minuscreators.com';
+  private apiUrl = 'https://minuscreators.com/api/obra_preview.php';
+  private registrarVistaUrl = 'https://minuscreators.com/api/registrar_vista.php';
 
   obra: ObraPreview | null = null;
   currentUser: CurrentUser | null = null;
@@ -83,73 +91,12 @@ export class MangaPreviewComponent implements OnInit {
 
   showDetails = true;
 
-  categoriaLabels: Record<string, string> = {
-    'accion': 'Acción',
-    'aventura': 'Aventura',
-    'comedia': 'Comedia',
-    'drama': 'Drama',
-    'fantasia': 'Fantasía',
-    'romance': 'Romance',
-    'terror': 'Terror',
-    'ciencia-ficcion': 'Ciencia ficción',
-    'misterio': 'Misterio',
-    'suspenso': 'Suspenso',
-    'sobrenatural': 'Sobrenatural',
-    'psicologico': 'Psicológico',
-    'slice-of-life': 'Slice of life',
-    'vida-escolar': 'Vida escolar',
-    'deportes': 'Deportes',
-    'artes-marciales': 'Artes marciales',
-    'mecha': 'Mecha',
-    'isekai': 'Isekai',
-    'historico': 'Histórico',
-    'musica': 'Música',
-    'cocina': 'Cocina',
-    'magia': 'Magia',
-    'superheroes': 'Superhéroes',
-    'crimen': 'Crimen',
-    'post-apocaliptico': 'Post-apocalíptico',
-    'cyberpunk': 'Cyberpunk',
-    'steampunk': 'Steampunk',
-    'guerra': 'Guerra',
-    'parodia': 'Parodia',
-    'tragedia': 'Tragedia',
-    'shonen': 'Shonen',
-    'shojo': 'Shojo',
-    'seinen': 'Seinen',
-    'josei': 'Josei',
-    'kodomo': 'Kodomo',
-    'boys-love': 'Boys Love',
-    'girls-love': 'Girls Love'
-  };
-
-  idiomaLabels: Record<string, string> = {
-    GLOBAL: 'Global',
-    ES: 'Español',
-    EN: 'English',
-    JA: 'Japanese',
-    KO: 'Korean',
-    ZH: 'Chinese',
-    FR: 'French',
-    DE: 'German',
-    PT: 'Portuguese',
-    IT: 'Italian',
-    RU: 'Russian',
-    AR: 'Arabic',
-    HI: 'Hindi',
-    ID: 'Indonesian',
-    VI: 'Vietnamese',
-    TH: 'Thai',
-    TR: 'Turkish',
-    PL: 'Polish',
-    NL: 'Dutch'
-  };
-
   constructor(
     private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
+    private metadataService: ContentMetadataService,
     public translationService: TranslationService
   ) {}
 
@@ -166,6 +113,12 @@ export class MangaPreviewComponent implements OnInit {
       }
 
       this.cargarPreview(id);
+
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'auto'
+      });
     });
   }
 
@@ -195,11 +148,19 @@ export class MangaPreviewComponent implements OnInit {
           this.cargando = false;
 
           if (!res.success || !res.obra) {
-            this.error = res.error || this.translationService.getTranslation('No se pudo cargar la obra');
+            this.error =
+              res.error ||
+              this.translationService.getTranslation('No se pudo cargar la obra');
             return;
           }
 
-          this.obra = res.obra;
+          this.obra = {
+            ...res.obra,
+            capitulos: [...(res.obra.capitulos || [])].sort(
+              (a, b) => a.numeroCapitulo - b.numeroCapitulo
+            )
+          };
+
           this.currentUser = this.authService.getCurrentUser();
           this.isCurrentUser = this.currentUser?.id === this.obra.usuarioId;
 
@@ -207,7 +168,10 @@ export class MangaPreviewComponent implements OnInit {
         },
         error: (err) => {
           this.cargando = false;
-          this.error = err.error?.error || this.translationService.getTranslation('Error al cargar la obra');
+          this.error =
+            err.error?.error ||
+            this.translationService.getTranslation('Error al cargar la obra');
+
           console.error(err);
         }
       });
@@ -225,7 +189,7 @@ export class MangaPreviewComponent implements OnInit {
     ).subscribe({
       next: () => {},
       error: (err) => {
-        console.error('No se pudo registrar vista', err);
+        console.error('No se pudo registrar vista de la obra', err);
       }
     });
   }
@@ -275,79 +239,30 @@ export class MangaPreviewComponent implements OnInit {
     this.router.navigate(['/perfil', this.obra.usuarioId]);
   }
 
-  toggleSubscription(): void {
-    if (!this.obra || !this.obra.usuarioId) {
+  abrirCategoria(categoria: string): void {
+    const categoriaNormalizada = categoria.trim().toLowerCase();
+
+    if (!categoriaNormalizada) {
       return;
     }
 
-    this.currentUser = this.authService.getCurrentUser();
-
-    if (!this.currentUser) {
-      this.router.navigate(['/login']);
-      return;
-    }
-
-    if (this.currentUser.id === this.obra.usuarioId) {
-      return;
-    }
-
-    const seguidoId = this.obra.usuarioId;
-
-    this.mensaje = '';
-
-    this.ensureCsrfAndRun(() => {
-      this.http
-        .post<SuscripcionResponse>(
-          this.suscripcionUrl,
-          {
-            seguido_id: seguidoId
-          },
-          {
-            withCredentials: true,
-            headers: this.authService.csrfHeaders()
-          }
-        )
-        .subscribe({
-          next: (res) => {
-            if (!res.success) {
-              this.mensaje =
-                res.error ||
-                this.translationService.getTranslation('No se pudo actualizar la suscripción');
-              return;
-            }
-
-            if (!this.obra) {
-              return;
-            }
-
-            this.obra.estaSuscrito = !!res.suscrito;
-            this.mensaje = res.mensaje || '';
-
-            const totalActual = this.obra.totalSuscriptores || 0;
-
-            if (res.suscrito) {
-              this.obra.totalSuscriptores = totalActual + 1;
-            } else {
-              this.obra.totalSuscriptores = Math.max(totalActual - 1, 0);
-            }
-          },
-          error: (err) => {
-            if (err.status === 401) {
-              this.authService.clearSession();
-              this.router.navigate(['/login']);
-              return;
-            }
-
-            this.mensaje =
-              err.error?.error ||
-              this.translationService.getTranslation('Error al actualizar suscripción');
-
-            console.error(err);
-          }
-        });
-    }, () => {
-      this.mensaje = this.translationService.getTranslation('No se pudo preparar la acción');
+    this.router.navigate(['/categorias'], {
+      queryParams: {
+        categoria: categoriaNormalizada,
+        idioma: 'preferidos',
+        nsfw: categoriaNormalizada === 'nsfw' ? 'solo' : 'incluir'
+      }
     });
+  }
+
+  onSubscriptionChange(event: SubscriptionChange): void {
+    if (!this.obra) {
+      return;
+    }
+
+    this.obra.estaSuscrito = event.isSubscribed;
+    this.obra.totalSuscriptores = event.totalSubscribers;
+    this.mensaje = event.message || '';
   }
 
   toggleDetails(): void {
@@ -355,17 +270,7 @@ export class MangaPreviewComponent implements OnInit {
   }
 
   imageUrl(path?: string | null, fallback: string = '/obras/paleta/portada.png'): string {
-    const finalPath = path || fallback;
-
-    if (finalPath.startsWith('http')) {
-      return finalPath;
-    }
-
-    if (finalPath.startsWith('/')) {
-      return finalPath;
-    }
-
-    return `${this.siteUrl}/${finalPath}`;
+    return this.metadataService.imageUrl(path, fallback);
   }
 
   get coverUrl(): string {
@@ -377,58 +282,80 @@ export class MangaPreviewComponent implements OnInit {
       return [];
     }
 
+    const categorias: string[] = [];
+
+    if (this.obra.genero) {
+      categorias.push(
+        ...this.obra.genero
+          .split(',')
+          .map(item => item.trim().toLowerCase())
+          .filter(Boolean)
+      );
+    }
+
     if (this.obra.categorias && this.obra.categorias.length > 0) {
-      return this.obra.categorias;
+      categorias.push(
+        ...this.obra.categorias
+          .map(categoria => String(categoria || '').trim().toLowerCase())
+          .filter(Boolean)
+      );
     }
 
-    if (!this.obra.genero) {
-      return [];
-    }
+    return Array.from(new Set(categorias));
+  }
 
-    return this.obra.genero
-      .split(',')
-      .map(item => item.trim())
-      .filter(Boolean);
+  getCategoriaItems(max: number = 3): CategoriaPreviewItem[] {
+    return this.getCategoriasObra()
+      .slice(0, max)
+      .map(value => ({
+        value,
+        label: this.getCategoriaLabel(value)
+      }));
   }
 
   getCategoriaLabel(value: string): string {
-    return this.categoriaLabels[value] || value;
-  }
-
-  getCategoriaLabels(max: number = 3): string[] {
-    return this.getCategoriasObra()
-      .slice(0, max)
-      .map(categoria => this.getCategoriaLabel(categoria));
+    return this.metadataService.getCategoryLabel(value);
   }
 
   getIdiomaLabel(value?: string): string {
-    if (!value) {
-      return 'Global';
-    }
-
-    return this.idiomaLabels[value.toUpperCase()] || value;
+    return this.metadataService.getLanguageLabel(value || 'GLOBAL');
   }
 
-  private ensureCsrfAndRun(action: () => void, onFail?: () => void): void {
-    if (this.authService.getCsrfToken()) {
-      action();
-      return;
+  getTipoEntregaLabel(value?: string): string {
+    return this.translationService.getTranslation(value || 'serie');
+  }
+
+  getCapituloTitulo(capitulo: Capitulo): string {
+    if (capitulo.titulo) {
+      return capitulo.titulo;
     }
 
-    this.authService.fetchCsrfToken().subscribe({
-      next: (res) => {
-        if (!res.success || !res.csrfToken) {
-          onFail?.();
-          return;
-        }
+    return `${this.translationService.getTranslation('Capítulo')} ${capitulo.numeroCapitulo}`;
+  }
 
-        this.authService.saveCsrfToken(res.csrfToken);
-        action();
-      },
-      error: (err) => {
-        onFail?.();
-        console.error(err);
-      }
-    });
+  getCapituloDescripcion(capitulo: Capitulo): string {
+    return (
+      capitulo.descripcion ||
+      this.obra?.descripcion ||
+      this.translationService.getTranslation('Sin descripción')
+    );
+  }
+
+  getCapituloImagen(capitulo: Capitulo): string {
+    return this.imageUrl(
+      capitulo.portada || this.obra?.portada,
+      '/obras/paleta/portada.png'
+    );
+  }
+
+getCapituloVisitas(capitulo: Capitulo): number {
+  return Number(capitulo.numVisitas || 0);
+}
+
+  getObraDescripcion(): string {
+    return (
+      this.obra?.descripcion ||
+      this.translationService.getTranslation('Esta obra todavía no tiene descripción.')
+    );
   }
 }

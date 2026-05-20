@@ -22,7 +22,7 @@
           <h1>{{ obra.titulo }}</h1>
 
           <p>
-            {{ translationService.getTranslation('Capitulo') }}
+            {{ translationService.getTranslation('Capítulo') }}
             {{ obra.capituloActual.numeroCapitulo }}
 
             <span *ngIf="obra.capituloActual.titulo">
@@ -47,9 +47,13 @@
             *ngFor="let chapter of obra.capitulos"
             [value]="chapter.numeroCapitulo"
           >
-            {{ translationService.getTranslation('Capitulo') }}
+            {{ translationService.getTranslation('Capítulo') }}
             {{ chapter.numeroCapitulo }}
-            - {{ chapter.titulo || (translationService.getTranslation('Capitulo') + ' ' + chapter.numeroCapitulo) }}
+            -
+            {{
+              chapter.titulo ||
+              (translationService.getTranslation('Capítulo') + ' ' + chapter.numeroCapitulo)
+            }}
           </option>
         </select>
 
@@ -66,7 +70,6 @@
 
     <div class="reader-layout">
       <aside class="reader-sidebar">
-        <!-- Autor -->
         <div class="sidebar-card author-card">
           <button type="button" class="author-profile" (click)="abrirPerfilAutor()">
             <img
@@ -85,25 +88,18 @@
             </div>
           </button>
 
-          <button
-            type="button"
-            class="subscribe-btn"
+          <app-subscribe-button
+            class="reader-subscribe"
             *ngIf="!isCurrentAuthor"
-            (click)="toggleSubscription()"
-          >
-            {{
-              obra.estaSuscrito
-                ? translationService.getTranslation('Desuscribirse')
-                : translationService.getTranslation('Suscribirse')
-            }}
-          </button>
-
-          <p class="subscription-message" *ngIf="mensaje">
-            {{ mensaje }}
-          </p>
+            [targetUserId]="obra.usuarioId"
+            [currentUserId]="currentUser?.id || null"
+            [isSubscribed]="obra.estaSuscrito || false"
+            [totalSubscribers]="obra.totalSuscriptores || 0"
+            [showCount]="false"
+            (subscriptionChange)="onSubscriptionChange($event)"
+          ></app-subscribe-button>
         </div>
 
-        <!-- Modo de lectura -->
         <div class="sidebar-card">
           <h2>{{ translationService.getTranslation('Vista') }}</h2>
 
@@ -134,7 +130,6 @@
           </div>
         </div>
 
-        <!-- Página -->
         <div class="sidebar-card page-card">
           <h2>{{ translationService.getTranslation('Página') }}</h2>
 
@@ -157,7 +152,6 @@
           </div>
         </div>
 
-        <!-- Info de obra -->
         <div class="sidebar-card compact-info">
           <h2>{{ translationService.getTranslation('Obra') }}</h2>
 
@@ -183,7 +177,6 @@
       </aside>
 
       <main class="reader-main">
-        <!-- Autor móvil arriba -->
         <section class="reader-mobile-author">
           <button type="button" class="author-profile" (click)="abrirPerfilAutor()">
             <img
@@ -202,21 +195,18 @@
             </div>
           </button>
 
-          <button
-            type="button"
-            class="subscribe-btn"
+          <app-subscribe-button
+            class="reader-subscribe compact"
             *ngIf="!isCurrentAuthor"
-            (click)="toggleSubscription()"
-          >
-            {{
-              obra.estaSuscrito
-                ? translationService.getTranslation('Desuscribirse')
-                : translationService.getTranslation('Suscribirse')
-            }}
-          </button>
+            [targetUserId]="obra.usuarioId"
+            [currentUserId]="currentUser?.id || null"
+            [isSubscribed]="obra.estaSuscrito || false"
+            [totalSubscribers]="obra.totalSuscriptores || 0"
+            [showCount]="false"
+            (subscriptionChange)="onSubscriptionChange($event)"
+          ></app-subscribe-button>
         </section>
 
-        <!-- Controles de página arriba -->
         <div class="reader-page-controls" *ngIf="readingMode !== 'strip'">
           <button type="button" (click)="previousPage()">
             &#10094; {{ translationService.getTranslation('Página anterior') }}
@@ -231,9 +221,7 @@
           </button>
         </div>
 
-        <!-- Páginas -->
         <ng-container [ngSwitch]="readingMode">
-          <!-- Long Strip -->
           <section *ngSwitchCase="'strip'" class="pages-strip">
             <div
               *ngFor="let image of images; let i = index"
@@ -250,7 +238,6 @@
             </div>
           </section>
 
-          <!-- Single Page -->
           <section *ngSwitchCase="'single'" class="pages-single">
             <div class="page-image-wrap single-page">
               <img
@@ -261,7 +248,6 @@
             </div>
           </section>
 
-          <!-- Double Page -->
           <section *ngSwitchCase="'double'" class="pages-double">
             <div
               class="page-image-wrap double-page"
@@ -275,7 +261,6 @@
           </section>
         </ng-container>
 
-        <!-- Controles de página abajo -->
         <div class="reader-page-controls bottom-controls" *ngIf="readingMode !== 'strip'">
           <button type="button" (click)="previousPage()">
             &#10094; {{ translationService.getTranslation('Página anterior') }}
@@ -290,7 +275,6 @@
           </button>
         </div>
 
-        <!-- Autor abajo -->
         <section class="reader-bottom-author">
           <button type="button" class="author-profile" (click)="abrirPerfilAutor()">
             <img
@@ -309,21 +293,18 @@
             </div>
           </button>
 
-          <button
-            type="button"
-            class="subscribe-btn"
+          <app-subscribe-button
+            class="reader-subscribe compact"
             *ngIf="!isCurrentAuthor"
-            (click)="toggleSubscription()"
-          >
-            {{
-              obra.estaSuscrito
-                ? translationService.getTranslation('Desuscribirse')
-                : translationService.getTranslation('Suscribirse')
-            }}
-          </button>
+            [targetUserId]="obra.usuarioId"
+            [currentUserId]="currentUser?.id || null"
+            [isSubscribed]="obra.estaSuscrito || false"
+            [totalSubscribers]="obra.totalSuscriptores || 0"
+            [showCount]="false"
+            (subscriptionChange)="onSubscriptionChange($event)"
+          ></app-subscribe-button>
         </section>
 
-        <!-- Navegación de capítulos abajo -->
         <div class="chapter-bottom-nav">
           <button
             type="button"
@@ -342,7 +323,12 @@
           </button>
         </div>
 
-        <div id="disqus_thread"></div>
+        <app-comments-section
+          class="reader-comments-host"
+          tipo="capitulo"
+          [targetId]="obra.capituloActual.id"
+          [showReactions]="true"
+        ></app-comments-section>
       </main>
     </div>
   </ng-container>

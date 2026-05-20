@@ -6,6 +6,10 @@ import { Subscription, filter } from 'rxjs';
 
 import { TranslationService } from '../../services/translation.service';
 import { AuthService, CurrentUser } from '../../services/auth.service';
+import {
+  ContentLanguageOption,
+  ContentMetadataService
+} from '../../services/content-metadata.service';
 
 @Component({
   selector: 'app-header',
@@ -23,9 +27,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   menuOpen = false;
   userMenuOpen = false;
+  languageMenuOpen = false;
 
   searchQuery = '';
   currentLanguage = 'en';
+  currentLanguageCode = 'EN';
+
+  availableLanguages: ContentLanguageOption[] = [];
 
   currentUser: CurrentUser | null = null;
 
@@ -34,12 +42,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   constructor(
     public translationService: TranslationService,
+    public metadataService: ContentMetadataService,
     private router: Router,
     private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    this.availableLanguages = this.metadataService.getAvailableLanguages(false);
+
     this.currentLanguage = this.translationService.getCurrentLanguage();
+    this.currentLanguageCode = this.toContentLanguageCode(this.currentLanguage);
 
     this.loadCurrentUser();
     this.checkServerSession();
@@ -47,6 +59,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.languageSubscription = this.translationService.currentLanguage$
       .subscribe((language) => {
         this.currentLanguage = language;
+        this.currentLanguageCode = this.toContentLanguageCode(language);
+        this.availableLanguages = this.metadataService.getAvailableLanguages(false);
       });
 
     this.routerSubscription = this.router.events
@@ -54,6 +68,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         this.loadCurrentUser();
         this.userMenuOpen = false;
+        this.languageMenuOpen = false;
         this.menuOpen = false;
       });
   }
@@ -64,12 +79,30 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   @HostListener('document:click', ['$event'])
-  closeMenuOnOutsideClick(event: MouseEvent): void {
+  closeMenusOnOutsideClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
 
     if (!target.closest('.user-menu-container')) {
       this.userMenuOpen = false;
     }
+
+    if (!target.closest('.language-menu-container')) {
+      this.languageMenuOpen = false;
+    }
+  }
+
+  get selectedLanguage(): ContentLanguageOption {
+    return (
+      this.availableLanguages.find(language => language.value === this.currentLanguageCode) ||
+      this.availableLanguages.find(language => language.value === 'EN') ||
+      {
+        value: 'EN',
+        label: 'English',
+        nativeLabel: 'English',
+        shortLabel: 'EN',
+        flagUrl: 'flags/us.svg'
+      }
+    );
   }
 
   loadCurrentUser(): void {
@@ -97,15 +130,44 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   toggleMenu(): void {
     this.menuOpen = !this.menuOpen;
+
+    if (this.menuOpen) {
+      this.userMenuOpen = false;
+      this.languageMenuOpen = false;
+    }
   }
 
-  toggleUserMenu(): void {
+  toggleUserMenu(event?: MouseEvent): void {
+    event?.stopPropagation();
+
     this.userMenuOpen = !this.userMenuOpen;
+
+    if (this.userMenuOpen) {
+      this.languageMenuOpen = false;
+    }
   }
 
-  changeLanguage(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    this.translationService.setLanguage(select.value);
+  toggleLanguageMenu(event?: MouseEvent): void {
+    event?.stopPropagation();
+
+    this.languageMenuOpen = !this.languageMenuOpen;
+
+    if (this.languageMenuOpen) {
+      this.userMenuOpen = false;
+    }
+  }
+
+  changeLanguage(language: ContentLanguageOption, event?: MouseEvent): void {
+    event?.stopPropagation();
+
+    const appLanguage = language.value.toLowerCase();
+
+    this.translationService.setLanguage(appLanguage);
+
+    this.currentLanguage = appLanguage;
+    this.currentLanguageCode = language.value;
+    this.languageMenuOpen = false;
+    this.menuOpen = false;
   }
 
   search(): void {
@@ -131,14 +193,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
 
     this.router.navigate(['/uploader']);
+    this.menuOpen = false;
   }
 
   navigateToLogin(): void {
     this.router.navigate(['/login']);
+    this.menuOpen = false;
   }
 
   navigateToSignup(): void {
     this.router.navigate(['/signup']);
+    this.menuOpen = false;
   }
 
   goToProfile(): void {
@@ -149,6 +214,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     this.router.navigate(['/perfil', this.currentUser.id]);
     this.userMenuOpen = false;
+    this.menuOpen = false;
   }
 
   logout(): void {
@@ -163,16 +229,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     });
   }
 
-  private finishLogout(): void {
-    this.authService.clearSession();
-
-    this.currentUser = null;
-    this.userMenuOpen = false;
-    this.menuOpen = false;
-
-    this.router.navigate(['/login']);
-  }
-
   imageUrl(path?: string | null, fallback: string = '/obras/paleta/tres.png'): string {
     const finalPath = path || fallback;
 
@@ -185,5 +241,23 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
 
     return `${this.siteUrl}/${finalPath}`;
+  }
+
+  private finishLogout(): void {
+    this.authService.clearSession();
+
+    this.currentUser = null;
+    this.userMenuOpen = false;
+    this.languageMenuOpen = false;
+    this.menuOpen = false;
+
+    this.router.navigate(['/login']);
+  }
+
+  private toContentLanguageCode(language: string): string {
+    const normalized = String(language || '').trim().toUpperCase();
+    const exists = this.availableLanguages.some(item => item.value === normalized);
+
+    return exists ? normalized : 'EN';
   }
 }

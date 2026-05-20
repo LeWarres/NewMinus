@@ -189,8 +189,8 @@ select:focus {
   box-shadow: 0 0 0 4px rgba(244, 166, 59, 0.12);
 }
 
-/* Reading languages */
-.reading-languages-panel {
+.reading-languages-panel,
+.content-preferences-panel {
   margin-top: 18px;
   padding: 16px;
 
@@ -199,7 +199,8 @@ select:focus {
   border-radius: 18px;
 }
 
-.reading-languages-header {
+.reading-languages-header,
+.content-preferences-header {
   margin-bottom: 12px;
 
   display: flex;
@@ -208,7 +209,12 @@ select:focus {
   gap: 14px;
 }
 
-.reading-languages-header span {
+.content-preferences-header {
+  display: block;
+}
+
+.reading-languages-header span,
+.content-preferences-header span {
   display: block;
 
   color: rgba(255, 247, 234, 0.88);
@@ -217,6 +223,7 @@ select:focus {
 }
 
 .reading-languages-header p,
+.content-preferences-header p,
 .helper-note {
   margin: 5px 0 0;
 
@@ -281,6 +288,79 @@ select:focus {
   color: #1a1110;
 
   box-shadow: 0 10px 20px rgba(244, 166, 59, 0.18);
+}
+
+.preference-toggle {
+  margin: 0;
+  padding: 13px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+
+  cursor: pointer;
+}
+
+.preference-toggle input {
+  display: none;
+}
+
+.toggle-control {
+  width: 48px;
+  height: 28px;
+  flex: 0 0 auto;
+
+  position: relative;
+
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+
+  transition: background 0.18s ease;
+}
+
+.toggle-control::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+
+  width: 20px;
+  height: 20px;
+
+  background: rgba(255, 247, 234, 0.92);
+  border-radius: 50%;
+
+  transition: transform 0.18s ease;
+}
+
+.preference-toggle input:checked + .toggle-control {
+  background: linear-gradient(135deg, #f4a63b, #e45f35);
+}
+
+.preference-toggle input:checked + .toggle-control::after {
+  transform: translateX(20px);
+}
+
+.toggle-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toggle-copy strong {
+  color: rgba(255, 247, 234, 0.9);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.toggle-copy small {
+  color: rgba(255, 247, 234, 0.58);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .password-container {
@@ -509,11 +589,16 @@ select:focus {
     font-size: 1.7rem;
   }
 
-  .reading-languages-panel {
+  .reading-languages-panel,
+  .content-preferences-panel {
     padding: 14px;
   }
 
   .reading-language-chip {
     width: 100%;
+  }
+
+  .preference-toggle {
+    align-items: flex-start;
   }
 }

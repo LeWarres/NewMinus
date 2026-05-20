@@ -32,6 +32,13 @@ export interface CapituloCardItem {
   */
   obraNumVisitas?: number;
 
+  /*
+    Promedio de calificación de la obra.
+    Aunque esta tarjeta sea de capítulo, el rating pertenece a la obra.
+    Viene desde los PHP como promedioCalificacion.
+  */
+  promedioCalificacion?: number;
+
   capituloId: number;
   numeroCapitulo: number;
   tituloCapitulo?: string;
@@ -106,5 +113,27 @@ export class CapituloCardComponent {
 
   get chapterViews(): number {
     return this.item.numVisitas || 0;
+  }
+
+  get ratingAverage(): number {
+    const value = Number(this.item.promedioCalificacion || 0);
+
+    if (Number.isNaN(value)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.min(5, value));
+  }
+
+  get hasRating(): boolean {
+    return this.ratingAverage > 0;
+  }
+
+  get ratingFillPercent(): number {
+    return (this.ratingAverage / 5) * 100;
+  }
+
+  get ratingTitle(): string {
+    return `${this.ratingAverage.toFixed(1)} / 5`;
   }
 }

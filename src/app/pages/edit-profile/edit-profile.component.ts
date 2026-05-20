@@ -19,6 +19,7 @@ interface UserProfile {
   facebook?: string;
   instagram?: string;
   idiomasLectura?: string[];
+  mostrarNsfw?: boolean;
 }
 
 interface PerfilResponse {
@@ -29,6 +30,7 @@ interface PerfilResponse {
 
 interface EditProfileUser extends CurrentUser {
   idiomasLectura?: string[];
+  mostrarNsfw?: boolean;
 }
 
 interface EditProfileResponse {
@@ -69,7 +71,8 @@ export class EditProfileComponent implements OnInit, OnDestroy {
     facebook: '',
     twitter: '',
     instagram: '',
-    idiomasLectura: []
+    idiomasLectura: [],
+    mostrarNsfw: false
   };
 
   currentUser: CurrentUser | null = null;
@@ -177,7 +180,11 @@ export class EditProfileComponent implements OnInit, OnDestroy {
           return;
         }
 
-        this.profile = res.user;
+        this.profile = {
+          ...res.user,
+          mostrarNsfw: Boolean(res.user.mostrarNsfw)
+        };
+
         this.selectedReadingLanguages = this.resolveInitialReadingLanguages(res.user);
       },
       error: (err) => {
@@ -328,6 +335,7 @@ export class EditProfileComponent implements OnInit, OnDestroy {
     formData.append('twitter', this.profile.twitter || '');
     formData.append('instagram', this.profile.instagram || '');
     formData.append('idiomasLectura', JSON.stringify(idiomasLectura));
+    formData.append('mostrarNsfw', this.profile.mostrarNsfw ? '1' : '0');
 
     if (this.selectedProfileImage) {
       formData.append('imgPerfil', this.selectedProfileImage);
@@ -446,9 +454,7 @@ export class EditProfileComponent implements OnInit, OnDestroy {
       return fromProfile;
     }
 
-    const cachedUser = this.authService.getCurrentUser() as
-      | (CurrentUser & { idiomasLectura?: string[] })
-      | null;
+    const cachedUser = this.authService.getCurrentUser();
 
     const fromSession = this.normalizeReadingLanguages(cachedUser?.idiomasLectura);
 

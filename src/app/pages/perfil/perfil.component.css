@@ -213,15 +213,32 @@
   gap: 12px;
 }
 
-.boton,
+.profile-subscribe {
+  display: block;
+  min-width: 170px;
+}
+
+:host ::ng-deep .profile-subscribe .subscribe-wrapper {
+  width: 100%;
+}
+
+:host ::ng-deep .profile-subscribe .subscribe-button {
+  width: 100%;
+}
+
 .botonEditar {
   padding: 12px 20px;
 
   border: none;
   border-radius: 12px;
 
+  background: linear-gradient(135deg, #c7ff16, #9ee600);
+  color: #14172b;
+
   cursor: pointer;
   font-weight: 900;
+
+  box-shadow: 0 10px 22px rgba(199, 255, 22, 0.25);
 
   transition:
     transform 0.16s ease,
@@ -229,30 +246,8 @@
     box-shadow 0.16s ease;
 }
 
-.boton {
-  background: linear-gradient(135deg, #ff4d5a, #e03542);
-  color: #ffffff;
-
-  box-shadow: 0 10px 22px rgba(255, 77, 90, 0.28);
-}
-
-.botonEditar {
-  background: linear-gradient(135deg, #c7ff16, #9ee600);
-  color: #14172b;
-
-  box-shadow: 0 10px 22px rgba(199, 255, 22, 0.25);
-}
-
-.boton:hover,
 .botonEditar:hover {
   transform: translateY(-2px);
-}
-
-.boton:hover {
-  background: linear-gradient(135deg, #ff6570, #ec3e4b);
-}
-
-.botonEditar:hover {
   background: linear-gradient(135deg, #d7ff4a, #b9f112);
 }
 
@@ -430,6 +425,10 @@
   .acciones,
   .redes {
     justify-content: center;
+  }
+
+  .profile-subscribe {
+    width: min(100%, 260px);
   }
 
   .stat-card {

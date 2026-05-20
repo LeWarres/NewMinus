@@ -1,40 +1,52 @@
 <header class="header">
-  <button class="menu-toggle" type="button" (click)="toggleMenu()">☰</button>
+  <button
+    class="menu-toggle"
+    type="button"
+    (click)="toggleMenu()"
+    [attr.aria-expanded]="menuOpen"
+    aria-label="Menu"
+  >
+    ☰
+  </button>
 
   <div class="logo">
-    <a routerLink="/" style="text-decoration: none;">
-      <img src="/obras/paleta/logo.png" alt="MINUS Logo" class="logo-image">
+    <a routerLink="/" class="logo-link">
+      <img
+        src="/obras/paleta/logo.png"
+        alt="MINUS Logo"
+        class="logo-image"
+      />
     </a>
   </div>
 
   <nav class="nav" [class.active]="menuOpen">
     <ul>
       <li>
-        <a routerLink="/">
+        <a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
           {{ translationService.getTranslation('Sobre Nosotros') }}
         </a>
       </li>
 
-        <li>
-        <a routerLink="/following">
-            {{ translationService.getTranslation('Noticias') }}
+      <li>
+        <a routerLink="/following" routerLinkActive="active-link">
+          {{ translationService.getTranslation('Noticias') }}
         </a>
-        </li>
+      </li>
 
       <li>
-        <a routerLink="/categorias">
+        <a routerLink="/categorias" routerLinkActive="active-link">
           {{ translationService.getTranslation('Géneros') }}
         </a>
       </li>
     </ul>
 
     <div class="search-upload">
-<input
-  type="text"
-  [(ngModel)]="searchQuery"
-  [placeholder]="translationService.getTranslation('Keyword')"
-  (keyup.enter)="search()"
-/>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        [placeholder]="translationService.getTranslation('Keyword')"
+        (keyup.enter)="search()"
+      />
 
       <button class="search-btn" type="button" (click)="search()">
         🔍
@@ -46,31 +58,71 @@
         {{ translationService.getTranslation('Subir obra') }}
       </button>
 
-      <select
-        class="lang-select"
-        (change)="changeLanguage($event)"
-        [value]="currentLanguage"
-      >
-        <option value="es">Español</option>
-        <option value="en">English</option>
-      </select>
+      <div class="language-menu-container">
+        <button
+          class="language-trigger"
+          type="button"
+          (click)="toggleLanguageMenu($event)"
+          [attr.aria-expanded]="languageMenuOpen"
+        >
+          <img
+            class="language-flag"
+            [src]="selectedLanguage.flagUrl"
+            [alt]="selectedLanguage.nativeLabel"
+          />
+
+          <span class="language-trigger-text">
+            <strong>{{ selectedLanguage.shortLabel }}</strong>
+            <small>{{ selectedLanguage.nativeLabel }}</small>
+          </span>
+
+          <span class="language-chevron">⌄</span>
+        </button>
+
+        <div class="language-dropdown" *ngIf="languageMenuOpen">
+          <div class="language-dropdown-title">
+            {{ translationService.getTranslation('Idioma') }}
+          </div>
+
+          <button
+            type="button"
+            class="language-option"
+            *ngFor="let language of availableLanguages"
+            [class.selected]="language.value === currentLanguageCode"
+            (click)="changeLanguage(language, $event)"
+          >
+            <img
+              class="language-option-flag"
+              [src]="language.flagUrl"
+              [alt]="language.nativeLabel"
+            />
+
+            <span class="language-option-copy">
+              <strong>{{ language.nativeLabel }}</strong>
+              <small>{{ language.label }}</small>
+            </span>
+
+            <span class="language-option-code">
+              {{ language.shortLabel }}
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
   </nav>
 
-  <!-- Login si NO hay usuario -->
-<div class="auth-area" *ngIf="!currentUser">
-  <button class="login-btn" type="button" (click)="navigateToLogin()">
-    {{ translationService.getTranslation('login') }}
-  </button>
+  <div class="auth-area" *ngIf="!currentUser">
+    <button class="login-btn" type="button" (click)="navigateToLogin()">
+      {{ translationService.getTranslation('login') }}
+    </button>
 
-  <button class="signup-btn" type="button" (click)="navigateToSignup()">
-    {{ translationService.getTranslation('sightup') }}
-  </button>
-</div>
+    <button class="signup-btn" type="button" (click)="navigateToSignup()">
+      {{ translationService.getTranslation('sightup') }}
+    </button>
+  </div>
 
-  <!-- Avatar si SÍ hay usuario -->
   <div class="user-menu-container" *ngIf="currentUser">
-    <button class="avatar-btn" type="button" (click)="toggleUserMenu()">
+    <button class="avatar-btn" type="button" (click)="toggleUserMenu($event)">
       <img
         class="avatar-img"
         [src]="imageUrl(currentUser.imgPerfil, '/obras/paleta/tres.png')"

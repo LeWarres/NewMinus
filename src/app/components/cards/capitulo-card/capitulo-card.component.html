@@ -68,12 +68,30 @@
       {{ translationService.getTranslation('Por') }} {{ item.autor }}
     </button>
 
+    <div
+      class="card-rating"
+      [class.empty]="!hasRating"
+      [attr.title]="ratingTitle"
+      [attr.aria-label]="translationService.getTranslation('Calificación') + ' ' + ratingTitle"
+    >
+      <span class="rating-stars rating-stars-base">
+        ★★★★★
+      </span>
+
+      <span
+        class="rating-stars rating-stars-fill"
+        [style.width.%]="ratingFillPercent"
+      >
+        ★★★★★
+      </span>
+    </div>
+
     <p class="views">
-  {{ chapterViews }} {{ translationService.getTranslation('Vistas') }}
-</p>
+      {{ chapterViews }} {{ translationService.getTranslation('Vistas') }}
+    </p>
 
     <div class="card-actions" *ngIf="showActions">
-    <ng-content select="[card-actions]"></ng-content>
+      <ng-content select="[card-actions]"></ng-content>
     </div>
   </div>
 </article>

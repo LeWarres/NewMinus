@@ -122,6 +122,38 @@
           </p>
         </section>
 
+        <section class="content-preferences-panel">
+          <div class="content-preferences-header">
+            <span>
+              {{ translationService.getTranslation('Preferencias de contenido') }}
+            </span>
+
+            <p>
+              {{ translationService.getTranslation('El contenido NSFW estará oculto por defecto. Puedes cambiarlo después desde tu perfil.') }}
+            </p>
+          </div>
+
+          <label class="preference-toggle">
+            <input
+              type="checkbox"
+              name="mostrarNsfw"
+              [(ngModel)]="mostrarNsfw"
+            />
+
+            <span class="toggle-control"></span>
+
+            <span class="toggle-copy">
+              <strong>
+                {{ translationService.getTranslation('Mostrar contenido NSFW en el Home') }}
+              </strong>
+
+              <small>
+                {{ translationService.getTranslation('Esto no afecta las actualizaciones de creadores que sigues.') }}
+              </small>
+            </span>
+          </label>
+        </section>
+
         <label for="password">
           {{ translationService.getTranslation('Contrasena') }}
         </label>

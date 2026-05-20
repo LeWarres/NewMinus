@@ -17,6 +17,11 @@ import {
   CapituloCardItem
 } from '../../components/cards/capitulo-card/capitulo-card.component';
 
+import {
+  SubscribeButtonComponent,
+  SubscriptionChange
+} from '../../components/subscribe-button/subscribe-button.component';
+
 interface User {
   id: number;
   username: string;
@@ -79,13 +84,6 @@ interface PerfilResponse {
   estaSuscrito?: boolean;
 }
 
-interface SuscripcionResponse {
-  success: boolean;
-  suscrito?: boolean;
-  mensaje?: string;
-  error?: string;
-}
-
 type PerfilTab = 'news' | 'obras' | 'popular';
 
 @Component({
@@ -95,14 +93,14 @@ type PerfilTab = 'news' | 'obras' | 'popular';
     CommonModule,
     RouterModule,
     ObraCardComponent,
-    CapituloCardComponent
+    CapituloCardComponent,
+    SubscribeButtonComponent
   ],
   templateUrl: './perfil.component.html',
   styleUrl: './perfil.component.css'
 })
 export class PerfilComponent implements OnInit {
-  apiUrl = 'https://minuscreators.com/api/perfil.php';
-  suscripcionUrl = 'https://minuscreators.com/api/suscripcion.php';
+  private apiUrl = 'https://minuscreators.com/api/perfil.php';
 
   user: User | null = null;
   currentUser: CurrentUser | null = null;
@@ -205,6 +203,15 @@ export class PerfilComponent implements OnInit {
       });
   }
 
+  onSubscriptionChange(event: SubscriptionChange): void {
+    this.estaSuscrito = event.isSubscribed;
+    this.mensaje = event.message || '';
+
+    if (this.user) {
+      this.user.totalSuscriptores = event.totalSubscribers;
+    }
+  }
+
   navigateToEditProfile(): void {
     if (!this.user) {
       return;
@@ -254,78 +261,6 @@ export class PerfilComponent implements OnInit {
     ]);
   }
 
-  toggleSubscription(): void {
-    if (!this.user) {
-      return;
-    }
-
-    this.currentUser = this.authService.getCurrentUser();
-
-    if (!this.currentUser) {
-      this.router.navigate(['/login']);
-      return;
-    }
-
-    if (this.currentUser.id === this.user.id) {
-      return;
-    }
-
-    this.mensaje = '';
-    this.error = '';
-
-    this.ensureCsrfAndRun(() => {
-      this.http
-        .post<SuscripcionResponse>(
-          this.suscripcionUrl,
-          {
-            seguido_id: this.user?.id
-          },
-          {
-            withCredentials: true,
-            headers: this.authService.csrfHeaders()
-          }
-        )
-        .subscribe({
-          next: (res) => {
-            if (!res.success) {
-              this.mensaje =
-                res.error ||
-                this.translationService.getTranslation('No se pudo actualizar la suscripción');
-              return;
-            }
-
-            this.estaSuscrito = !!res.suscrito;
-            this.mensaje = res.mensaje || '';
-
-            if (this.user) {
-              const totalActual = this.user.totalSuscriptores || 0;
-
-              if (res.suscrito) {
-                this.user.totalSuscriptores = totalActual + 1;
-              } else {
-                this.user.totalSuscriptores = Math.max(totalActual - 1, 0);
-              }
-            }
-          },
-          error: (err) => {
-            if (err.status === 401) {
-              this.authService.clearSession();
-              this.router.navigate(['/login']);
-              return;
-            }
-
-            this.mensaje =
-              err.error?.error ||
-              this.translationService.getTranslation('Error al actualizar suscripción');
-
-            console.error(err);
-          }
-        });
-    }, () => {
-      this.mensaje = this.translationService.getTranslation('No se pudo preparar la acción');
-    });
-  }
-
   imageUrl(path?: string | null, fallback: string = '/obras/paleta/portada.png'): string {
     return this.metadataService.imageUrl(path, fallback);
   }
@@ -368,28 +303,5 @@ export class PerfilComponent implements OnInit {
       autor: user.username,
       autorAvatar: user.imgPerfil
     };
-  }
-
-  private ensureCsrfAndRun(action: () => void, onFail?: () => void): void {
-    if (this.authService.getCsrfToken()) {
-      action();
-      return;
-    }
-
-    this.authService.fetchCsrfToken().subscribe({
-      next: (res) => {
-        if (!res.success || !res.csrfToken) {
-          onFail?.();
-          return;
-        }
-
-        this.authService.saveCsrfToken(res.csrfToken);
-        action();
-      },
-      error: (err) => {
-        onFail?.();
-        console.error(err);
-      }
-    });
   }
 }

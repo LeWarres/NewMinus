@@ -6,6 +6,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { TranslationService } from '../../services/translation.service';
 import { ContentMetadataService } from '../../services/content-metadata.service';
+import { AuthService, CurrentUser } from '../../services/auth.service';
 
 import {
   ObraCardComponent,
@@ -19,6 +20,8 @@ interface Categoria {
 interface IdiomaOption {
   value: string;
 }
+
+type FiltroNsfw = 'incluir' | 'ocultar' | 'solo';
 
 interface UsuarioResultado {
   id: number;
@@ -59,11 +62,12 @@ interface BuscarResponse {
 export class CategoriasComponent implements OnInit {
   apiUrl = 'https://minuscreators.com/api/buscar.php';
 
-  idiomaUI: 'es' | 'en' = 'es';
+  currentUser: CurrentUser | null = null;
 
   categoriaSeleccionada = 'todos';
   idiomaObraSeleccionado = 'todos';
   ordenSeleccionado = 'recientes';
+  filtroNsfw: FiltroNsfw = 'incluir';
   busqueda = '';
 
   cargando = false;
@@ -110,11 +114,13 @@ export class CategoriasComponent implements OnInit {
     { value: 'josei' },
     { value: 'kodomo' },
     { value: 'boys-love' },
-    { value: 'girls-love' }
+    { value: 'girls-love' },
+    { value: 'nsfw' }
   ];
 
   idiomasObra: IdiomaOption[] = [
     { value: 'todos' },
+    { value: 'preferidos' },
     { value: 'GLOBAL' },
     { value: 'ES' },
     { value: 'EN' },
@@ -141,21 +147,44 @@ export class CategoriasComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private metadataService: ContentMetadataService,
+    private authService: AuthService,
     public translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
-    const currentLang = this.translationService.getCurrentLanguage();
-
-    if (currentLang === 'es' || currentLang === 'en') {
-      this.idiomaUI = currentLang;
-    }
+    this.currentUser = this.authService.getCurrentUser();
 
     this.route.queryParamMap.subscribe(params => {
       const buscar = params.get('buscar');
+      const categoria = params.get('categoria') || params.get('genero');
+      const idioma = params.get('idioma');
+      const orden = params.get('orden');
+      const nsfw = params.get('nsfw');
 
       if (buscar !== null) {
         this.busqueda = buscar;
+      }
+
+      if (categoria && this.esCategoriaValida(categoria)) {
+        this.categoriaSeleccionada = categoria.toLowerCase();
+
+        if (this.categoriaSeleccionada === 'nsfw') {
+          this.filtroNsfw = 'solo';
+        }
+      }
+
+      if (idioma && this.esIdiomaValido(idioma)) {
+        this.idiomaObraSeleccionado = idioma === 'preferidos'
+          ? 'preferidos'
+          : idioma.toUpperCase();
+      }
+
+      if (orden === 'recientes' || orden === 'populares') {
+        this.ordenSeleccionado = orden;
+      }
+
+      if (nsfw === 'incluir' || nsfw === 'ocultar' || nsfw === 'solo') {
+        this.filtroNsfw = nsfw;
       }
 
       this.cargarObras();
@@ -164,24 +193,20 @@ export class CategoriasComponent implements OnInit {
 
   seleccionarCategoria(categoria: Categoria): void {
     this.categoriaSeleccionada = categoria.value;
-    this.cargarObras();
-  }
 
-  cambiarIdiomaUI(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const idioma = select.value as 'es' | 'en';
+    if (categoria.value === 'nsfw') {
+      this.filtroNsfw = 'solo';
+    }
 
-    this.idiomaUI = idioma;
-    this.translationService.setLanguage(idioma);
+    this.actualizarQueryParams();
   }
 
   buscarDesdeInput(): void {
-    this.router.navigate(['/categorias'], {
-      queryParams: {
-        buscar: this.busqueda.trim() || null
-      },
-      queryParamsHandling: 'merge'
-    });
+    this.actualizarQueryParams();
+  }
+
+  cambiarFiltros(): void {
+    this.actualizarQueryParams();
   }
 
   cargarObras(): void {
@@ -191,48 +216,74 @@ export class CategoriasComponent implements OnInit {
     const params = new URLSearchParams();
 
     params.set('orden', this.ordenSeleccionado);
-    params.set('limite', '50');
+    params.set('limite', '100');
+    params.set('nsfw', this.filtroNsfw);
 
     if (this.busqueda.trim()) {
       params.set('buscar', this.busqueda.trim());
     }
 
-    if (this.categoriaSeleccionada !== 'todos') {
+    if (
+      this.categoriaSeleccionada !== 'todos' &&
+      this.categoriaSeleccionada !== 'nsfw'
+    ) {
       params.set('genero', this.categoriaSeleccionada);
     }
 
-    if (this.idiomaObraSeleccionado !== 'todos') {
+    if (this.categoriaSeleccionada === 'nsfw' || this.filtroNsfw === 'solo') {
+      params.set('soloNsfw', '1');
+    }
+
+    if (this.filtroNsfw === 'ocultar') {
+      params.set('incluirNsfw', '0');
+    }
+
+    if (this.filtroNsfw === 'incluir') {
+      params.set('incluirNsfw', '1');
+    }
+
+    if (this.idiomaObraSeleccionado === 'preferidos') {
+      params.set('idiomas', this.getIdiomasPreferidos().join(','));
+    } else if (this.idiomaObraSeleccionado !== 'todos') {
       params.set('idioma', this.idiomaObraSeleccionado.toUpperCase());
     }
 
-    this.http.get<BuscarResponse>(`${this.apiUrl}?${params.toString()}`).subscribe({
-      next: (res) => {
-        this.cargando = false;
-
-        if (!res.success) {
-          this.error =
-            res.error ||
-            this.translationService.getTranslation('No se pudieron cargar los resultados');
-          return;
+    this.http
+      .get<BuscarResponse>(
+        `${this.apiUrl}?${params.toString()}`,
+        {
+          withCredentials: true
         }
+      )
+      .subscribe({
+        next: (res) => {
+          this.cargando = false;
 
-        this.usuarios = res.usuarios || [];
-        this.obras = res.obras || [];
-      },
-      error: (err) => {
-        this.cargando = false;
-        this.error =
-          err.error?.error ||
-          this.translationService.getTranslation('Error al cargar los resultados');
-        console.error(err);
-      }
-    });
+          if (!res.success) {
+            this.error =
+              res.error ||
+              this.translationService.getTranslation('No se pudieron cargar los resultados');
+            return;
+          }
+
+          this.usuarios = res.usuarios || [];
+          this.obras = res.obras || [];
+        },
+        error: (err) => {
+          this.cargando = false;
+          this.error =
+            err.error?.error ||
+            this.translationService.getTranslation('Error al cargar los resultados');
+          console.error(err);
+        }
+      });
   }
 
   limpiarFiltros(): void {
     this.categoriaSeleccionada = 'todos';
     this.idiomaObraSeleccionado = 'todos';
     this.ordenSeleccionado = 'recientes';
+    this.filtroNsfw = 'incluir';
     this.busqueda = '';
 
     this.router.navigate(['/categorias']);
@@ -260,7 +311,7 @@ export class CategoriasComponent implements OnInit {
 
   getCategoriaLabel(value?: string): string {
     if (!value || value === 'todos') {
-      return this.translateWithFallback('Todos', 'Todos');
+      return this.translationService.getTranslation('Todos');
     }
 
     return this.metadataService.getCategoryLabel(value);
@@ -272,7 +323,11 @@ export class CategoriasComponent implements OnInit {
 
   getIdiomaLabel(value?: string): string {
     if (!value || value.toLowerCase() === 'todos') {
-      return this.translateWithFallback('Todos', 'Todos');
+      return this.translationService.getTranslation('Todos los idiomas');
+    }
+
+    if (value === 'preferidos') {
+      return this.translationService.getTranslation('Mis idiomas');
     }
 
     return this.metadataService.getLanguageLabel(value);
@@ -282,8 +337,125 @@ export class CategoriasComponent implements OnInit {
     return this.getIdiomaLabel(idioma.value);
   }
 
-  private translateWithFallback(key: string, fallback: string): string {
-    const translated = this.translationService.getTranslation(key);
-    return translated && translated !== key ? translated : fallback;
+  getFiltroNsfwLabel(): string {
+    if (this.filtroNsfw === 'ocultar') {
+      return this.translationService.getTranslation('Sin contenido NSFW');
+    }
+
+    if (this.filtroNsfw === 'solo') {
+      return this.translationService.getTranslation('Solo contenido NSFW');
+    }
+
+    return this.translationService.getTranslation('Con contenido NSFW');
+  }
+
+  hasActiveFilters(): boolean {
+    return (
+      this.busqueda.trim() !== '' ||
+      this.categoriaSeleccionada !== 'todos' ||
+      this.idiomaObraSeleccionado !== 'todos' ||
+      this.ordenSeleccionado !== 'recientes' ||
+      this.filtroNsfw !== 'incluir'
+    );
+  }
+
+  private actualizarQueryParams(): void {
+    this.router.navigate(['/categorias'], {
+      queryParams: {
+        buscar: this.busqueda.trim() || null,
+        categoria: this.categoriaSeleccionada !== 'todos'
+          ? this.categoriaSeleccionada
+          : null,
+        idioma: this.idiomaObraSeleccionado !== 'todos'
+          ? this.idiomaObraSeleccionado
+          : null,
+        orden: this.ordenSeleccionado !== 'recientes'
+          ? this.ordenSeleccionado
+          : null,
+        nsfw: this.filtroNsfw !== 'incluir'
+          ? this.filtroNsfw
+          : null
+      }
+    });
+  }
+
+  private getIdiomasPreferidos(): string[] {
+    const idiomasUsuario = this.currentUser?.idiomasLectura || [];
+
+    const normalizados = idiomasUsuario
+      .map(idioma => String(idioma || '').trim().toUpperCase())
+      .filter(Boolean);
+
+    if (normalizados.length === 0) {
+      normalizados.push(this.getContentLanguage());
+    }
+
+    if (!normalizados.includes('GLOBAL')) {
+      normalizados.push('GLOBAL');
+    }
+
+    return Array.from(new Set(normalizados));
+  }
+
+  private getContentLanguage(): string {
+    const savedLanguage = localStorage.getItem('contentLanguage');
+
+    if (savedLanguage) {
+      return this.normalizarIdiomaContenido(savedLanguage);
+    }
+
+    return this.normalizarIdiomaContenido(
+      this.translationService.getCurrentLanguage()
+    );
+  }
+
+  private normalizarIdiomaContenido(language: string): string {
+    const normalized = String(language || '').trim().toUpperCase();
+
+    const allowed = [
+      'ES',
+      'EN',
+      'JA',
+      'KO',
+      'ZH',
+      'FR',
+      'DE',
+      'PT',
+      'IT',
+      'RU',
+      'AR',
+      'HI',
+      'ID',
+      'VI',
+      'TH',
+      'TR',
+      'PL',
+      'NL'
+    ];
+
+    return allowed.includes(normalized)
+      ? normalized
+      : 'EN';
+  }
+
+  private esCategoriaValida(value: string): boolean {
+    const normalizada = value.toLowerCase();
+    return this.categorias.some(categoria => categoria.value === normalizada);
+  }
+
+  private esIdiomaValido(value: string): boolean {
+    if (value === 'preferidos') {
+      return true;
+    }
+
+    const normalizado = value.toUpperCase();
+
+    return this.idiomasObra.some(idioma => {
+      if (idioma.value === 'preferidos') {
+        return false;
+      }
+
+      return idioma.value.toUpperCase() === normalizado;
+    });
   }
 }

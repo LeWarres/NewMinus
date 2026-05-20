@@ -39,6 +39,7 @@ export class SignupComponent {
 
   mostrarPassword = false;
   mostrarConfirmPassword = false;
+  mostrarNsfw = false;
 
   cargando = false;
   error = '';
@@ -207,6 +208,7 @@ export class SignupComponent {
           nacionalidad,
           idiomasLectura,
           idiomaInterfaz: this.translationService.getCurrentLanguage(),
+          mostrarNsfw: this.mostrarNsfw,
           website: this.website,
           turnstileToken: this.turnstileToken
         }).subscribe({
@@ -236,6 +238,7 @@ export class SignupComponent {
             this.password = '';
             this.confirmPassword = '';
             this.nacionalidad = '';
+            this.mostrarNsfw = false;
             this.selectedReadingLanguages = [
               this.getDefaultReadingLanguage()
             ];

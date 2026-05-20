@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 import { TranslationService } from '../../services/translation.service';
 import { AuthService, CurrentUser } from '../../services/auth.service';
@@ -46,7 +47,7 @@ interface CapitulosResponse {
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   obrasUrl = 'https://minuscreators.com/api/listar_obras.php';
   capitulosUrl = 'https://minuscreators.com/api/capitulos_recientes.php';
   followingUrl = 'https://minuscreators.com/api/following.php';
@@ -64,6 +65,8 @@ export class HomeComponent implements OnInit {
   errorObras = '';
   errorCapitulos = '';
   errorFollowing = '';
+
+  private languageSubscription?: Subscription;
 
   constructor(
     private http: HttpClient,
@@ -89,20 +92,45 @@ export class HomeComponent implements OnInit {
 
     this.currentUser = this.authService.getCurrentUser();
 
-    this.cargarObrasNuevas();
-    this.cargarCapitulosNuevos();
+    /*
+      Recarga Home cuando cambia el idioma de la interfaz.
+      Si no hay sesión, el backend usa este idioma.
+      Si hay sesión, el backend usa usuario_idiomas_lectura.
+    */
+    this.languageSubscription = this.translationService.currentLanguage$.subscribe(() => {
+      this.cargarContenidoPrincipal();
+    });
 
     if (this.currentUser) {
       this.cargarFollowing();
     }
   }
 
+  ngOnDestroy(): void {
+    this.languageSubscription?.unsubscribe();
+  }
+
+  cargarContenidoPrincipal(): void {
+    this.cargarObrasNuevas();
+    this.cargarCapitulosNuevos();
+  }
+
   cargarObrasNuevas(): void {
     this.cargandoObras = true;
     this.errorObras = '';
 
+    const params = this.homeParams()
+      .set('orden', 'recientes')
+      .set('limite', '12');
+
     this.http
-      .get<ObrasResponse>(`${this.obrasUrl}?orden=recientes&limite=12`)
+      .get<ObrasResponse>(
+        this.obrasUrl,
+        {
+          params,
+          withCredentials: true
+        }
+      )
       .subscribe({
         next: (res) => {
           this.cargandoObras = false;
@@ -130,8 +158,17 @@ export class HomeComponent implements OnInit {
     this.cargandoCapitulos = true;
     this.errorCapitulos = '';
 
+    const params = this.homeParams()
+      .set('limite', '12');
+
     this.http
-      .get<CapitulosResponse>(`${this.capitulosUrl}?limite=12`)
+      .get<CapitulosResponse>(
+        this.capitulosUrl,
+        {
+          params,
+          withCredentials: true
+        }
+      )
       .subscribe({
         next: (res) => {
           this.cargandoCapitulos = false;
@@ -279,6 +316,44 @@ export class HomeComponent implements OnInit {
   prevCarousel(id: string): void {
     this.scrollCarousel(id, -1);
   }
+
+  private homeParams(): HttpParams {
+    return new HttpParams()
+      .set('contexto', 'home')
+      .set('idiomaInterfaz', this.getIdiomaInterfazContenido());
+  }
+
+ private getIdiomaInterfazContenido(): string {
+  const currentLanguage = this.translationService
+    .getCurrentLanguage()
+    .trim()
+    .toUpperCase();
+
+  const allowedLanguages = [
+    'ES',
+    'EN',
+    'JA',
+    'KO',
+    'ZH',
+    'FR',
+    'DE',
+    'PT',
+    'IT',
+    'RU',
+    'AR',
+    'HI',
+    'ID',
+    'VI',
+    'TH',
+    'TR',
+    'PL',
+    'NL'
+  ];
+
+  return allowedLanguages.includes(currentLanguage)
+    ? currentLanguage
+    : 'EN';
+}
 
   private scrollCarousel(id: string, direction: 1 | -1): void {
     const carousel = document.getElementById(id);

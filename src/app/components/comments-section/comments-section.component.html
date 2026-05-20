@@ -1,0 +1,182 @@
+<section class="comments-section">
+  <div class="comments-header">
+    <div>
+      <span class="section-kicker">
+        {{ translationService.getTranslation('Comentarios') }}
+      </span>
+
+      <h2>
+        {{ translationService.getTranslation('Comentarios') }}
+      </h2>
+
+      <p>
+        {{ translationService.getTranslation(emptyTextKey) }}
+      </p>
+    </div>
+
+    <div class="chapter-reactions" *ngIf="reactionsEnabled">
+      <div class="reaction-counts">
+        <span class="likes-count">
+          👍 {{ totalLikes }}
+          {{ translationService.getTranslation('Likes') }}
+        </span>
+
+        <span class="dislikes-count">
+          👎 {{ totalDislikes }}
+          {{ translationService.getTranslation('Dislikes') }}
+        </span>
+      </div>
+
+      <div class="reaction-bar" [class.empty]="totalReacciones === 0">
+        <div
+          class="reaction-fill like-fill"
+          [style.width.%]="likesPercent"
+        ></div>
+
+        <div
+          class="reaction-fill dislike-fill"
+          [style.width.%]="dislikesPercent"
+        ></div>
+      </div>
+
+      <div class="reaction-buttons">
+        <button
+          type="button"
+          class="reaction-btn like-btn"
+          [class.active]="miReaccion === 1"
+          [disabled]="guardandoReaccion || !currentUser"
+          (click)="reaccionar(1)"
+        >
+          👍 {{ translationService.getTranslation('Like') }}
+        </button>
+
+        <button
+          type="button"
+          class="reaction-btn dislike-btn"
+          [class.active]="miReaccion === -1"
+          [disabled]="guardandoReaccion || !currentUser"
+          (click)="reaccionar(-1)"
+        >
+          👎 {{ translationService.getTranslation('Dislike') }}
+        </button>
+      </div>
+
+      <p class="reaction-message" *ngIf="mensajeReaccion">
+        {{ mensajeReaccion }}
+      </p>
+    </div>
+  </div>
+
+  <div class="login-required" *ngIf="!currentUser">
+    <p>
+      {{
+        reactionsEnabled
+          ? translationService.getTranslation('Para comentar o dejar un like debes iniciar sesión.')
+          : translationService.getTranslation('Para comentar debes iniciar sesión.')
+      }}
+    </p>
+
+    <a routerLink="/login">
+      {{ translationService.getTranslation('login') }}
+    </a>
+  </div>
+
+  <form
+    class="comment-form"
+    *ngIf="currentUser"
+    (ngSubmit)="guardarComentario()"
+  >
+    <label>
+      {{ translationService.getTranslation('Comentario') }}
+
+      <textarea
+        [(ngModel)]="comentarioTexto"
+        name="comentarioTexto"
+        [attr.maxlength]="maxLength"
+        [placeholder]="translationService.getTranslation('Escribe tu comentario')"
+      ></textarea>
+    </label>
+
+    <div class="comment-form-footer">
+      <small>
+        {{ caracteresRestantes }} / {{ maxLength }}
+      </small>
+
+      <div class="comment-actions">
+        <button
+          type="button"
+          class="delete-comment-btn"
+          *ngIf="miComentario"
+          [disabled]="guardandoComentario"
+          (click)="eliminarComentario()"
+        >
+          {{ translationService.getTranslation('Eliminar comentario') }}
+        </button>
+
+        <button
+          type="submit"
+          class="save-comment-btn"
+          [disabled]="guardandoComentario || !comentarioTexto.trim()"
+        >
+          {{
+            miComentario
+              ? translationService.getTranslation('Actualizar comentario')
+              : translationService.getTranslation('Publicar comentario')
+          }}
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <p class="comments-message success" *ngIf="mensajeComentarios">
+    {{ mensajeComentarios }}
+  </p>
+
+  <p class="comments-message error" *ngIf="errorComentarios">
+    {{ errorComentarios }}
+  </p>
+
+  <p class="comments-loading" *ngIf="cargandoComentarios">
+    {{ translationService.getTranslation('Cargando') }}...
+  </p>
+
+  <div
+    class="comments-empty"
+    *ngIf="!cargandoComentarios && comentarios.length === 0"
+  >
+    <h3>
+      {{ translationService.getTranslation('Sé el primero en comentar') }}
+    </h3>
+
+    <p>
+      {{ translationService.getTranslation(emptyTextKey) }}
+    </p>
+  </div>
+
+  <article
+    class="comment-card"
+    *ngFor="let comentario of comentarios"
+  >
+    <img
+      class="comment-avatar"
+      [src]="imageUrl(comentario.usuarioAvatar, '/obras/paleta/tres.png')"
+      [alt]="comentario.username"
+    />
+
+    <div class="comment-body">
+      <div class="comment-meta">
+        <strong>
+          {{ comentario.username }}
+        </strong>
+
+        <small>
+          {{ comentario.actualizadoEn || comentario.creadoEn }}
+        </small>
+      </div>
+
+      <p>
+        {{ comentario.comentario }}
+      </p>
+    </div>
+  </article>
+</section>

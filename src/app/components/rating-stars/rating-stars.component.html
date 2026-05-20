@@ -1,0 +1,95 @@
+<section class="rating-section">
+  <div class="rating-header">
+    <div>
+      <span class="section-kicker">
+        {{ translationService.getTranslation('Calificación') }}
+      </span>
+
+      <h2>
+        {{ translationService.getTranslation('Calificación') }}
+      </h2>
+    </div>
+
+    <div class="rating-average">
+      <div class="average-stars" [class.empty]="!hasRatings">
+        <span
+          *ngFor="let star of stars"
+          [class.active]="isAverageStarActive(star)"
+        >
+          ★
+        </span>
+      </div>
+
+      <strong>
+        {{ promedioTexto }} / 5
+      </strong>
+
+      <small>
+        {{
+          hasRatings
+            ? totalCalificaciones + ' ' + translationService.getTranslation('Calificaciones')
+            : translationService.getTranslation('Sin calificaciones todavía')
+        }}
+      </small>
+    </div>
+  </div>
+
+  <p class="loading-text" *ngIf="cargando">
+    {{ translationService.getTranslation('Cargando') }}...
+  </p>
+
+  <div class="login-required" *ngIf="!currentUser && !cargando">
+    <p>
+      {{ translationService.getTranslation('Para calificar debes iniciar sesión.') }}
+    </p>
+
+    <a routerLink="/login">
+      {{ translationService.getTranslation('login') }}
+    </a>
+  </div>
+
+  <div class="user-rating" *ngIf="currentUser && !cargando">
+    <div class="user-rating-text">
+      <strong>
+        {{ translationService.getTranslation('Tu calificación') }}
+      </strong>
+
+      <span *ngIf="miCalificacion > 0">
+        {{ miCalificacion }} / 5
+      </span>
+
+      <span *ngIf="miCalificacion === 0">
+        {{ translationService.getTranslation('Sé el primero en calificar') }}
+      </span>
+    </div>
+
+    <div
+      class="user-stars"
+      (mouseleave)="onStarLeave()"
+    >
+      <button
+        type="button"
+        *ngFor="let star of stars"
+        [class.active]="isUserStarActive(star)"
+        [disabled]="guardando || isOwner"
+        (mouseenter)="onStarEnter(star)"
+        (click)="guardarCalificacion(star)"
+        [attr.aria-label]="translationService.getTranslation('Calificación') + ' ' + star"
+      >
+        ★
+      </button>
+    </div>
+  </div>
+
+  <p class="rating-message" *ngIf="currentUser && isOwner && !cargando">
+    {{ translationService.getTranslation('No puedes calificar tu propia obra.') }}
+  </p>
+
+  <p class="rating-message success" *ngIf="mensaje">
+    {{ mensaje }}
+  </p>
+
+  <p class="rating-message error" *ngIf="error">
+    {{ error }}
+  </p>
+</section>

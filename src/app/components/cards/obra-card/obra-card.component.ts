@@ -15,6 +15,13 @@ export interface ObraCardItem {
   portada?: string;
   numVisitas: number;
   autor: string;
+
+  /*
+    Promedio de calificación de la obra.
+    Viene desde los PHP como promedioCalificacion.
+    Ejemplo: 4.3
+  */
+  promedioCalificacion?: number;
 }
 
 @Component({
@@ -32,7 +39,7 @@ export class ObraCardComponent {
   @Input() label = '';
   @Input() showDescription = true;
   @Input() showActions = false;
-  
+
   @Output() openObra = new EventEmitter<ObraCardItem>();
   @Output() openAutor = new EventEmitter<ObraCardItem>();
 
@@ -74,5 +81,27 @@ export class ObraCardComponent {
 
   get coverUrl(): string {
     return this.metadataService.imageUrl(this.obra.portada);
+  }
+
+  get ratingAverage(): number {
+    const value = Number(this.obra.promedioCalificacion || 0);
+
+    if (Number.isNaN(value)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.min(5, value));
+  }
+
+  get hasRating(): boolean {
+    return this.ratingAverage > 0;
+  }
+
+  get ratingFillPercent(): number {
+    return (this.ratingAverage / 5) * 100;
+  }
+
+  get ratingTitle(): string {
+    return `${this.ratingAverage.toFixed(1)} / 5`;
   }
 }

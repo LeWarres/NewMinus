@@ -1,0 +1,36 @@
+<div class="subscribe-wrapper" *ngIf="shouldShow">
+  <button
+    type="button"
+    class="subscribe-button"
+    [class.subscribed]="localSubscribed"
+    [class.loading]="loading"
+    [ngClass]="buttonClass"
+    [disabled]="loading"
+    (click)="toggleSubscription()"
+  >
+    <span *ngIf="!loading">
+      {{
+        localSubscribed
+          ? translationService.getTranslation('Desuscribirse')
+          : translationService.getTranslation('Suscribirse')
+      }}
+    </span>
+
+    <span *ngIf="loading">
+      {{ translationService.getTranslation('Cargando') }}...
+    </span>
+  </button>
+
+  <span class="subscriber-count" *ngIf="showCount">
+    {{ localTotalSubscribers }}
+    {{ translationService.getTranslation('Suscriptores') }}
+  </span>
+
+  <p class="subscribe-message" *ngIf="message">
+    {{ message }}
+  </p>
+
+  <p class="subscribe-error" *ngIf="error">
+    {{ error }}
+  </p>
+</div>

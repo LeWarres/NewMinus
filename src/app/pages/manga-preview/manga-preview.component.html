@@ -1,5 +1,5 @@
 <div class="preview-state" *ngIf="cargando">
-  Cargando obra...
+  {{ translationService.getTranslation('Cargando obra') }}...
 </div>
 
 <div class="preview-state error" *ngIf="error">
@@ -9,50 +9,53 @@
 <div
   class="movie-preview"
   *ngIf="obra"
-  [ngStyle]="{ 'background-image': 'url(' + coverUrl + ')' }"
 >
   <div class="overlay"></div>
 
   <div class="content">
     <div class="left-panel" *ngIf="!isMobileView">
       <div class="episodes-header">
-        <h2>Capítulos</h2>
+        <h2>
+          {{ translationService.getTranslation('Capítulos') }}
+        </h2>
 
         <span>
-          {{ obra.capitulos.length }} capítulos
+          {{ obra.capitulos.length }}
+          {{ translationService.getTranslation('capítulos') }}
         </span>
       </div>
 
-      <div
+      <button
+        type="button"
         class="episode"
         *ngFor="let capitulo of obra.capitulos"
         (click)="abrirCapitulo(capitulo)"
       >
         <img
-          [src]="coverUrl"
-          [alt]="obra.titulo"
+          [src]="getCapituloImagen(capitulo)"
+          [alt]="getCapituloTitulo(capitulo)"
         />
 
         <div class="episode-info">
           <span class="episode-badge">
-            {{ translationService.getTranslation('Capitulo') }}
+            {{ translationService.getTranslation('Capítulo') }}
             {{ capitulo.numeroCapitulo }}
           </span>
 
           <h3>
-            {{ capitulo.titulo || ('Capítulo ' + capitulo.numeroCapitulo) }}
+            {{ getCapituloTitulo(capitulo) }}
           </h3>
 
           <p>
-            {{ capitulo.descripcion || obra.descripcion || 'Sin descripción' }}
+            {{ getCapituloDescripcion(capitulo) }}
           </p>
         </div>
 
         <div class="episode-meta">
           <span>📅 {{ capitulo.creadoEn }}</span>
-          <span>👁️ {{ obra.numVisitas }}</span>
+          <span>👁️ {{ getCapituloVisitas(capitulo) }}</span>
         </div>
-      </div>
+      </button>
     </div>
 
     <div class="right-panel">
@@ -67,23 +70,29 @@
       <div class="movie-info">
         <div class="card">
           <div class="header-tags">
-            <span class="lang-tag">{{ getIdiomaLabel(obra.idioma) }}</span>
-
-            <span class="series-tag">
-              {{ obra.tipoEntrega || 'serie' }}
+            <span class="lang-tag">
+              {{ getIdiomaLabel(obra.idioma) }}
             </span>
 
-            <ng-container *ngIf="getCategoriaLabels(3).length > 0; else sinCategoriasPreview">
-              <span
-                class="genre-tag"
-                *ngFor="let categoria of getCategoriaLabels(3)"
+            <span class="series-tag">
+              {{ getTipoEntregaLabel(obra.tipoEntrega) }}
+            </span>
+
+            <ng-container *ngIf="getCategoriaItems(3).length > 0; else sinCategoriasPreview">
+              <button
+                type="button"
+                class="genre-tag genre-tag-button"
+                *ngFor="let categoria of getCategoriaItems(3)"
+                (click)="abrirCategoria(categoria.value)"
               >
-                {{ categoria }}
-              </span>
+                {{ categoria.label }}
+              </button>
             </ng-container>
 
             <ng-template #sinCategoriasPreview>
-              <span class="genre-tag">Sin categoría</span>
+              <span class="genre-tag">
+                {{ translationService.getTranslation('Sin categoría') }}
+              </span>
             </ng-template>
           </div>
 
@@ -92,13 +101,24 @@
           </h1>
 
           <div class="stats">
-            <span>👁️ {{ obra.numVisitas }} {{ translationService.getTranslation('Vistas') }}</span>
-            <span>📚 {{ obra.capitulos.length }} capítulos</span>
-            <span>⭐ {{ obra.totalSuscriptores }} suscriptores</span>
+            <span>
+              👁️ {{ obra.numVisitas }}
+              {{ translationService.getTranslation('Vistas') }}
+            </span>
+
+            <span>
+              📚 {{ obra.capitulos.length }}
+              {{ translationService.getTranslation('capítulos') }}
+            </span>
+
+            <span>
+              ⭐ {{ obra.totalSuscriptores }}
+              {{ translationService.getTranslation('suscriptores') }}
+            </span>
           </div>
 
           <p class="description" [class.hidden]="!showDetails">
-            {{ obra.descripcion || 'Esta obra todavía no tiene descripción.' }}
+            {{ getObraDescripcion() }}
           </p>
 
           <div class="author" [class.hidden]="!showDetails">
@@ -113,17 +133,21 @@
                 [alt]="obra.autor"
               />
 
-              <span class="name">{{ obra.autor }}</span>
+              <span class="name">
+                {{ obra.autor }}
+              </span>
             </button>
 
-            <button
-              class="follow-btn"
-              type="button"
+            <app-subscribe-button
+              class="preview-subscribe"
               *ngIf="!isCurrentUser"
-              (click)="toggleSubscription()"
-            >
-              {{ obra.estaSuscrito ? 'Desuscribirse' : translationService.getTranslation('Suscribirse') }}
-            </button>
+              [targetUserId]="obra.usuarioId"
+              [currentUserId]="currentUser?.id || null"
+              [isSubscribed]="obra.estaSuscrito"
+              [totalSubscribers]="obra.totalSuscriptores || 0"
+              [showCount]="false"
+              (subscriptionChange)="onSubscriptionChange($event)"
+            ></app-subscribe-button>
 
             <button
               class="follow-btn owner"
@@ -131,7 +155,7 @@
               *ngIf="isCurrentUser"
               (click)="subirCapitulo()"
             >
-              Subir capítulo
+              {{ translationService.getTranslation('Subir capítulo') }}
             </button>
           </div>
 
@@ -146,7 +170,7 @@
               (click)="leerPrimerCapitulo()"
               [disabled]="obra.capitulos.length === 0"
             >
-              Leer desde el inicio
+              {{ translationService.getTranslation('Leer desde el inicio') }}
             </button>
 
             <button
@@ -155,7 +179,7 @@
               (click)="leerUltimoCapitulo()"
               [disabled]="obra.capitulos.length === 0"
             >
-              Último capítulo
+              {{ translationService.getTranslation('Último capítulo') }}
             </button>
           </div>
 
@@ -164,6 +188,7 @@
               *ngIf="obra.facebook"
               [href]="obra.facebook"
               target="_blank"
+              rel="noopener noreferrer"
               class="facebook"
             >
               Facebook
@@ -173,6 +198,7 @@
               *ngIf="obra.twitter"
               [href]="obra.twitter"
               target="_blank"
+              rel="noopener noreferrer"
               class="twitter"
             >
               Twitter
@@ -182,6 +208,7 @@
               *ngIf="obra.instagram"
               [href]="obra.instagram"
               target="_blank"
+              rel="noopener noreferrer"
               class="instagram"
             >
               Instagram
@@ -189,8 +216,15 @@
           </div>
 
           <div class="meta" [class.hidden]="!showDetails">
-            <div class="metadata">📅 Publicado: {{ obra.fechaCreacion }}</div>
-            <div class="metadata">📝 Autor: {{ obra.autor }}</div>
+            <div class="metadata">
+              📅 {{ translationService.getTranslation('Publicado') }}:
+              {{ obra.fechaCreacion }}
+            </div>
+
+            <div class="metadata">
+              📝 {{ translationService.getTranslation('Autor') }}:
+              {{ obra.autor }}
+            </div>
           </div>
 
           <button
@@ -198,46 +232,73 @@
             type="button"
             (click)="toggleDetails()"
           >
-            {{ showDetails ? 'Ocultar detalles ⮝' : 'Ver detalles ⮟' }}
+            {{
+              showDetails
+                ? translationService.getTranslation('Ocultar detalles') + ' ⮝'
+                : translationService.getTranslation('Ver detalles') + ' ⮟'
+            }}
           </button>
         </div>
       </div>
 
       <div class="episode-container" *ngIf="isMobileView">
         <div class="episodes-header mobile">
-          <h2>Capítulos</h2>
+          <h2>
+            {{ translationService.getTranslation('Capítulos') }}
+          </h2>
 
           <span>
-            {{ obra.capitulos.length }} capítulos
+            {{ obra.capitulos.length }}
+            {{ translationService.getTranslation('capítulos') }}
           </span>
         </div>
 
-        <div
+        <button
+          type="button"
           class="episode"
           *ngFor="let capitulo of obra.capitulos"
           (click)="abrirCapitulo(capitulo)"
         >
           <img
-            [src]="coverUrl"
-            [alt]="obra.titulo"
+            [src]="getCapituloImagen(capitulo)"
+            [alt]="getCapituloTitulo(capitulo)"
           />
 
           <div class="episode-info">
             <span class="episode-badge">
-              {{ translationService.getTranslation('Capitulo') }}
+              {{ translationService.getTranslation('Capítulo') }}
               {{ capitulo.numeroCapitulo }}
             </span>
 
             <h3>
-              {{ capitulo.titulo || ('Capítulo ' + capitulo.numeroCapitulo) }}
+              {{ getCapituloTitulo(capitulo) }}
             </h3>
 
             <p>
-              {{ capitulo.descripcion || obra.descripcion || 'Sin descripción' }}
+              {{ getCapituloDescripcion(capitulo) }}
             </p>
           </div>
-        </div>
+
+          <div class="episode-meta">
+            <span>📅 {{ capitulo.creadoEn }}</span>
+            <span>👁️ {{ getCapituloVisitas(capitulo) }}</span>
+          </div>
+        </button>
       </div>
     </div>
   </div>
+   <app-rating-stars
+  [obraId]="obra.id"
+  [ownerUserId]="obra.usuarioId"
+  [currentUserId]="currentUser?.id || null"
+></app-rating-stars>
+
+
+
+  <app-comments-section
+    class="preview-comments-host"
+    tipo="obra"
+    [targetId]="obra.id"
+    [showReactions]="false"
+  ></app-comments-section>
 </div>

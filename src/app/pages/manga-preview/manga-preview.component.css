@@ -1,5 +1,6 @@
 .preview-state {
   min-height: 60vh;
+
   display: flex;
   align-items: center;
   justify-content: center;
@@ -23,14 +24,15 @@
   width: 100%;
   min-height: calc(100vh - 88px);
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding-bottom: 48px;
 
-  background-size: cover;
-  background-position: center;
+  background:
+    radial-gradient(circle at top left, rgba(164, 116, 255, 0.20), transparent 34%),
+    radial-gradient(circle at top right, rgba(199, 255, 22, 0.08), transparent 28%),
+    linear-gradient(135deg, #0d1224 0%, #121826 45%, #1a1633 100%);
+
   color: white;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .overlay {
@@ -38,11 +40,10 @@
   inset: 0;
 
   background:
-    radial-gradient(circle at top left, rgba(164, 116, 255, 0.24), transparent 34%),
-    radial-gradient(circle at top right, rgba(199, 255, 22, 0.16), transparent 28%),
-    rgba(9, 12, 25, 0.78);
+    radial-gradient(circle at top right, rgba(199, 255, 22, 0.06), transparent 26%),
+    rgba(9, 12, 25, 0.16);
 
-  backdrop-filter: blur(14px);
+  pointer-events: none;
 }
 
 /* Layout */
@@ -55,6 +56,7 @@
   gap: 34px;
 
   width: min(1500px, calc(100% - 48px));
+  margin: 0 auto;
   padding: 36px 0;
 }
 
@@ -101,6 +103,8 @@
 
 /* Tarjeta de capítulo */
 .episode {
+  width: 100%;
+
   display: grid;
   grid-template-columns: 92px 1fr auto;
   gap: 14px;
@@ -109,13 +113,17 @@
   margin-bottom: 14px;
   padding: 13px;
 
+  text-align: left;
+
   background:
     linear-gradient(135deg, rgba(48, 51, 105, 0.90), rgba(33, 38, 78, 0.92));
 
   border: 1px solid rgba(202, 210, 255, 0.12);
   border-radius: 18px;
 
+  color: white;
   cursor: pointer;
+  font-family: inherit;
 
   box-shadow:
     0 14px 30px rgba(0, 0, 0, 0.28),
@@ -297,6 +305,16 @@
   border: 1px solid rgba(255, 241, 200, 0.22);
 }
 
+.genre-tag-button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.genre-tag-button:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
 /* Título */
 .title {
   margin: 16px 0 12px;
@@ -357,6 +375,7 @@
   border: none;
   padding: 0;
   cursor: pointer;
+  font-family: inherit;
 }
 
 .author-main:hover .name {
@@ -383,6 +402,41 @@
   font-size: 16px;
 }
 
+/* Subscribe component */
+.preview-subscribe {
+  display: block;
+  min-width: 145px;
+}
+
+:host ::ng-deep .preview-subscribe .subscribe-wrapper {
+  width: 100%;
+}
+
+:host ::ng-deep .preview-subscribe .subscribe-button {
+  width: 100%;
+  min-height: 40px;
+
+  border: 2px solid rgba(199, 255, 22, 0.72);
+  border-radius: 999px;
+
+  background: transparent;
+  color: #c7ff16;
+
+  box-shadow: none;
+}
+
+:host ::ng-deep .preview-subscribe .subscribe-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(199, 255, 22, 0.14);
+  color: #c7ff16;
+}
+
+:host ::ng-deep .preview-subscribe .subscribe-button.subscribed {
+  border: 2px solid rgba(199, 255, 22, 0.72);
+  background: transparent;
+  color: #c7ff16;
+}
+
 /* Botones */
 .follow-btn {
   border: 2px solid rgba(199, 255, 22, 0.72);
@@ -395,6 +449,7 @@
 
   cursor: pointer;
   font-weight: 900;
+  font-family: inherit;
 
   transition:
     transform 0.16s ease,
@@ -435,6 +490,7 @@
 
   cursor: pointer;
   font-weight: 900;
+  font-family: inherit;
 
   transition:
     transform 0.16s ease,
@@ -540,6 +596,16 @@
   margin-top: 18px;
 }
 
+/* Comentarios */
+.preview-comments-host {
+  position: relative;
+  z-index: 1;
+
+  display: block;
+  width: min(900px, calc(100% - 48px));
+  margin: 8px auto 0;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .movie-preview {
@@ -550,7 +616,7 @@
   .content {
     display: block;
     width: min(760px, calc(100% - 24px));
-    padding: 24px 0 44px;
+    padding: 24px 0 20px;
   }
 
   .left-panel {
@@ -625,6 +691,11 @@
     width: 82px;
     height: 110px;
   }
+
+  .preview-comments-host {
+    width: min(760px, calc(100% - 24px));
+    margin-top: 0;
+  }
 }
 
 @media (max-width: 560px) {
@@ -634,7 +705,7 @@
 
   .content {
     width: calc(100% - 20px);
-    padding: 20px 0 40px;
+    padding: 20px 0 20px;
   }
 
   .cover-container {
@@ -668,6 +739,7 @@
     justify-content: center;
   }
 
+  .preview-subscribe,
   .follow-btn {
     width: 100%;
   }
