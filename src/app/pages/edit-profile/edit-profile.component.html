@@ -158,7 +158,7 @@
               </option>
 
               <option
-                *ngFor="let country of countries"
+                *ngFor="let country of countries; trackBy: trackByCountryName"
                 [value]="country.name"
               >
                 {{ country.name }}
@@ -189,7 +189,7 @@
           <button
             type="button"
             class="reading-language-chip"
-            *ngFor="let language of readingLanguages"
+            *ngFor="let language of readingLanguages; trackBy: trackByLanguageValue"
             [class.selected]="isReadingLanguageSelected(language.value)"
             (click)="toggleReadingLanguage(language.value)"
           >

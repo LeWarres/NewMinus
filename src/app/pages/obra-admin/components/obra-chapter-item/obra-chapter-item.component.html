@@ -45,6 +45,7 @@
           <img
             [src]="imageUrl(pagina.imagen)"
             [alt]="translationService.getTranslation('Página') + ' ' + pagina.numeroPagina"
+            loading="lazy"
           />
 
           <span>
@@ -68,6 +69,7 @@
           <img
             [src]="selectedFilePreviews[i]"
             [alt]="translationService.getTranslation('Nueva página') + ' ' + file.name"
+            loading="lazy"
           />
 
           <span>

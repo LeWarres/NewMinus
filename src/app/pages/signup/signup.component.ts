@@ -26,6 +26,15 @@ interface ReadingLanguageOption {
   styleUrl: './signup.component.css'
 })
 export class SignupComponent {
+    // trackBy para países
+    trackByCountryName(index: number, country: { name: string }): string {
+      return country.name;
+    }
+
+    // trackBy para idiomas de lectura
+    trackByLanguageValue(index: number, language: ReadingLanguageOption): string {
+      return language.value;
+    }
   @ViewChild(TurnstileWidgetComponent) turnstileWidget?: TurnstileWidgetComponent;
 
   username = '';

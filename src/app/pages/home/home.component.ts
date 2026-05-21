@@ -149,6 +149,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           this.errorObras =
             err.error?.error ||
             this.translationService.getTranslation('Error al cargar obras');
+
           console.error(err);
         }
       });
@@ -187,6 +188,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           this.errorCapitulos =
             err.error?.error ||
             this.translationService.getTranslation('Error al cargar capítulos');
+
           console.error(err);
         }
       });
@@ -317,43 +319,51 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.scrollCarousel(id, -1);
   }
 
+  trackByObra(index: number, obra: Obra): number {
+    return obra.id || index;
+  }
+
+  trackByCapitulo(index: number, item: CapituloCardItem): number {
+    return item.capituloId || index;
+  }
+
   private homeParams(): HttpParams {
     return new HttpParams()
       .set('contexto', 'home')
       .set('idiomaInterfaz', this.getIdiomaInterfazContenido());
   }
 
- private getIdiomaInterfazContenido(): string {
-  const currentLanguage = this.translationService
-    .getCurrentLanguage()
-    .trim()
-    .toUpperCase();
+  private getIdiomaInterfazContenido(): string {
+    const currentLanguage = this.translationService
+      .getCurrentLanguage()
+      .trim()
+      .toUpperCase();
 
-  const allowedLanguages = [
-    'ES',
-    'EN',
-    'JA',
-    'KO',
-    'ZH',
-    'FR',
-    'DE',
-    'PT',
-    'IT',
-    'RU',
-    'AR',
-    'HI',
-    'ID',
-    'VI',
-    'TH',
-    'TR',
-    'PL',
-    'NL'
-  ];
+    const allowedLanguages = [
+      'ES',
+      'EN',
+      'JA',
+      'KO',
+      'ZH',
+      'FR',
+      'DE',
+      'PT',
+      'IT',
+      'RU',
+      'AR',
+      'HI',
+      'ID',
+      'VI',
+      'TH',
+      'TR',
+      'PL',
+      'NL'
+    ];
 
-  return allowedLanguages.includes(currentLanguage)
-    ? currentLanguage
-    : 'EN';
-}
+    return allowedLanguages.includes(currentLanguage)
+      ? currentLanguage
+      : 'EN';
+  }
 
   private scrollCarousel(id: string, direction: 1 | -1): void {
     const carousel = document.getElementById(id);

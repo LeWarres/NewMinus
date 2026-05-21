@@ -1,3 +1,4 @@
+
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -156,7 +157,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.userMenuOpen = false;
     }
   }
-
+  // trackBy para idiomas disponibles
+  trackByLanguageValue(index: number, language: any): string {
+    return language.value;
+  }
   changeLanguage(language: ContentLanguageOption, event?: MouseEvent): void {
     event?.stopPropagation();
 

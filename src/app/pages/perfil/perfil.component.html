@@ -1,14 +1,23 @@
 <div class="perfil" *ngIf="user; else loading">
-  <div
-    class="banner"
-    [style.backgroundImage]="'url(' + imageUrl(user.imgBanner, '/obras/paleta/portada.png') + ')'"
-  ></div>
+  <div class="banner">
+    <img
+      class="banner-image"
+      [src]="bannerUrl"
+      [alt]="translationService.getTranslation('Banner de perfil')"
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+    />
+  </div>
 
   <div class="contenido">
     <img
       class="avatar"
-      [src]="imageUrl(user.imgPerfil, '/obras/paleta/tres.png')"
-      alt="Avatar"
+      [src]="avatarUrl"
+      [alt]="user.username || translationService.getTranslation('Avatar')"
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
     />
 
     <div class="info">
@@ -147,7 +156,7 @@
     *ngIf="activeTab === 'news' && displayedCapitulos.length > 0; else noCapitulosNews"
   >
     <app-capitulo-card
-      *ngFor="let capitulo of displayedCapitulos"
+      *ngFor="let capitulo of displayedCapitulos; trackBy: trackByCapitulo"
       [item]="capitulo"
       [showActions]="isCurrentUser"
       (openCapitulo)="abrirCapitulo($event)"
@@ -184,7 +193,7 @@
     *ngIf="activeTab !== 'news' && displayedObras.length > 0; else noObras"
   >
     <app-obra-card
-      *ngFor="let obra of displayedObras"
+      *ngFor="let obra of displayedObras; trackBy: trackByObra"
       [obra]="obra"
       [label]="''"
       [showActions]="isCurrentUser"

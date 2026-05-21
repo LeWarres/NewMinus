@@ -44,7 +44,7 @@
 
         <select [(ngModel)]="selectedChapter" (change)="onChapterChange($event)">
           <option
-            *ngFor="let chapter of obra.capitulos"
+            *ngFor="let chapter of obra.capitulos; trackBy: trackByChapter"
             [value]="chapter.numeroCapitulo"
           >
             {{ translationService.getTranslation('Capítulo') }}
@@ -76,6 +76,9 @@
               class="author-avatar"
               [src]="imageUrl(obra.autorAvatar, '/obras/paleta/tres.png')"
               [alt]="obra.autor"
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
             />
 
             <div>
@@ -135,7 +138,7 @@
               [class.active]="isDoublePageSwapped"
               (click)="toggleDoublePageSwap()"
             >
-              Swap Page
+              {{ translationService.getTranslation('Swap Page') }}
             </button>
           </div>
         </div>
@@ -193,6 +196,9 @@
               class="author-avatar"
               [src]="imageUrl(obra.autorAvatar, '/obras/paleta/tres.png')"
               [alt]="obra.autor"
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
             />
 
             <div>
@@ -234,7 +240,7 @@
         <ng-container [ngSwitch]="readingMode">
           <section *ngSwitchCase="'strip'" class="pages-strip">
             <div
-              *ngFor="let image of images; let i = index"
+              *ngFor="let image of images; let i = index; trackBy: trackByImage"
               class="page-image-wrap"
               [class.hidden-page]="isPageHidden(i)"
             >
@@ -242,6 +248,9 @@
                 *ngIf="!isPageHidden(i)"
                 [src]="image"
                 [alt]="translationService.getTranslation('Página') + ' ' + (i + 1)"
+                [attr.loading]="getReaderImageLoading(i)"
+                [attr.fetchpriority]="getReaderImageFetchPriority(i)"
+                decoding="async"
                 (error)="onPageImageError(i)"
                 (load)="onPageImageLoad($event, i)"
               />
@@ -254,6 +263,9 @@
                 *ngIf="currentSpreadImages[0]"
                 [src]="currentSpreadImages[0]"
                 [alt]="translationService.getTranslation('Página') + ' ' + currentPageNumber"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
               />
             </div>
           </section>
@@ -261,11 +273,14 @@
           <section *ngSwitchCase="'double'" class="pages-double">
             <div
               class="page-image-wrap double-page"
-              *ngFor="let image of currentSpreadImages; let i = index"
+              *ngFor="let image of currentSpreadImages; let i = index; trackBy: trackBySpreadImage"
             >
               <img
                 [src]="image"
                 [alt]="translationService.getTranslation('Página') + ' ' + (currentPageIndex + i + 1)"
+                loading="eager"
+                [attr.fetchpriority]="i === 0 ? 'high' : 'auto'"
+                decoding="async"
               />
             </div>
           </section>
@@ -291,6 +306,8 @@
               class="author-avatar"
               [src]="imageUrl(obra.autorAvatar, '/obras/paleta/tres.png')"
               [alt]="obra.autor"
+              loading="lazy"
+              decoding="async"
             />
 
             <div>

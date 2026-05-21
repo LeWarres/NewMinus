@@ -47,6 +47,7 @@ interface PerfilObraApi {
   serieConcluida?: boolean;
   portada?: string;
   numVisitas: number;
+  promedioCalificacion?: number;
   fechaCreacion: string;
 }
 
@@ -58,6 +59,7 @@ interface PerfilCapituloApi {
   descripcionCapitulo?: string;
   fechaCreacion: string;
   tituloObra: string;
+  descripcionObra?: string;
   portada?: string;
   genero?: string;
   categorias?: string[];
@@ -161,6 +163,14 @@ export class PerfilComponent implements OnInit {
     }
 
     return this.obras;
+  }
+
+  get bannerUrl(): string {
+    return this.imageUrl(this.user?.imgBanner, '/obras/paleta/portada.png');
+  }
+
+  get avatarUrl(): string {
+    return this.imageUrl(this.user?.imgPerfil, '/obras/paleta/tres.png');
   }
 
   setActiveTab(tab: PerfilTab): void {
@@ -268,6 +278,14 @@ export class PerfilComponent implements OnInit {
     return this.metadataService.imageUrl(path, fallback);
   }
 
+  trackByObra(index: number, obra: PerfilObra): number {
+    return obra.id || index;
+  }
+
+  trackByCapitulo(index: number, capitulo: PerfilCapitulo): number {
+    return capitulo.capituloId || index;
+  }
+
   private mapObra(obra: PerfilObraApi, user: User): PerfilObra {
     return {
       id: obra.id,
@@ -281,38 +299,39 @@ export class PerfilComponent implements OnInit {
       serieConcluida: obra.serieConcluida,
       portada: obra.portada,
       numVisitas: obra.numVisitas || 0,
+      promedioCalificacion: obra.promedioCalificacion || 0,
       fechaCreacion: obra.fechaCreacion,
       autor: user.username
     };
   }
 
-private mapCapitulo(capitulo: PerfilCapituloApi, user: User): PerfilCapitulo {
-  return {
-    tipo: 'capitulo',
-    obraId: capitulo.obraId,
-    usuarioId: user.id,
+  private mapCapitulo(capitulo: PerfilCapituloApi, user: User): PerfilCapitulo {
+    return {
+      tipo: 'capitulo',
+      obraId: capitulo.obraId,
+      usuarioId: user.id,
 
-    tituloObra: capitulo.tituloObra,
-    descripcionObra: '',
+      tituloObra: capitulo.tituloObra,
+      descripcionObra: capitulo.descripcionObra || '',
 
-    genero: capitulo.genero,
-    categorias: capitulo.categorias,
-    idioma: capitulo.idioma,
-    portada: capitulo.portada,
-    tipoEntrega: capitulo.tipoEntrega,
+      genero: capitulo.genero,
+      categorias: capitulo.categorias,
+      idioma: capitulo.idioma,
+      portada: capitulo.portada,
+      tipoEntrega: capitulo.tipoEntrega,
 
-    numVisitas: capitulo.numVisitas || 0,
-    obraNumVisitas: capitulo.obraNumVisitas || 0,
-    promedioCalificacion: capitulo.promedioCalificacion || 0,
+      numVisitas: capitulo.numVisitas || 0,
+      obraNumVisitas: capitulo.obraNumVisitas || 0,
+      promedioCalificacion: capitulo.promedioCalificacion || 0,
 
-    capituloId: capitulo.capituloId,
-    numeroCapitulo: capitulo.numeroCapitulo,
-    tituloCapitulo: capitulo.tituloCapitulo,
-    descripcionCapitulo: capitulo.descripcionCapitulo,
-    fechaCreacion: capitulo.fechaCreacion,
+      capituloId: capitulo.capituloId,
+      numeroCapitulo: capitulo.numeroCapitulo,
+      tituloCapitulo: capitulo.tituloCapitulo,
+      descripcionCapitulo: capitulo.descripcionCapitulo,
+      fechaCreacion: capitulo.fechaCreacion,
 
-    autor: user.username,
-    autorAvatar: user.imgPerfil
-  };
-}
+      autor: user.username,
+      autorAvatar: user.imgPerfil
+    };
+  }
 }

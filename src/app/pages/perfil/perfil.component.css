@@ -390,6 +390,19 @@
   color: #ff9aa3;
 }
 
+
+
+.banner {
+  position: relative;
+  overflow: hidden;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
 /* Responsive */
 @media (max-width: 760px) {
   .perfil {

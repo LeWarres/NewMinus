@@ -87,7 +87,7 @@
           <button
             type="button"
             class="language-option"
-            *ngFor="let language of availableLanguages"
+            *ngFor="let language of availableLanguages; trackBy: trackByLanguageValue"
             [class.selected]="language.value === currentLanguageCode"
             (click)="changeLanguage(language, $event)"
           >

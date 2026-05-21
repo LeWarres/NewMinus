@@ -33,6 +33,30 @@ interface SelectOption {
   styleUrl: './uploader.component.css'
 })
 export class UploaderComponent {
+    // trackBy para categorías
+    trackByCategoriaValue(index: number, categoria: any): string {
+      return categoria.value;
+    }
+
+    // trackBy para categorías seleccionadas (pueden ser string)
+    trackBySelectedCategoria(index: number, categoria: any): any {
+      return typeof categoria === 'string' ? categoria : categoria.value;
+    }
+
+    // trackBy para idiomas
+    trackByIdiomaValue(index: number, idioma: any): string {
+      return idioma.value;
+    }
+
+    // trackBy para tipo de obra
+    trackByTipoObraValue(index: number, tipo: any): string {
+      return tipo.value;
+    }
+
+    // trackBy para archivos
+    trackByFileName(index: number, file: any): string {
+      return file.name;
+    }
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('fileInputPages') fileInputPages!: ElementRef<HTMLInputElement>;
 

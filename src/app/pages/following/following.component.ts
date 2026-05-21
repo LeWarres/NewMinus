@@ -114,4 +114,8 @@ export class FollowingComponent implements OnInit {
 
     this.router.navigate(['/perfil', item.usuarioId]);
   }
+
+  trackByCapitulo(index: number, item: CapituloCardItem): number {
+    return item.capituloId || index;
+  }
 }

@@ -7,6 +7,7 @@ import { TranslationService } from '../../services/translation.service';
 import { AuthService, CurrentUser } from '../../services/auth.service';
 import { ContentMetadataService } from '../../services/content-metadata.service';
 import { RatingStarsComponent } from '../../components/rating-stars/rating-stars.component';
+
 import {
   SubscribeButtonComponent,
   SubscriptionChange
@@ -61,6 +62,9 @@ interface ObraPreviewResponse {
   error?: string;
   obra?: ObraPreview;
 }
+
+type ImageLoadingMode = 'eager' | 'lazy';
+type FetchPriorityMode = 'high' | 'low' | 'auto';
 
 @Component({
   selector: 'app-manga-preview',
@@ -255,6 +259,33 @@ export class MangaPreviewComponent implements OnInit {
     });
   }
 
+  abrirIdiomaObra(idioma?: string): void {
+    const idiomaNormalizado = this.normalizarIdiomaBusqueda(idioma);
+
+    this.router.navigate(['/categorias'], {
+      queryParams: {
+        idioma: idiomaNormalizado,
+        nsfw: 'incluir'
+      }
+    });
+  }
+
+  abrirTipoObra(tipoEntrega?: string): void {
+    const tipoNormalizado = this.normalizarTipoObra(tipoEntrega);
+
+    if (!tipoNormalizado) {
+      return;
+    }
+
+    this.router.navigate(['/categorias'], {
+      queryParams: {
+        tipo: tipoNormalizado,
+        idioma: 'preferidos',
+        nsfw: 'incluir'
+      }
+    });
+  }
+
   onSubscriptionChange(event: SubscriptionChange): void {
     if (!this.obra) {
       return;
@@ -322,7 +353,17 @@ export class MangaPreviewComponent implements OnInit {
   }
 
   getTipoEntregaLabel(value?: string): string {
-    return this.translationService.getTranslation(value || 'serie');
+    const normalized = String(value || '').trim().toLowerCase();
+
+    const labels: Record<string, string> = {
+      comic: 'Comic',
+      manga: 'Manga',
+      libro: 'Libro',
+      novela: 'Novela',
+      artwork: 'Artwork'
+    };
+
+    return this.translationService.getTranslation(labels[normalized] || 'Manga');
   }
 
   getCapituloTitulo(capitulo: Capitulo): string {
@@ -348,14 +389,84 @@ export class MangaPreviewComponent implements OnInit {
     );
   }
 
-getCapituloVisitas(capitulo: Capitulo): number {
-  return Number(capitulo.numVisitas || 0);
-}
+  getCapituloVisitas(capitulo: Capitulo): number {
+    return Number(capitulo.numVisitas || 0);
+  }
+
+  getEpisodeImageLoading(index: number): ImageLoadingMode {
+    if (this.isMobileView) {
+      return 'lazy';
+    }
+
+    return index < 2 ? 'eager' : 'lazy';
+  }
+
+  getEpisodeImageFetchPriority(index: number): FetchPriorityMode {
+    if (this.isMobileView) {
+      return 'auto';
+    }
+
+    return index === 0 ? 'high' : 'auto';
+  }
+
+  trackByCapitulo(index: number, capitulo: Capitulo): number {
+    return capitulo.id || capitulo.numeroCapitulo || index;
+  }
+
+  trackByCategoria(index: number, categoria: CategoriaPreviewItem): string {
+    return categoria.value || String(index);
+  }
 
   getObraDescripcion(): string {
     return (
       this.obra?.descripcion ||
       this.translationService.getTranslation('Esta obra todavía no tiene descripción.')
     );
+  }
+
+  private normalizarIdiomaBusqueda(idioma?: string): string {
+    const normalized = String(idioma || 'GLOBAL').trim().toUpperCase();
+
+    const allowed = [
+      'GLOBAL',
+      'ES',
+      'EN',
+      'JA',
+      'KO',
+      'ZH',
+      'FR',
+      'DE',
+      'PT',
+      'IT',
+      'RU',
+      'AR',
+      'HI',
+      'ID',
+      'VI',
+      'TH',
+      'TR',
+      'PL',
+      'NL'
+    ];
+
+    return allowed.includes(normalized)
+      ? normalized
+      : 'GLOBAL';
+  }
+
+  private normalizarTipoObra(tipoEntrega?: string): string {
+    const normalized = String(tipoEntrega || '').trim().toLowerCase();
+
+    const allowed = [
+      'comic',
+      'manga',
+      'libro',
+      'novela',
+      'artwork'
+    ];
+
+    return allowed.includes(normalized)
+      ? normalized
+      : '';
   }
 }

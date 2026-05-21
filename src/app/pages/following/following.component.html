@@ -34,7 +34,7 @@
     *ngIf="!cargando && items.length > 0; else sinItems"
   >
     <app-capitulo-card
-      *ngFor="let item of items"
+      *ngFor="let item of items; trackBy: trackByCapitulo"
       [item]="item"
       (openCapitulo)="abrirItem($event)"
       (openAutor)="abrirPerfil($event)"

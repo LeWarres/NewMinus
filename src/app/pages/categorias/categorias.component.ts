@@ -21,7 +21,15 @@ interface IdiomaOption {
   value: string;
 }
 
+interface TipoObraOption {
+  value: string;
+}
+
 type FiltroNsfw = 'incluir' | 'ocultar' | 'solo';
+
+interface CurrentUserWithPreferences extends CurrentUser {
+  idiomasLectura?: string[];
+}
 
 interface UsuarioResultado {
   id: number;
@@ -60,12 +68,22 @@ interface BuscarResponse {
   styleUrl: './categorias.component.css'
 })
 export class CategoriasComponent implements OnInit {
+    // trackBy para usuarios
+    trackByUsuarioId(index: number, usuario: UsuarioResultado): number {
+      return usuario.id;
+    }
+
+    // trackBy para obras
+    trackByObraId(index: number, obra: Obra): number {
+      return obra.id;
+    }
   apiUrl = 'https://minuscreators.com/api/buscar.php';
 
-  currentUser: CurrentUser | null = null;
+  currentUser: CurrentUserWithPreferences | null = null;
 
   categoriaSeleccionada = 'todos';
   idiomaObraSeleccionado = 'todos';
+  tipoObraSeleccionado = 'todos';
   ordenSeleccionado = 'recientes';
   filtroNsfw: FiltroNsfw = 'incluir';
   busqueda = '';
@@ -142,6 +160,15 @@ export class CategoriasComponent implements OnInit {
     { value: 'NL' }
   ];
 
+  tiposObra: TipoObraOption[] = [
+    { value: 'todos' },
+    { value: 'comic' },
+    { value: 'manga' },
+    { value: 'libro' },
+    { value: 'novela' },
+    { value: 'artwork' }
+  ];
+
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -152,25 +179,25 @@ export class CategoriasComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = this.authService.getCurrentUser();
+    this.currentUser = this.authService.getCurrentUser() as CurrentUserWithPreferences | null;
 
     this.route.queryParamMap.subscribe(params => {
       const buscar = params.get('buscar');
       const categoria = params.get('categoria') || params.get('genero');
       const idioma = params.get('idioma');
+      const tipoObra = params.get('tipo') || params.get('tipoObra') || params.get('tipoEntrega');
       const orden = params.get('orden');
       const nsfw = params.get('nsfw');
 
-      if (buscar !== null) {
-        this.busqueda = buscar;
-      }
+      this.busqueda = buscar !== null ? buscar : '';
+      this.categoriaSeleccionada = 'todos';
+      this.idiomaObraSeleccionado = 'todos';
+      this.tipoObraSeleccionado = 'todos';
+      this.ordenSeleccionado = 'recientes';
+      this.filtroNsfw = 'incluir';
 
       if (categoria && this.esCategoriaValida(categoria)) {
         this.categoriaSeleccionada = categoria.toLowerCase();
-
-        if (this.categoriaSeleccionada === 'nsfw') {
-          this.filtroNsfw = 'solo';
-        }
       }
 
       if (idioma && this.esIdiomaValido(idioma)) {
@@ -179,12 +206,20 @@ export class CategoriasComponent implements OnInit {
           : idioma.toUpperCase();
       }
 
+      if (tipoObra && this.esTipoObraValido(tipoObra)) {
+        this.tipoObraSeleccionado = tipoObra.toLowerCase();
+      }
+
       if (orden === 'recientes' || orden === 'populares') {
         this.ordenSeleccionado = orden;
       }
 
       if (nsfw === 'incluir' || nsfw === 'ocultar' || nsfw === 'solo') {
         this.filtroNsfw = nsfw;
+      }
+
+      if (this.categoriaSeleccionada === 'nsfw') {
+        this.filtroNsfw = 'solo';
       }
 
       this.cargarObras();
@@ -228,6 +263,10 @@ export class CategoriasComponent implements OnInit {
       this.categoriaSeleccionada !== 'nsfw'
     ) {
       params.set('genero', this.categoriaSeleccionada);
+    }
+
+    if (this.tipoObraSeleccionado !== 'todos') {
+      params.set('tipo', this.tipoObraSeleccionado);
     }
 
     if (this.categoriaSeleccionada === 'nsfw' || this.filtroNsfw === 'solo') {
@@ -274,6 +313,7 @@ export class CategoriasComponent implements OnInit {
           this.error =
             err.error?.error ||
             this.translationService.getTranslation('Error al cargar los resultados');
+
           console.error(err);
         }
       });
@@ -282,6 +322,7 @@ export class CategoriasComponent implements OnInit {
   limpiarFiltros(): void {
     this.categoriaSeleccionada = 'todos';
     this.idiomaObraSeleccionado = 'todos';
+    this.tipoObraSeleccionado = 'todos';
     this.ordenSeleccionado = 'recientes';
     this.filtroNsfw = 'incluir';
     this.busqueda = '';
@@ -337,6 +378,29 @@ export class CategoriasComponent implements OnInit {
     return this.getIdiomaLabel(idioma.value);
   }
 
+  getTipoObraLabel(value?: string): string {
+    const normalized = String(value || 'todos')
+      .trim()
+      .toLowerCase();
+
+    const labels: Record<string, string> = {
+      todos: 'Todos los tipos',
+      comic: 'Comic',
+      manga: 'Manga',
+      libro: 'Libro',
+      novela: 'Novela',
+      artwork: 'Artwork'
+    };
+
+    return this.translationService.getTranslation(
+      labels[normalized] || 'Todos los tipos'
+    );
+  }
+
+  getTipoObraOptionLabel(tipo: TipoObraOption): string {
+    return this.getTipoObraLabel(tipo.value);
+  }
+
   getFiltroNsfwLabel(): string {
     if (this.filtroNsfw === 'ocultar') {
       return this.translationService.getTranslation('Sin contenido NSFW');
@@ -354,6 +418,7 @@ export class CategoriasComponent implements OnInit {
       this.busqueda.trim() !== '' ||
       this.categoriaSeleccionada !== 'todos' ||
       this.idiomaObraSeleccionado !== 'todos' ||
+      this.tipoObraSeleccionado !== 'todos' ||
       this.ordenSeleccionado !== 'recientes' ||
       this.filtroNsfw !== 'incluir'
     );
@@ -368,6 +433,9 @@ export class CategoriasComponent implements OnInit {
           : null,
         idioma: this.idiomaObraSeleccionado !== 'todos'
           ? this.idiomaObraSeleccionado
+          : null,
+        tipo: this.tipoObraSeleccionado !== 'todos'
+          ? this.tipoObraSeleccionado
           : null,
         orden: this.ordenSeleccionado !== 'recientes'
           ? this.ordenSeleccionado
@@ -457,5 +525,10 @@ export class CategoriasComponent implements OnInit {
 
       return idioma.value.toUpperCase() === normalizado;
     });
+  }
+
+  private esTipoObraValido(value: string): boolean {
+    const normalizado = value.toLowerCase();
+    return this.tiposObra.some(tipo => tipo.value === normalizado);
   }
 }

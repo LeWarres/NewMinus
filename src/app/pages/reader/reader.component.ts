@@ -61,6 +61,8 @@ interface ObraDetalleResponse {
 }
 
 type ReadingMode = 'strip' | 'single' | 'double';
+type ImageLoadingMode = 'eager' | 'lazy';
+type FetchPriorityMode = 'high' | 'low' | 'auto';
 
 @Component({
   selector: 'app-reader',
@@ -339,6 +341,7 @@ export class ReaderComponent implements OnInit {
     }
 
     const step = this.readingMode === 'double' ? 2 : 1;
+
     this.currentPageIndex = Math.min(
       this.currentPageIndex + step,
       this.totalPages - 1
@@ -460,6 +463,26 @@ export class ReaderComponent implements OnInit {
     }
 
     return `${this.siteUrl}/${finalPath}`;
+  }
+
+  getReaderImageLoading(index: number): ImageLoadingMode {
+    return index < 2 ? 'eager' : 'lazy';
+  }
+
+  getReaderImageFetchPriority(index: number): FetchPriorityMode {
+    return index === 0 ? 'high' : 'auto';
+  }
+
+  trackByImage(index: number, image: string): string {
+    return `${index}-${image}`;
+  }
+
+  trackBySpreadImage(index: number, image: string): string {
+    return `${this.currentPageIndex}-${index}-${image}`;
+  }
+
+  trackByChapter(index: number, chapter: Capitulo): number {
+    return chapter.id || chapter.numeroCapitulo || index;
   }
 
   onPageImageError(index: number): void {

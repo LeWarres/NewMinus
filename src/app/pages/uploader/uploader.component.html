@@ -92,7 +92,7 @@
         <div class="category-grid">
           <button
             type="button"
-            *ngFor="let categoria of categorias"
+            *ngFor="let categoria of categorias; trackBy: trackByCategoriaValue"
             class="category-chip"
             [class.selected]="isCategorySelected(categoria.value)"
             [disabled]="!isCategorySelected(categoria.value) && selectedCategories.length >= maxCategories"
@@ -107,7 +107,7 @@
           *ngIf="selectedCategories.length > 0"
         >
           <span
-            *ngFor="let categoria of selectedCategories"
+            *ngFor="let categoria of selectedCategories; trackBy: trackBySelectedCategoria"
             class="selected-category"
           >
             {{ getCategoryLabel(categoria) }}
@@ -122,7 +122,7 @@
 
         <select formControlName="idioma">
           <option
-            *ngFor="let idioma of idiomas"
+            *ngFor="let idioma of idiomas; trackBy: trackByIdiomaValue"
             [value]="idioma.value"
           >
             {{ idioma.label }}
@@ -138,7 +138,7 @@
         <div class="radio-options">
           <label
             class="radio-option"
-            *ngFor="let tipo of tipoObraOptions"
+            *ngFor="let tipo of tipoObraOptions; trackBy: trackByTipoObraValue"
           >
             <input
               type="radio"
@@ -314,7 +314,7 @@
 
         <div class="files-list">
           <div
-            *ngFor="let file of selectedPages; let index = index"
+            *ngFor="let file of selectedPages; let index = index; trackBy: trackByFileName"
             class="file-item"
           >
             <div class="page-number">

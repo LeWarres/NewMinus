@@ -28,12 +28,15 @@
       <button
         type="button"
         class="episode"
-        *ngFor="let capitulo of obra.capitulos"
+        *ngFor="let capitulo of obra.capitulos; let i = index; trackBy: trackByCapitulo"
         (click)="abrirCapitulo(capitulo)"
       >
         <img
           [src]="getCapituloImagen(capitulo)"
           [alt]="getCapituloTitulo(capitulo)"
+          [attr.loading]="getEpisodeImageLoading(i)"
+          [attr.fetchpriority]="getEpisodeImageFetchPriority(i)"
+          decoding="async"
         />
 
         <div class="episode-info">
@@ -64,25 +67,37 @@
           class="cover"
           [src]="coverUrl"
           [alt]="obra.titulo"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
         />
       </div>
 
       <div class="movie-info">
         <div class="card">
           <div class="header-tags">
-            <span class="lang-tag">
+            <button
+              type="button"
+              class="lang-tag clickable-tag"
+              (click)="abrirIdiomaObra(obra.idioma)"
+            >
               {{ getIdiomaLabel(obra.idioma) }}
-            </span>
+            </button>
 
-            <span class="series-tag">
+            <button
+              type="button"
+              class="series-tag clickable-tag"
+              *ngIf="obra.tipoEntrega"
+              (click)="abrirTipoObra(obra.tipoEntrega)"
+            >
               {{ getTipoEntregaLabel(obra.tipoEntrega) }}
-            </span>
+            </button>
 
             <ng-container *ngIf="getCategoriaItems(3).length > 0; else sinCategoriasPreview">
               <button
                 type="button"
                 class="genre-tag genre-tag-button"
-                *ngFor="let categoria of getCategoriaItems(3)"
+                *ngFor="let categoria of getCategoriaItems(3); trackBy: trackByCategoria"
                 (click)="abrirCategoria(categoria.value)"
               >
                 {{ categoria.label }}
@@ -131,6 +146,8 @@
                 class="author-photo"
                 [src]="imageUrl(obra.autorAvatar, '/obras/paleta/tres.png')"
                 [alt]="obra.autor"
+                loading="eager"
+                decoding="async"
               />
 
               <span class="name">
@@ -256,12 +273,15 @@
         <button
           type="button"
           class="episode"
-          *ngFor="let capitulo of obra.capitulos"
+          *ngFor="let capitulo of obra.capitulos; let i = index; trackBy: trackByCapitulo"
           (click)="abrirCapitulo(capitulo)"
         >
           <img
             [src]="getCapituloImagen(capitulo)"
             [alt]="getCapituloTitulo(capitulo)"
+            [attr.loading]="getEpisodeImageLoading(i)"
+            [attr.fetchpriority]="getEpisodeImageFetchPriority(i)"
+            decoding="async"
           />
 
           <div class="episode-info">
@@ -287,13 +307,12 @@
       </div>
     </div>
   </div>
-   <app-rating-stars
-  [obraId]="obra.id"
-  [ownerUserId]="obra.usuarioId"
-  [currentUserId]="currentUser?.id || null"
-></app-rating-stars>
 
-
+  <app-rating-stars
+    [obraId]="obra.id"
+    [ownerUserId]="obra.usuarioId"
+    [currentUserId]="currentUser?.id || null"
+  ></app-rating-stars>
 
   <app-comments-section
     class="preview-comments-host"

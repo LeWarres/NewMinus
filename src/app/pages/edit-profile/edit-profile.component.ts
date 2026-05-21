@@ -57,6 +57,15 @@ interface ReadingLanguageOption {
   styleUrl: './edit-profile.component.css'
 })
 export class EditProfileComponent implements OnInit, OnDestroy {
+    // trackBy para países
+    trackByCountryName(index: number, country: { name: string }): string {
+      return country.name;
+    }
+
+    // trackBy para idiomas de lectura
+    trackByLanguageValue(index: number, language: ReadingLanguageOption): string {
+      return language.value;
+    }
   apiPerfilUrl = 'https://minuscreators.com/api/perfil.php';
   apiEditarUrl = 'https://minuscreators.com/api/editar_perfil.php';
   siteUrl = 'https://minuscreators.com';

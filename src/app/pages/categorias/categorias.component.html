@@ -72,6 +72,22 @@
       </label>
 
       <label>
+        {{ translationService.getTranslation('Tipo de obra') }}
+
+        <select
+          [(ngModel)]="tipoObraSeleccionado"
+          (change)="cambiarFiltros()"
+        >
+          <option
+            *ngFor="let tipo of tiposObra"
+            [value]="tipo.value"
+          >
+            {{ getTipoObraOptionLabel(tipo) }}
+          </option>
+        </select>
+      </label>
+
+      <label>
         {{ translationService.getTranslation('Contenido NSFW') }}
 
         <select
@@ -136,6 +152,11 @@
       </p>
 
       <p>
+        {{ translationService.getTranslation('Tipo de obra') }}:
+        {{ getTipoObraLabel(tipoObraSeleccionado) }}
+      </p>
+
+      <p>
         {{ translationService.getTranslation('Contenido NSFW') }}:
         {{ getFiltroNsfwLabel() }}
       </p>
@@ -161,7 +182,7 @@
 
     <article
       class="usuario-card"
-      *ngFor="let usuario of usuarios"
+      *ngFor="let usuario of usuarios; trackBy: trackByUsuarioId"
       (click)="abrirPerfilUsuario(usuario)"
     >
       <img
@@ -194,7 +215,7 @@
 
   <div class="obras-grid" *ngIf="!cargando && obras.length > 0; else sinObras">
     <app-obra-card
-      *ngFor="let obra of obras"
+      *ngFor="let obra of obras; trackBy: trackByObraId"
       [obra]="obra"
       [label]="''"
       (openObra)="abrirObra($event)"
@@ -209,7 +230,7 @@
       </h3>
 
       <p>
-        {{ translationService.getTranslation('Prueba otra categoría, idioma o búsqueda.') }}
+        {{ translationService.getTranslation('Prueba otra categoría, idioma, tipo de obra o búsqueda.') }}
       </p>
 
       <button type="button" (click)="limpiarFiltros()">

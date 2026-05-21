@@ -61,7 +61,7 @@
       <div class="carousel-track" id="nuevas-obras">
         <app-obra-card
           class="carousel-card"
-          *ngFor="let obra of obrasNuevas"
+          *ngFor="let obra of obrasNuevas; trackBy: trackByObra"
           [obra]="obra"
           [label]="translationService.getTranslation('Nueva obra')"
           (openObra)="abrirObra($event)"
@@ -125,7 +125,7 @@
       <div class="carousel-track" id="nuevos-capitulos">
         <app-capitulo-card
           class="carousel-card"
-          *ngFor="let item of capitulosNuevos"
+          *ngFor="let item of capitulosNuevos; trackBy: trackByCapitulo"
           [item]="item"
           (openCapitulo)="abrirCapitulo($event)"
           (openAutor)="abrirPerfilCapitulo($event)"
@@ -188,7 +188,7 @@
       <div class="carousel-track" id="following-home">
         <app-capitulo-card
           class="carousel-card"
-          *ngFor="let item of followingItems"
+          *ngFor="let item of followingItems; trackBy: trackByCapitulo"
           [item]="item"
           [showDescription]="false"
           (openCapitulo)="abrirCapitulo($event)"

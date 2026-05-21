@@ -51,6 +51,10 @@ interface ReaccionResponse {
   styleUrl: './comments-section.component.css'
 })
 export class CommentsSectionComponent implements OnInit, OnChanges {
+    // trackBy para comentarios
+    trackByComentarioId(index: number, comentario: ComentarioItem): number {
+      return comentario.id;
+    }
   @Input() tipo: CommentTargetType = 'obra';
   @Input() targetId: number | null = null;
   @Input() showReactions = false;

@@ -13,7 +13,7 @@
     <div class="rating-average">
       <div class="average-stars" [class.empty]="!hasRatings">
         <span
-          *ngFor="let star of stars"
+          *ngFor="let star of stars; trackBy: trackByStar"
           [class.active]="isAverageStarActive(star)"
         >
           ★
@@ -69,7 +69,7 @@
     >
       <button
         type="button"
-        *ngFor="let star of stars"
+        *ngFor="let star of stars; trackBy: trackByStar"
         [class.active]="isUserStarActive(star)"
         [disabled]="guardando || isOwner"
         (mouseenter)="onStarEnter(star)"

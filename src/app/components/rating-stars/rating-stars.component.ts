@@ -27,6 +27,10 @@ interface CalificacionObraResponse {
   styleUrl: './rating-stars.component.css'
 })
 export class RatingStarsComponent implements OnInit, OnChanges {
+    // trackBy para estrellas
+    trackByStar(index: number, star: number): number {
+      return star;
+    }
   @Input({ required: true }) obraId!: number | null;
   @Input() ownerUserId: number | null = null;
   @Input() currentUserId: number | null = null;
