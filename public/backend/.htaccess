@@ -1,0 +1,9 @@
+Options -Indexes
+
+RewriteEngine On
+
+RewriteRule ^_core/ - [F,L]
+
+<FilesMatch "(\.env|composer\.json|composer\.lock|config\.php|\.ini|\.log)$">
+  Require all denied
+</FilesMatch>

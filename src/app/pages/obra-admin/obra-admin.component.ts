@@ -10,7 +10,7 @@ import { AuthService, CurrentUser } from '../../services/auth.service';
 import { ObraCoverEditorComponent } from './components/obra-cover-editor/obra-cover-editor.component';
 import { ObraCategorySelectorComponent } from './components/obra-category-selector/obra-category-selector.component';
 import { ObraChapterItemComponent } from './components/obra-chapter-item/obra-chapter-item.component';
-import { AdminCapitulo, AdminPagina, AdminObra, SelectOption } from './obra-admin.models';
+import { AdminCapitulo, AdminCapituloVersion, AdminPagina, AdminObra, SelectOption } from './obra-admin.models';
 import { buildObraImageUrl, formatFileSize } from './obra-admin-display.utils';
 
 interface ObraAdminResponse {
@@ -38,6 +38,13 @@ interface PaginasResponse extends GenericResponse {
   insertadas?: number;
   insertIds?: number[];
   capituloId?: number;
+  capituloVersionId?: number | null;
+}
+
+interface EliminarCapituloIdiomaResponse extends GenericResponse {
+  capituloId?: number;
+  capituloVersionId?: number;
+  capituloEliminado?: boolean;
 }
 
 @Component({
@@ -67,6 +74,7 @@ export class ObraAdminComponent implements OnInit {
   actualizarPortadaUrl = 'https://minuscreators.com/api/actualizar_portada.php';
   agregarPaginasUrl = 'https://minuscreators.com/api/agregar_paginas_capitulo.php';
   eliminarPaginaUrl = 'https://minuscreators.com/api/eliminar_pagina_capitulo.php';
+  eliminarCapituloIdiomaUrl = 'https://minuscreators.com/api/eliminar_capitulo.php';
   eliminarObraUrl = 'https://minuscreators.com/api/eliminar_obra.php';
 
   siteUrl = 'https://minuscreators.com';
@@ -81,7 +89,7 @@ export class ObraAdminComponent implements OnInit {
   error = '';
   mensajeObra = '';
 
-  capituloMensajes: Record<number, string> = {};
+  capituloMensajes: Record<string, string> = {};
 
   coverFile: File | null = null;
   coverPreview = '';
@@ -93,9 +101,9 @@ export class ObraAdminComponent implements OnInit {
   maxPageFileSize = 8 * 1024 * 1024;
   maxTotalPagesSize = 300 * 1024 * 1024;
 
-  selectedChapterFiles: Record<number, File[]> = {};
-  pageUploadMessages: Record<number, string> = {};
-  paginasPendientesEliminar: Record<number, AdminPagina[]> = {};
+  selectedChapterFiles: Record<string, File[]> = {};
+  pageUploadMessages: Record<string, string> = {};
+  paginasPendientesEliminar: Record<string, AdminPagina[]> = {};
 
   categorias: SelectOption[] = [
     { value: 'accion', label: 'Acción' },
@@ -222,6 +230,8 @@ export class ObraAdminComponent implements OnInit {
           tipoEntrega: this.normalizeTipoObra(res.obra.tipoEntrega)
         };
 
+        this.obra.capitulos = this.mergeCapitulosPorNumero(this.obra.capitulos || []);
+
         this.selectedCategories = this.getCategoriasDesdeObra(this.obra);
       },
       error: (err) => {
@@ -304,7 +314,6 @@ export class ObraAdminComponent implements OnInit {
       return;
     }
 
-    this.obra.idioma = this.normalizeIdioma(this.obra.idioma);
     this.obra.tipoEntrega = this.normalizeTipoObra(this.obra.tipoEntrega);
 
     this.guardandoTodo = true;
@@ -318,7 +327,7 @@ export class ObraAdminComponent implements OnInit {
       descripcion: this.obra.descripcion || '',
       categorias: this.selectedCategories,
       genero,
-      idioma: this.obra.idioma || 'GLOBAL',
+      idioma: this.normalizeIdioma(this.obra.idioma || this.obra.idiomaPrincipal),
       tipoEntrega: this.obra.tipoEntrega || 'manga'
     };
 
@@ -375,58 +384,63 @@ export class ObraAdminComponent implements OnInit {
       }
 
       for (const capitulo of this.obra.capitulos) {
-        const chapterRes = await firstValueFrom(this.http.post<GenericResponse>(
-          this.actualizarCapituloUrl,
-          {
-            capitulo_id: capitulo.id,
-            titulo: capitulo.titulo || '',
-            descripcion: capitulo.descripcion || ''
-          },
-          {
-            withCredentials: true,
-            headers: this.authService.csrfHeaders()
-          }
-        ));
-
-        if (!chapterRes.success) {
-          this.guardandoTodo = false;
-          this.mensajeObra = chapterRes.error || this.translationService.getTranslation('No se pudo actualizar el capítulo');
-          return;
-        }
-
-        const paginasAEliminar = this.paginasPendientesEliminar[capitulo.id] || [];
-
-        for (const pagina of paginasAEliminar) {
-          const deleteRes = await firstValueFrom(this.http.post<PaginasResponse>(
-            this.eliminarPaginaUrl,
-            { pagina_id: pagina.id },
+        for (const version of this.getVersionesCapitulo(capitulo)) {
+          const chapterRes = await firstValueFrom(this.http.post<GenericResponse>(
+            this.actualizarCapituloUrl,
+            {
+              capitulo_id: capitulo.id,
+              capitulo_version_id: version.id || null,
+              idioma: version.idioma || 'GLOBAL',
+              titulo: version.titulo || '',
+              descripcion: version.descripcion || ''
+            },
             {
               withCredentials: true,
               headers: this.authService.csrfHeaders()
             }
           ));
 
-          if (!deleteRes.success) {
+          if (!chapterRes.success) {
             this.guardandoTodo = false;
-            this.mensajeObra = deleteRes.error || this.translationService.getTranslation('No se pudo eliminar la página');
+            this.mensajeObra = chapterRes.error || this.translationService.getTranslation('No se pudo actualizar el capítulo');
             return;
           }
-        }
 
-        const files = this.selectedChapterFiles[capitulo.id] || [];
+          const versionKey = this.getVersionKey(capitulo.id, version);
+          const paginasAEliminar = this.paginasPendientesEliminar[versionKey] || [];
 
-        if (files.length > 0) {
-          const uploadRes = await this.subirPaginasPendientes(capitulo.id, files);
+          for (const pagina of paginasAEliminar) {
+            const deleteRes = await firstValueFrom(this.http.post<PaginasResponse>(
+              this.eliminarPaginaUrl,
+              { pagina_id: pagina.id },
+              {
+                withCredentials: true,
+                headers: this.authService.csrfHeaders()
+              }
+            ));
 
-          if (!uploadRes.success) {
-            this.guardandoTodo = false;
-            this.mensajeObra = uploadRes.error || this.translationService.getTranslation('No se pudieron agregar las páginas');
-            return;
+            if (!deleteRes.success) {
+              this.guardandoTodo = false;
+              this.mensajeObra = deleteRes.error || this.translationService.getTranslation('No se pudo eliminar la página');
+              return;
+            }
           }
-        }
 
-        this.pageUploadMessages[capitulo.id] = '';
-        this.capituloMensajes[capitulo.id] = '';
+          const files = this.selectedChapterFiles[versionKey] || [];
+
+          if (files.length > 0) {
+            const uploadRes = await this.subirPaginasPendientes(capitulo.id, version.id, files);
+
+            if (!uploadRes.success) {
+              this.guardandoTodo = false;
+              this.mensajeObra = uploadRes.error || this.translationService.getTranslation('No se pudieron agregar las páginas');
+              return;
+            }
+          }
+
+          this.pageUploadMessages[versionKey] = '';
+          this.capituloMensajes[versionKey] = '';
+        }
       }
 
       this.paginasPendientesEliminar = {};
@@ -499,19 +513,23 @@ export class ObraAdminComponent implements OnInit {
     this.mensajeObra = '';
   }
 
-  getSelectedChapterFilesTotalSize(capituloId: number): number {
-    const files = this.selectedChapterFiles[capituloId] || [];
+  getSelectedChapterFilesTotalSize(versionKey: string): number {
+    const files = this.selectedChapterFiles[versionKey] || [];
     return files.reduce((total, file) => total + file.size, 0);
   }
 
-  onChapterPagesSelected(files: File[], capitulo: AdminCapitulo): void {
+  onChapterPagesSelected(event: { version: AdminCapituloVersion; files: File[] }, capitulo: AdminCapitulo): void {
+    const version = event.version;
+    const files = event.files;
+
     if (files.length === 0) {
       return;
     }
 
-    const actuales = this.selectedChapterFiles[capitulo.id] || [];
+    const versionKey = this.getVersionKey(capitulo.id, version);
+    const actuales = this.selectedChapterFiles[versionKey] || [];
 
-    let totalActual = this.getSelectedChapterFilesTotalSize(capitulo.id);
+    let totalActual = this.getSelectedChapterFilesTotalSize(versionKey);
     const validos: File[] = [];
     let omitidos = 0;
 
@@ -530,23 +548,34 @@ export class ObraAdminComponent implements OnInit {
       totalActual += file.size;
     }
 
-    this.selectedChapterFiles[capitulo.id] = [
-      ...actuales,
-      ...validos
-    ];
+    this.selectedChapterFiles = {
+      ...this.selectedChapterFiles,
+      [versionKey]: [
+        ...actuales,
+        ...validos
+      ]
+    };
 
-    this.pageUploadMessages[capitulo.id] = omitidos > 0
+    this.pageUploadMessages[versionKey] = omitidos > 0
       ? this.translationService.getTranslation('Algunas páginas no se agregaron por límite de tamaño')
       : '';
   }
 
-  removeSelectedChapterFile(capituloId: number, index: number): void {
-    const files = this.selectedChapterFiles[capituloId] || [];
-    files.splice(index, 1);
-    this.selectedChapterFiles[capituloId] = [...files];
+  removeSelectedChapterFile(event: { version: AdminCapituloVersion; index: number }, capituloId: number): void {
+    const versionKey = this.getVersionKey(capituloId, event.version);
+    const files = this.selectedChapterFiles[versionKey] || [];
+
+    files.splice(event.index, 1);
+    this.selectedChapterFiles = {
+      ...this.selectedChapterFiles,
+      [versionKey]: [...files]
+    };
   }
 
-  eliminarPagina(capitulo: AdminCapitulo, pagina: AdminPagina): void {
+  eliminarPagina(capitulo: AdminCapitulo, event: { version: AdminCapituloVersion; pagina: AdminPagina }): void {
+    const version = event.version;
+    const pagina = event.pagina;
+
     const confirmar = confirm(
       `${this.translationService.getTranslation('Eliminar')} ${this.translationService.getTranslation('Página')} ${pagina.numeroPagina}?`
     );
@@ -555,12 +584,74 @@ export class ObraAdminComponent implements OnInit {
       return;
     }
 
-    capitulo.paginas = capitulo.paginas.filter((item) => item.id !== pagina.id);
+    version.paginas = version.paginas.filter((item) => item.id !== pagina.id);
 
-    const pendientes = this.paginasPendientesEliminar[capitulo.id] || [];
-    this.paginasPendientesEliminar[capitulo.id] = [...pendientes, pagina];
+    const versionKey = this.getVersionKey(capitulo.id, version);
+    const pendientes = this.paginasPendientesEliminar[versionKey] || [];
+    this.paginasPendientesEliminar[versionKey] = [...pendientes, pagina];
 
-    this.pageUploadMessages[capitulo.id] = this.translationService.getTranslation('La página se eliminará al guardar todo');
+    this.pageUploadMessages[versionKey] = this.translationService.getTranslation('La página se eliminará al guardar todo');
+  }
+
+  eliminarCapituloIdioma(capitulo: AdminCapitulo, version: AdminCapituloVersion): void {
+    if (!this.obra) {
+      return;
+    }
+
+    if ((version.id || 0) <= 0) {
+      this.mensajeObra = this.translationService.getTranslation('No se puede eliminar un capítulo sin versión guardada');
+      return;
+    }
+
+    const idioma = this.normalizeIdioma(version.idioma || 'GLOBAL');
+    const confirmacion = confirm(
+      `${this.translationService.getTranslation('Esta acción eliminará solo el capítulo en el idioma seleccionado')}: ${idioma}`
+    );
+
+    if (!confirmacion) {
+      return;
+    }
+
+    this.mensajeObra = '';
+
+    this.ensureCsrfAndRun(() => {
+      this.http.post<EliminarCapituloIdiomaResponse>(
+        this.eliminarCapituloIdiomaUrl,
+        {
+          capitulo_id: capitulo.id,
+          capitulo_version_id: version.id
+        },
+        {
+          withCredentials: true,
+          headers: this.authService.csrfHeaders()
+        }
+      ).subscribe({
+        next: (res) => {
+          if (!res.success) {
+            this.mensajeObra =
+              res.error ||
+              this.translationService.getTranslation('No se pudo eliminar el capítulo en este idioma');
+            return;
+          }
+
+          this.actualizarCapitulosTrasEliminarVersion(capitulo.id, version.id);
+
+          this.mensajeObra =
+            res.mensaje ||
+            this.translationService.getTranslation('Capítulo eliminado en el idioma seleccionado');
+        },
+        error: (err) => {
+          this.mensajeObra = this.getFriendlyError(
+            err,
+            this.translationService.getTranslation('Error al eliminar el capítulo en este idioma')
+          );
+
+          console.error(err);
+        }
+      });
+    }, () => {
+      this.mensajeObra = this.translationService.getTranslation('No se pudo preparar la acción');
+    });
   }
 
   eliminarObra(): void {
@@ -730,10 +821,18 @@ export class ObraAdminComponent implements OnInit {
     ));
   }
 
-  private subirPaginasPendientes(capituloId: number, files: File[]): Promise<PaginasResponse> {
+  private subirPaginasPendientes(
+    capituloId: number,
+    capituloVersionId: number,
+    files: File[]
+  ): Promise<PaginasResponse> {
     const formData = new FormData();
 
     formData.append('capitulo_id', String(capituloId));
+
+    if (capituloVersionId > 0) {
+      formData.append('capitulo_version_id', String(capituloVersionId));
+    }
 
     files.forEach((file) => {
       formData.append('paginas[]', file);
@@ -771,5 +870,150 @@ export class ObraAdminComponent implements OnInit {
     ];
 
     return tiposPermitidos.includes(file.type) && file.size <= maxSize;
+  }
+
+  private getVersionesCapitulo(capitulo: AdminCapitulo): AdminCapituloVersion[] {
+    if (Array.isArray(capitulo.versiones) && capitulo.versiones.length > 0) {
+      return capitulo.versiones;
+    }
+
+    return [{
+      id: capitulo.versionId || 0,
+      idioma: capitulo.idioma || 'GLOBAL',
+      titulo: capitulo.titulo,
+      descripcion: capitulo.descripcion,
+      creadoEn: capitulo.creadoEn,
+      paginas: capitulo.paginas || []
+    }];
+  }
+
+  private mergeCapitulosPorNumero(capitulos: AdminCapitulo[]): AdminCapitulo[] {
+    const agrupados = new Map<number, AdminCapitulo>();
+
+    for (const capitulo of capitulos) {
+      const numero = Number(capitulo.numeroCapitulo || 0);
+      const versionesActuales = this.getVersionesCapitulo(capitulo).map((version) => ({
+        ...version,
+        idioma: this.normalizeIdioma(version.idioma)
+      }));
+
+      const existente = agrupados.get(numero);
+
+      if (!existente) {
+        agrupados.set(numero, {
+          ...capitulo,
+          versiones: [...versionesActuales]
+        });
+
+        continue;
+      }
+
+      const versiones = [...(existente.versiones || [])];
+
+      for (const version of versionesActuales) {
+        const index = versiones.findIndex(item => this.normalizeIdioma(item.idioma) === version.idioma);
+
+        if (index === -1) {
+          versiones.push(version);
+          continue;
+        }
+
+        const actual = versiones[index];
+
+        if ((actual.id || 0) <= 0 && (version.id || 0) > 0) {
+          versiones[index] = version;
+        }
+      }
+
+      existente.versiones = versiones;
+    }
+
+    return Array.from(agrupados.values())
+      .map((capitulo) => {
+        const versiones = (capitulo.versiones || []).sort((a, b) => {
+          return this.normalizeIdioma(a.idioma).localeCompare(this.normalizeIdioma(b.idioma));
+        });
+
+        const idiomaPreferido = this.normalizeIdioma(this.obra?.idiomaPrincipal || this.obra?.idioma || capitulo.idioma || 'GLOBAL');
+        const principal = versiones.find(version => this.normalizeIdioma(version.idioma) === idiomaPreferido) || versiones[0];
+
+        if (!principal) {
+          return capitulo;
+        }
+
+        return {
+          ...capitulo,
+          idioma: principal.idioma,
+          versionId: principal.id,
+          titulo: principal.titulo,
+          descripcion: principal.descripcion,
+          creadoEn: principal.creadoEn || capitulo.creadoEn,
+          paginas: principal.paginas,
+          versiones
+        };
+      })
+      .sort((a, b) => a.numeroCapitulo - b.numeroCapitulo);
+  }
+
+  private getVersionKey(capituloId: number, version: AdminCapituloVersion): string {
+    const versionId = Number(version.id || 0);
+
+    if (versionId > 0) {
+      return `v_${versionId}`;
+    }
+
+    const idioma = String(version.idioma || 'GLOBAL').trim().toUpperCase();
+    return `legacy_${capituloId}_${idioma}`;
+  }
+
+  private actualizarCapitulosTrasEliminarVersion(capituloId: number, capituloVersionId: number): void {
+    if (!this.obra) {
+      return;
+    }
+
+    const capitulosActualizados: AdminCapitulo[] = [];
+
+    for (const capitulo of this.obra.capitulos) {
+      if (capitulo.id !== capituloId) {
+        capitulosActualizados.push(capitulo);
+        continue;
+      }
+
+      const versiones = this.getVersionesCapitulo(capitulo)
+        .filter(version => (version.id || 0) !== capituloVersionId);
+
+      const removedVersion = this.getVersionesCapitulo(capitulo)
+        .find(version => (version.id || 0) === capituloVersionId);
+
+      if (removedVersion) {
+        const removedKey = this.getVersionKey(capitulo.id, removedVersion);
+        delete this.selectedChapterFiles[removedKey];
+        delete this.pageUploadMessages[removedKey];
+        delete this.capituloMensajes[removedKey];
+        delete this.paginasPendientesEliminar[removedKey];
+      }
+
+      if (versiones.length === 0) {
+        continue;
+      }
+
+      const principal = versiones[0];
+
+      capitulosActualizados.push({
+        ...capitulo,
+        versionId: principal.id,
+        idioma: principal.idioma,
+        titulo: principal.titulo,
+        descripcion: principal.descripcion,
+        creadoEn: principal.creadoEn,
+        paginas: principal.paginas,
+        versiones
+      });
+    }
+
+    this.obra = {
+      ...this.obra,
+      capitulos: capitulosActualizados
+    };
   }
 }

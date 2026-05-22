@@ -1,71 +1,211 @@
 <div class="chapter-uploader">
   <div class="uploader-card">
-    <h1>Subir nuevo capítulo</h1>
+    <header class="chapter-header">
+      <div>
+        <span class="eyebrow">Minus Creators</span>
 
-    <label>
-      Número de capítulo
-      <input
-        type="number"
-        [(ngModel)]="numeroCapitulo"
-        placeholder="Déjalo vacío para usar el siguiente"
-      />
-    </label>
+        <h1>
+          {{ translationService.getTranslation('Subir nuevo capítulo') }}
+        </h1>
 
-    <label>
-      Título del capítulo
-      <input
-        type="text"
-        [(ngModel)]="tituloCapitulo"
-        placeholder="Ej: Capítulo 2"
-      />
-    </label>
-
-    <label>
-      Descripción
-      <textarea
-        [(ngModel)]="descripcionCapitulo"
-        placeholder="Descripción opcional"
-      ></textarea>
-    </label>
-
-    <label class="file-zone">
-      Agregar páginas
-      <input
-        type="file"
-        #fileInputPages
-        multiple
-        accept="image/jpeg, image/png, image/webp"
-        (change)="onFilesSelectedPages($event)"
-      />
-    </label>
-
-    <div *ngIf="selectedPages.length > 0" class="files-container">
-      <h3>Páginas seleccionadas</h3>
-
-      <div
-        *ngFor="let file of selectedPages; let index = index"
-        class="file-item"
-      >
-        <span>
-          Página {{ index + 1 }} - {{ file.name }}
-        </span>
-
-        <span>
-          {{ formatSize(file.size) }}
-        </span>
-
-        <button type="button" (click)="removePage(index)">
-          Quitar
-        </button>
+        <p>
+          {{ translationService.getTranslation('Agrega una o más versiones por idioma para este capítulo.') }}
+        </p>
       </div>
+
+      <button
+        type="button"
+        class="add-language-btn"
+        (click)="agregarVersionIdioma()"
+        [disabled]="cargando"
+      >
+        <span>＋</span>
+        {{ translationService.getTranslation('Agregar idioma') }}
+      </button>
+    </header>
+
+    <div class="auto-number-note">
+      <strong>
+        {{ translationService.getTranslation('Numeración automática por idioma') }}
+      </strong>
+
+      <p>
+        {{ translationService.getTranslation('El número del capítulo se asignará según el siguiente capítulo disponible para cada idioma.') }}
+      </p>
+    </div>
+
+    <section class="language-versions">
+      <article
+        class="language-version-card"
+        *ngFor="let version of versiones; let versionIndex = index; trackBy: trackByVersionUid"
+      >
+        <div class="version-header">
+          <div>
+            <span class="version-kicker">
+              {{ translationService.getTranslation('Versión de idioma') }}
+            </span>
+
+            <h2>
+              {{ getIdiomaLabel(version.idioma) }}
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            class="remove-version-btn"
+            (click)="eliminarVersionIdioma(version)"
+            [disabled]="versiones.length <= 1 || cargando"
+          >
+            {{ translationService.getTranslation('Eliminar') }}
+          </button>
+        </div>
+
+        <div class="version-grid">
+          <label>
+            <span>
+              {{ translationService.getTranslation('Idioma') }}
+            </span>
+
+            <select
+              [(ngModel)]="version.idioma"
+              (ngModelChange)="onIdiomaChange(version)"
+              [disabled]="cargando"
+            >
+              <option
+                *ngFor="let idioma of idiomas; trackBy: trackByIdiomaValue"
+                [value]="idioma.value"
+                [disabled]="isIdiomaUsadoPorOtraVersion(idioma.value, version)"
+              >
+                {{ idioma.label }}
+              </option>
+            </select>
+          </label>
+
+          <label>
+            <span>
+              {{ translationService.getTranslation('Título del capítulo') }}
+            </span>
+
+            <input
+              type="text"
+              [(ngModel)]="version.titulo"
+              [placeholder]="translationService.getTranslation('Ejemplo titulo capitulo')"
+              [disabled]="cargando"
+            />
+          </label>
+
+          <label class="full">
+            <span>
+              {{ translationService.getTranslation('Descripción') }}
+            </span>
+
+            <textarea
+              [(ngModel)]="version.descripcion"
+              [placeholder]="translationService.getTranslation('Descripción opcional')"
+              [disabled]="cargando"
+            ></textarea>
+          </label>
+        </div>
+
+        <label
+          class="file-zone"
+          [class.dragover]="version.isDragging"
+          (dragover)="onDragOverVersion($event, version)"
+          (dragleave)="onDragLeaveVersion($event, version)"
+          (drop)="onDropVersion($event, version)"
+        >
+          <div class="file-zone-inner">
+            <span class="file-icon">🖼️</span>
+
+            <strong>
+              {{ translationService.getTranslation('Agregar páginas') }}
+            </strong>
+
+            <small>
+              JPG, PNG, WEBP · Max {{ formatSize(maxPageFileSize) }} c/u
+            </small>
+
+            <small>
+              {{ translationService.getTranslation('Haz clic para seleccionar varias imágenes') }}
+            </small>
+          </div>
+
+          <input
+            type="file"
+            multiple
+            accept="image/jpeg, image/png, image/webp"
+            (change)="onFilesSelectedVersion($event, version)"
+            [disabled]="cargando"
+          />
+        </label>
+
+        <div
+          *ngIf="version.pages.length > 0"
+          class="files-container"
+        >
+          <div class="files-header">
+            <h3>
+              {{ translationService.getTranslation('Páginas seleccionadas') }}
+            </h3>
+
+            <span>
+              {{ version.pages.length }} · {{ formatSize(getVersionPagesTotalSize(version)) }}
+            </span>
+          </div>
+
+          <div
+            *ngFor="let file of version.pages; let index = index; trackBy: trackByFileName"
+            class="file-item"
+          >
+            <span>
+              {{ translationService.getTranslation('Página') }} {{ index + 1 }} - {{ file.name }}
+            </span>
+
+            <span>
+              {{ formatSize(file.size) }}
+            </span>
+
+            <button
+              type="button"
+              (click)="removePage(version, index)"
+              [disabled]="cargando"
+            >
+              {{ translationService.getTranslation('Quitar') }}
+            </button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <div class="upload-summary" *ngIf="versiones.length > 0">
+      <span>
+        {{ translationService.getTranslation('Idiomas') }}: {{ versiones.length }}
+      </span>
+
+      <span>
+        {{ translationService.getTranslation('Páginas') }}: {{ totalPagesCount }}
+      </span>
+
+      <span>
+        {{ translationService.getTranslation('Peso total seleccionado') }}: {{ formatSize(totalPagesSize) }}
+      </span>
     </div>
 
     <p *ngIf="respuesta" class="respuesta">
       {{ respuesta }}
     </p>
 
-    <button type="button" class="submit-btn" (click)="subirCapitulo()" [disabled]="cargando">
-      {{ cargando ? 'Subiendo...' : 'Subir capítulo' }}
+    <button
+      type="button"
+      class="submit-btn"
+      (click)="subirCapitulo()"
+      [disabled]="cargando"
+    >
+      {{
+        cargando
+          ? translationService.getTranslation('Subiendo') + '...'
+          : translationService.getTranslation('Subir capítulo')
+      }}
     </button>
   </div>
 </div>

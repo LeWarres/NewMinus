@@ -3,6 +3,7 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { combineLatest } from 'rxjs';
 
 import { TranslationService } from '../../services/translation.service';
 import { AuthService, CurrentUser } from '../../services/auth.service';
@@ -20,9 +21,12 @@ import {
 
 interface Capitulo {
   id: number;
+  capituloVersionId?: number;
   numeroCapitulo: number;
   titulo: string;
   descripcion?: string;
+  idioma?: string;
+  numVisitas?: number;
   creadoEn: string;
 }
 
@@ -33,6 +37,10 @@ interface ObraPagina {
   creadoEn: string;
 }
 
+interface IdiomaDisponibleCapitulo {
+  idioma: string;
+}
+
 interface ObraDetalle {
   id: number;
   usuarioId: number | null;
@@ -40,6 +48,7 @@ interface ObraDetalle {
   descripcion?: string;
   genero?: string;
   idioma?: string;
+  idiomaActual?: string;
   tipoEntrega?: string;
   serieConcluida?: boolean;
   portada?: string;
@@ -53,6 +62,7 @@ interface ObraDetalle {
   totalSuscriptores?: number;
   estaSuscrito?: boolean;
 
+  idiomasDisponiblesCapitulo?: IdiomaDisponibleCapitulo[];
   capitulos: Capitulo[];
   capituloActual: Capitulo;
   paginas: ObraPagina[];
@@ -71,14 +81,14 @@ type FetchPriorityMode = 'high' | 'low' | 'auto';
 @Component({
   selector: 'app-reader',
   standalone: true,
- imports: [
-  CommonModule,
-  FormsModule,
-  RouterModule,
-  SubscribeButtonComponent,
-  CommentsSectionComponent,
-  ReportarContenidoComponent
-],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    SubscribeButtonComponent,
+    CommentsSectionComponent,
+    ReportarContenidoComponent
+  ],
   templateUrl: './reader.component.html',
   styleUrl: './reader.component.css'
 })
@@ -98,6 +108,7 @@ export class ReaderComponent implements OnInit {
   error = '';
 
   selectedChapter = 1;
+  selectedLanguage = 'GLOBAL';
   isFavorite = false;
 
   readingMode: ReadingMode = 'strip';
@@ -106,26 +117,6 @@ export class ReaderComponent implements OnInit {
   scrollProgress = 0;
 
   reporteEnviando = false;
-
-get urlReporteActual(): string {
-  if (!this.obra) {
-    return '';
-  }
-
-  return `${this.siteUrl}/obra/${this.obra.id}/capitulo/${this.obra.capituloActual.numeroCapitulo}`;
-}
-
-get contextoReporteCapitulo(): string {
-  if (!this.obra) {
-    return '';
-  }
-
-  return `Capítulo ${this.obra.capituloActual.numeroCapitulo}: ${this.obra.capituloActual.titulo}`;
-}
-
-enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
-  console.log('Reporte listo para enviar:', payload);
-}
 
   constructor(
     private route: ActivatedRoute,
@@ -138,16 +129,20 @@ enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
 
-    this.route.paramMap.subscribe(params => {
+    combineLatest([
+      this.route.paramMap,
+      this.route.queryParamMap
+    ]).subscribe(([params, queryParams]) => {
       const id = params.get('id');
       const capitulo = params.get('capitulo');
+      const idioma = queryParams.get('idioma') || queryParams.get('lang') || undefined;
 
       if (!id) {
         this.error = this.translationService.getTranslation('No se encontró la obra');
         return;
       }
 
-      this.cargarObra(id, capitulo || undefined);
+      this.cargarObra(id, capitulo || undefined, idioma);
     });
   }
 
@@ -248,7 +243,27 @@ enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
     );
   }
 
-  cargarObra(id: string, capitulo?: string): void {
+  get idiomasDisponiblesCapitulo(): IdiomaDisponibleCapitulo[] {
+    return this.obra?.idiomasDisponiblesCapitulo || [];
+  }
+
+  get urlReporteActual(): string {
+    if (!this.obra) {
+      return '';
+    }
+
+    return `${this.siteUrl}/obra/${this.obra.id}/capitulo/${this.obra.capituloActual.numeroCapitulo}?idioma=${this.selectedLanguage}`;
+  }
+
+  get contextoReporteCapitulo(): string {
+    if (!this.obra) {
+      return '';
+    }
+
+    return `Capítulo ${this.obra.capituloActual.numeroCapitulo}: ${this.obra.capituloActual.titulo} (${this.selectedLanguage})`;
+  }
+
+  cargarObra(id: string, capitulo?: string, idioma?: string): void {
     this.cargando = true;
     this.error = '';
 
@@ -256,11 +271,18 @@ enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
     this.currentPageIndex = 0;
     this.scrollProgress = 0;
 
-    let url = `${this.apiUrl}?id=${id}`;
+    const params = new URLSearchParams();
+    params.set('id', id);
 
     if (capitulo) {
-      url += `&capitulo=${capitulo}`;
+      params.set('capitulo', capitulo);
     }
+
+    if (idioma) {
+      params.set('idioma', this.normalizarIdiomaLectura(idioma));
+    }
+
+    const url = `${this.apiUrl}?${params.toString()}`;
 
     this.http.get<ObraDetalleResponse>(
       url,
@@ -281,6 +303,9 @@ enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
         this.obra = res.obra;
         this.currentUser = this.authService.getCurrentUser();
         this.selectedChapter = this.obra.capituloActual.numeroCapitulo;
+        this.selectedLanguage = this.normalizarIdiomaLectura(
+          this.obra.idiomaActual || this.obra.capituloActual.idioma || this.obra.idioma || idioma || 'GLOBAL'
+        );
 
         this.images = this.obra.paginas.map((pagina) => {
           return this.imageUrl(pagina.imagen);
@@ -289,7 +314,9 @@ enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
         this.registrarVista(
           this.obra.id,
           this.obra.capituloActual.id,
-          this.obra.capituloActual.numeroCapitulo
+          this.obra.capituloActual.numeroCapitulo,
+          this.obra.capituloActual.capituloVersionId,
+          this.selectedLanguage
         );
 
         window.scrollTo({
@@ -316,14 +343,18 @@ enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
   registrarVista(
     obraId: number,
     capituloId: number,
-    numeroCapitulo: number
+    numeroCapitulo: number,
+    capituloVersionId?: number,
+    idioma?: string
   ): void {
     this.http.post(
       this.registrarVistaUrl,
       {
         obra_id: obraId,
         capitulo_id: capituloId,
-        numero_capitulo: numeroCapitulo
+        capitulo_version_id: capituloVersionId || null,
+        numero_capitulo: numeroCapitulo,
+        idioma: idioma || this.selectedLanguage
       },
       {
         withCredentials: true
@@ -343,6 +374,29 @@ enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
 
     this.obra.estaSuscrito = event.isSubscribed;
     this.obra.totalSuscriptores = event.totalSubscribers;
+  }
+
+  onLanguageChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const idioma = this.normalizarIdiomaLectura(select.value);
+
+    if (!this.obra) {
+      return;
+    }
+
+    this.router.navigate(
+      [
+        '/obra',
+        this.obra.id,
+        'capitulo',
+        this.obra.capituloActual.numeroCapitulo
+      ],
+      {
+        queryParams: {
+          idioma
+        }
+      }
+    );
   }
 
   setReadingMode(mode: ReadingMode): void {
@@ -396,12 +450,19 @@ enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
       return;
     }
 
-    this.router.navigate([
-      '/obra',
-      this.obra.id,
-      'capitulo',
-      numeroCapitulo
-    ]);
+    this.router.navigate(
+      [
+        '/obra',
+        this.obra.id,
+        'capitulo',
+        numeroCapitulo
+      ],
+      {
+        queryParams: {
+          idioma: this.selectedLanguage
+        }
+      }
+    );
   }
 
   previousChapter(): void {
@@ -419,12 +480,19 @@ enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
 
     const previousChapter = this.obra.capitulos[index - 1];
 
-    this.router.navigate([
-      '/obra',
-      this.obra.id,
-      'capitulo',
-      previousChapter.numeroCapitulo
-    ]);
+    this.router.navigate(
+      [
+        '/obra',
+        this.obra.id,
+        'capitulo',
+        previousChapter.numeroCapitulo
+      ],
+      {
+        queryParams: {
+          idioma: this.selectedLanguage
+        }
+      }
+    );
   }
 
   nextChapter(): void {
@@ -442,12 +510,19 @@ enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
 
     const nextChapter = this.obra.capitulos[index + 1];
 
-    this.router.navigate([
-      '/obra',
-      this.obra.id,
-      'capitulo',
-      nextChapter.numeroCapitulo
-    ]);
+    this.router.navigate(
+      [
+        '/obra',
+        this.obra.id,
+        'capitulo',
+        nextChapter.numeroCapitulo
+      ],
+      {
+        queryParams: {
+          idioma: this.selectedLanguage
+        }
+      }
+    );
   }
 
   toggleDoublePageSwap(): void {
@@ -475,7 +550,14 @@ enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
       return;
     }
 
-    this.router.navigate(['/obra', this.obra.id]);
+    this.router.navigate(
+      ['/obra', this.obra.id],
+      {
+        queryParams: {
+          idioma: this.selectedLanguage
+        }
+      }
+    );
   }
 
   imageUrl(path?: string | null, fallback: string = '/obras/paleta/portada.png'): string {
@@ -490,6 +572,34 @@ enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
     }
 
     return `${this.siteUrl}/${finalPath}`;
+  }
+
+  getIdiomaLabel(value?: string): string {
+    const normalized = this.normalizarIdiomaLectura(value || 'GLOBAL');
+
+    const labels: Record<string, string> = {
+      GLOBAL: 'Global',
+      ES: 'Español / Spanish',
+      EN: 'English',
+      JA: '日本語 / Japanese',
+      KO: '한국어 / Korean',
+      ZH: '中文 / Chinese',
+      FR: 'Français / French',
+      DE: 'Deutsch / German',
+      PT: 'Português / Portuguese',
+      IT: 'Italiano / Italian',
+      RU: 'Русский / Russian',
+      AR: 'العربية / Arabic',
+      HI: 'हिन्दी / Hindi',
+      ID: 'Bahasa Indonesia',
+      VI: 'Tiếng Việt / Vietnamese',
+      TH: 'ไทย / Thai',
+      TR: 'Türkçe / Turkish',
+      PL: 'Polski / Polish',
+      NL: 'Nederlands / Dutch'
+    };
+
+    return labels[normalized] || normalized;
   }
 
   getReaderImageLoading(index: number): ImageLoadingMode {
@@ -510,6 +620,14 @@ enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
 
   trackByChapter(index: number, chapter: Capitulo): number {
     return chapter.id || chapter.numeroCapitulo || index;
+  }
+
+  trackByIdioma(index: number, idioma: IdiomaDisponibleCapitulo): string {
+    return idioma.idioma || String(index);
+  }
+
+  enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
+    console.log('Reporte listo para enviar:', payload);
   }
 
   onPageImageError(index: number): void {
@@ -547,5 +665,35 @@ enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
       100,
       Math.max(0, Math.round((scrollTop / docHeight) * 100))
     );
+  }
+
+  private normalizarIdiomaLectura(value: string): string {
+    const normalized = String(value || 'GLOBAL').trim().toUpperCase();
+
+    const allowed = [
+      'GLOBAL',
+      'ES',
+      'EN',
+      'JA',
+      'KO',
+      'ZH',
+      'FR',
+      'DE',
+      'PT',
+      'IT',
+      'RU',
+      'AR',
+      'HI',
+      'ID',
+      'VI',
+      'TH',
+      'TR',
+      'PL',
+      'NL'
+    ];
+
+    return allowed.includes(normalized)
+      ? normalized
+      : 'GLOBAL';
   }
 }

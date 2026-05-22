@@ -7,9 +7,9 @@
       [src]="coverUrl"
       [alt]="item.tituloObra"
       loading="lazy"
+      decoding="async"
     />
 
-    <!-- NUEVO: badge superior izquierdo -->
     <span
       class="work-type-badge"
       *ngIf="workTypeLabel"
@@ -37,14 +37,20 @@
       </div>
 
       <span
-        class="language-badge"
-        [attr.title]="languageLabel"
+        class="language-badge chapter-language-badge"
+        [attr.title]="languageBadgeTitle"
+        [attr.aria-label]="languageBadgeTitle"
       >
         <img
           [src]="languageFlagUrl"
           [alt]="languageLabel"
           loading="lazy"
+          decoding="async"
         />
+
+        <span class="language-code">
+          {{ languageCode }}
+        </span>
       </span>
     </div>
   </div>

@@ -436,7 +436,9 @@
   "Máximo 1000 caracteres": "Máximo 1000 caracteres",
       "El comentario no puede estar vacío": "El comentario no puede estar vacío",
   "Comentario guardado correctamente": "Comentario guardado correctamente",
-  "No se confirmaron imágenes insertadas": "No se confirmaron imágenes insertadas"
-
+  "No se confirmaron imágenes insertadas": "No se confirmaron imágenes insertadas",
+  "Numeración automática por idioma": "Numeración automática por idioma",
+  "El número del capítulo se asignará según el siguiente capítulo disponible para cada idioma.": "El número del capítulo se asignará según el siguiente capítulo disponible para cada idioma.",
+  "Idioma de lectura": "Idioma de lectura"
 
 }

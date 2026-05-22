@@ -330,7 +330,18 @@ export class CategoriasComponent implements OnInit {
     this.router.navigate(['/categorias']);
   }
 
-  abrirObra(obra: { id: number }): void {
+  abrirObra(obra: { id: number; idioma?: string }): void {
+    const idioma = this.getIdiomaParaAbrirObra(obra);
+
+    if (idioma) {
+      this.router.navigate(['/obra', obra.id], {
+        queryParams: {
+          idioma
+        }
+      });
+      return;
+    }
+
     this.router.navigate(['/obra', obra.id]);
   }
 
@@ -445,6 +456,21 @@ export class CategoriasComponent implements OnInit {
           : null
       }
     });
+  }
+
+
+  private getIdiomaParaAbrirObra(obra: { idioma?: string }): string {
+    const idiomaObra = String(obra.idioma || '').trim().toUpperCase();
+
+    if (this.idiomaObraSeleccionado !== 'todos' && this.idiomaObraSeleccionado !== 'preferidos') {
+      return this.idiomaObraSeleccionado.toUpperCase();
+    }
+
+    if (idiomaObra && idiomaObra !== 'TODOS') {
+      return idiomaObra;
+    }
+
+    return '';
   }
 
   private getIdiomasPreferidos(): string[] {

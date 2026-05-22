@@ -249,12 +249,17 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   abrirCapitulo(item: CapituloCardItem): void {
-    this.router.navigate([
-      '/obra',
-      item.obraId,
-      'capitulo',
-      item.numeroCapitulo
-    ]);
+    this.router.navigate(
+      [
+        '/obra',
+        item.obraId,
+        'capitulo',
+        item.numeroCapitulo
+      ],
+      {
+        queryParams: this.chapterQueryParams(item)
+      }
+    );
   }
 
   abrirPerfilObra(obra: { usuarioId: number | null }): void {
@@ -276,7 +281,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   discoverRandomStory(): void {
     type RandomItem =
       | { tipo: 'obra'; id: number }
-      | { tipo: 'capitulo'; obraId: number; numeroCapitulo: number };
+      | {
+          tipo: 'capitulo';
+          obraId: number;
+          numeroCapitulo: number;
+          idioma?: string;
+        };
 
     const disponibles: RandomItem[] = [
       ...this.obrasNuevas.map((obra): RandomItem => ({
@@ -287,7 +297,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       ...this.capitulosNuevos.map((item): RandomItem => ({
         tipo: 'capitulo',
         obraId: item.obraId,
-        numeroCapitulo: item.numeroCapitulo
+        numeroCapitulo: item.numeroCapitulo,
+        idioma: item.idioma
       }))
     ];
 
@@ -303,12 +314,19 @@ export class HomeComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.router.navigate([
-      '/obra',
-      elegido.obraId,
-      'capitulo',
-      elegido.numeroCapitulo
-    ]);
+    this.router.navigate(
+      [
+        '/obra',
+        elegido.obraId,
+        'capitulo',
+        elegido.numeroCapitulo
+      ],
+      {
+        queryParams: elegido.idioma
+          ? { idioma: elegido.idioma }
+          : {}
+      }
+    );
   }
 
   nextCarousel(id: string): void {
@@ -323,8 +341,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     return obra.id || index;
   }
 
-  trackByCapitulo(index: number, item: CapituloCardItem): number {
-    return item.capituloId || index;
+  trackByCapitulo(index: number, item: CapituloCardItem): number | string {
+    return item.capituloVersionId || item.capituloId || `${item.obraId}-${item.numeroCapitulo}-${item.idioma || 'GLOBAL'}-${index}`;
+  }
+
+  private chapterQueryParams(item: CapituloCardItem): Record<string, string> {
+    return item.idioma
+      ? { idioma: item.idioma }
+      : {};
   }
 
   private homeParams(): HttpParams {

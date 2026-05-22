@@ -7,6 +7,7 @@
       [src]="coverUrl"
       [alt]="obra.titulo"
       loading="lazy"
+      decoding="async"
     />
 
     <span
@@ -36,14 +37,24 @@
       </div>
 
       <span
-        class="language-badge"
-        [attr.title]="languageLabel"
+        class="language-badge obra-language-badge"
+        [class.multi-language]="hasMultipleLanguages"
+        [attr.title]="languageBadgeTitle"
+        [attr.aria-label]="languageBadgeTitle"
       >
         <img
           [src]="languageFlagUrl"
           [alt]="languageLabel"
           loading="lazy"
+          decoding="async"
         />
+
+        <span
+          class="language-extra-count"
+          *ngIf="languageExtraCount > 0"
+        >
+          +{{ languageExtraCount }}
+        </span>
       </span>
     </div>
   </div>

@@ -15,11 +15,30 @@ interface UploadResponse {
   capitulo_id?: number;
   usuario_id?: number;
   portada?: string;
+  versiones_guardadas?: number;
+  paginas_guardadas?: number;
 }
 
 interface SelectOption {
   value: string;
   label: string;
+}
+
+interface IdiomaVersionUpload {
+  id: string;
+  idioma: string;
+  paginas: File[];
+  isDragging: boolean;
+}
+
+interface VersionPayload {
+  key: string;
+  idioma: string;
+  titulo: string;
+  descripcion: string;
+  numeroCapitulo: number;
+  tituloCapitulo: string;
+  descripcionCapitulo: string;
 }
 
 @Component({
@@ -33,40 +52,14 @@ interface SelectOption {
   styleUrl: './uploader.component.css'
 })
 export class UploaderComponent {
-    // trackBy para categorías
-    trackByCategoriaValue(index: number, categoria: any): string {
-      return categoria.value;
-    }
-
-    // trackBy para categorías seleccionadas (pueden ser string)
-    trackBySelectedCategoria(index: number, categoria: any): any {
-      return typeof categoria === 'string' ? categoria : categoria.value;
-    }
-
-    // trackBy para idiomas
-    trackByIdiomaValue(index: number, idioma: any): string {
-      return idioma.value;
-    }
-
-    // trackBy para tipo de obra
-    trackByTipoObraValue(index: number, tipo: any): string {
-      return tipo.value;
-    }
-
-    // trackBy para archivos
-    trackByFileName(index: number, file: any): string {
-      return file.name;
-    }
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
-  @ViewChild('fileInputPages') fileInputPages!: ElementRef<HTMLInputElement>;
 
   apiUrl = 'https://minuscreators.com/api/upload.php';
 
   selectedFile: File | null = null;
-  selectedPages: File[] = [];
+  versionesIdioma: IdiomaVersionUpload[] = [];
 
   isDragging = false;
-  isDraggingPages = false;
 
   cargando = false;
   respuesta = '';
@@ -78,11 +71,15 @@ export class UploaderComponent {
 
   /*
     No hay límite por cantidad de páginas.
-    Este límite solo controla el peso total seleccionado antes de optimizar.
+    Este límite solo controla el peso total seleccionado antes de optimizar,
+    sumando todas las versiones de idioma.
   */
   maxTotalPagesSize = 300 * 1024 * 1024;
 
   selectedCategories: string[] = [];
+
+  private versionCounter = 0;
+  private versionPrincipalId = '';
 
   idiomas: SelectOption[] = [
     { value: 'GLOBAL', label: 'Global' },
@@ -167,22 +164,54 @@ export class UploaderComponent {
     this.formulario = this.fb.group({
       titulo: ['', Validators.required],
       descripcion: [''],
-      idioma: ['GLOBAL'],
       tipoEntrega: ['manga', Validators.required],
       aceptaAutoria: [false, Validators.requiredTrue]
     });
+
+    this.agregarVersionIdioma('ES');
+  }
+
+  get totalVersiones(): number {
+    return this.versionesIdioma.length;
   }
 
   get selectedPagesTotalSize(): number {
-    return this.selectedPages.reduce((total, file) => total + file.size, 0);
+    return this.versionesIdioma.reduce(
+      (total, version) => total + this.getVersionPagesTotalSize(version),
+      0
+    );
+  }
+
+  get canAddLanguageVersion(): boolean {
+    return this.versionesIdioma.length < this.idiomas.length;
+  }
+
+  trackByCategoriaValue(index: number, categoria: SelectOption): string {
+    return categoria.value;
+  }
+
+  trackBySelectedCategoria(index: number, categoria: string): string {
+    return categoria;
+  }
+
+  trackByIdiomaValue(index: number, idioma: SelectOption): string {
+    return idioma.value;
+  }
+
+  trackByTipoObraValue(index: number, tipo: SelectOption): string {
+    return tipo.value;
+  }
+
+  trackByVersionId(index: number, version: IdiomaVersionUpload): string {
+    return version.id;
+  }
+
+  trackByFileName(index: number, file: File): string {
+    return `${file.name}-${file.size}-${index}`;
   }
 
   triggerFileInput(): void {
     this.fileInput.nativeElement.click();
-  }
-
-  triggerFileInputPages(): void {
-    this.fileInputPages.nativeElement.click();
   }
 
   isCategorySelected(value: string): boolean {
@@ -217,6 +246,88 @@ export class UploaderComponent {
     return this.categorias.find(categoria => categoria.value === value)?.label || value;
   }
 
+  getIdiomaLabel(value: string): string {
+    return this.idiomas.find(idioma => idioma.value === value)?.label || value;
+  }
+
+  getAvailableLanguageOptions(version: IdiomaVersionUpload): SelectOption[] {
+    const usados = this.versionesIdioma
+      .filter(item => item.id !== version.id)
+      .map(item => item.idioma);
+
+    return this.idiomas.filter(idioma => {
+      return idioma.value === version.idioma || !usados.includes(idioma.value);
+    });
+  }
+
+  agregarVersionIdioma(idiomaPreferido?: string): void {
+    if (!this.canAddLanguageVersion && this.versionesIdioma.length > 0) {
+      this.respuesta = this.translationService.getTranslation('Ya agregaste todos los idiomas disponibles');
+      return;
+    }
+
+    const idioma = this.getPrimerIdiomaDisponible(idiomaPreferido);
+
+    if (!idioma) {
+      this.respuesta = this.translationService.getTranslation('Ya agregaste todos los idiomas disponibles');
+      return;
+    }
+
+    this.versionCounter++;
+
+    const nuevaVersion: IdiomaVersionUpload = {
+      id: `version_${Date.now()}_${this.versionCounter}`,
+      idioma,
+      paginas: [],
+      isDragging: false
+    };
+
+    if (!this.versionPrincipalId) {
+      this.versionPrincipalId = nuevaVersion.id;
+    }
+
+    this.versionesIdioma = [
+      nuevaVersion,
+      ...this.versionesIdioma
+    ];
+
+    this.respuesta = '';
+  }
+
+  eliminarVersionIdioma(versionId: string): void {
+    if (this.versionesIdioma.length <= 1) {
+      this.respuesta = this.translationService.getTranslation('Debe existir al menos una versión de idioma');
+      return;
+    }
+
+    this.versionesIdioma = this.versionesIdioma.filter(version => version.id !== versionId);
+
+    if (this.versionPrincipalId === versionId) {
+      this.versionPrincipalId = this.versionesIdioma[0]?.id || '';
+    }
+
+    this.respuesta = '';
+  }
+
+  onIdiomaVersionChange(version: IdiomaVersionUpload): void {
+    const duplicado = this.versionesIdioma.some(item => {
+      return item.id !== version.id && item.idioma === version.idioma;
+    });
+
+    if (!duplicado) {
+      this.respuesta = '';
+      return;
+    }
+
+    const idiomaDisponible = this.getPrimerIdiomaDisponible();
+
+    if (idiomaDisponible) {
+      version.idioma = idiomaDisponible;
+    }
+
+    this.respuesta = this.translationService.getTranslation('No puedes tener dos versiones del mismo idioma');
+  }
+
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
 
@@ -239,16 +350,14 @@ export class UploaderComponent {
     this.respuesta = '';
   }
 
-  onFilesSelectedPages(event: Event): void {
+  onFilesSelectedVersion(event: Event, version: IdiomaVersionUpload): void {
     const input = event.target as HTMLInputElement;
 
     if (!input.files || input.files.length === 0) {
       return;
     }
 
-    const files = Array.from(input.files);
-    this.agregarPaginas(files);
-
+    this.agregarPaginasAVersion(version, Array.from(input.files));
     input.value = '';
   }
 
@@ -284,29 +393,28 @@ export class UploaderComponent {
     this.respuesta = '';
   }
 
-  onDragOverPages(event: DragEvent): void {
+  onDragOverVersion(event: DragEvent, version: IdiomaVersionUpload): void {
     event.preventDefault();
-    this.isDraggingPages = true;
+    version.isDragging = true;
   }
 
-  onDragLeavePages(event: DragEvent): void {
+  onDragLeaveVersion(event: DragEvent, version: IdiomaVersionUpload): void {
     event.preventDefault();
-    this.isDraggingPages = false;
+    version.isDragging = false;
   }
 
-  onDropPages(event: DragEvent): void {
+  onDropVersion(event: DragEvent, version: IdiomaVersionUpload): void {
     event.preventDefault();
-    this.isDraggingPages = false;
+    version.isDragging = false;
 
     if (!event.dataTransfer || event.dataTransfer.files.length === 0) {
       return;
     }
 
-    const files = Array.from(event.dataTransfer.files);
-    this.agregarPaginas(files);
+    this.agregarPaginasAVersion(version, Array.from(event.dataTransfer.files));
   }
 
-  agregarPaginas(files: File[]): void {
+  agregarPaginasAVersion(version: IdiomaVersionUpload, files: File[]): void {
     let totalActual = this.selectedPagesTotalSize;
     const paginasValidas: File[] = [];
     let omitidos = 0;
@@ -326,10 +434,12 @@ export class UploaderComponent {
       totalActual += file.size;
     }
 
-    this.selectedPages = [
-      ...this.selectedPages,
+    version.paginas = [
+      ...version.paginas,
       ...paginasValidas
     ];
+
+    this.versionesIdioma = [...this.versionesIdioma];
 
     if (omitidos > 0) {
       this.respuesta =
@@ -351,15 +461,16 @@ export class UploaderComponent {
     }
   }
 
-  removePage(index: number, event?: Event): void {
+  removePageFromVersion(version: IdiomaVersionUpload, index: number, event?: Event): void {
     event?.preventDefault();
     event?.stopPropagation();
 
-    this.selectedPages.splice(index, 1);
+    version.paginas = version.paginas.filter((_, itemIndex) => itemIndex !== index);
+    this.versionesIdioma = [...this.versionesIdioma];
+  }
 
-    if (this.fileInputPages && this.selectedPages.length === 0) {
-      this.fileInputPages.nativeElement.value = '';
-    }
+  getVersionPagesTotalSize(version: IdiomaVersionUpload): number {
+    return version.paginas.reduce((total, file) => total + file.size, 0);
   }
 
   formatSize(bytes: number): string {
@@ -402,8 +513,22 @@ export class UploaderComponent {
       return;
     }
 
-    if (this.selectedPages.length === 0) {
-      this.respuesta = this.translationService.getTranslation('Debes agregar al menos una página');
+    if (this.versionesIdioma.length === 0) {
+      this.respuesta = this.translationService.getTranslation('Debes agregar al menos una versión de idioma');
+      return;
+    }
+
+    if (this.hasDuplicateLanguages()) {
+      this.respuesta = this.translationService.getTranslation('No puedes tener dos versiones del mismo idioma');
+      return;
+    }
+
+    const versionSinPaginas = this.versionesIdioma.find(version => version.paginas.length === 0);
+
+    if (versionSinPaginas) {
+      this.respuesta =
+        this.translationService.getTranslation('Debes agregar al menos una página para') +
+        ` ${this.getIdiomaLabel(versionSinPaginas.idioma)}`;
       return;
     }
 
@@ -421,21 +546,42 @@ export class UploaderComponent {
     }
 
     const valores = this.formulario.value;
+    const titulo = valores.titulo || '';
+    const descripcion = valores.descripcion || '';
+    const primeraVersion = this.getVersionPrincipal();
     const formData = new FormData();
 
-    formData.append('titulo', valores.titulo || '');
-    formData.append('descripcion', valores.descripcion || '');
+    formData.append('titulo', titulo);
+    formData.append('descripcion', descripcion);
 
     formData.append('categorias', JSON.stringify(this.selectedCategories));
     formData.append('genero', this.selectedCategories.join(','));
 
-    formData.append('idioma', valores.idioma || 'GLOBAL');
-    formData.append('tipoEntrega', valores.tipoEntrega || 'manga');
+    formData.append('idioma', primeraVersion.idioma);
+    formData.append('idiomaVersion', primeraVersion.idioma);
+    formData.append('idiomaPrincipal', primeraVersion.idioma);
+    formData.append('tituloVersion', titulo);
+    formData.append('descripcionVersion', descripcion);
 
+    formData.append('tipoEntrega', valores.tipoEntrega || 'manga');
     formData.append('portada', this.selectedFile);
 
-    this.selectedPages.forEach((file) => {
-      formData.append('paginas[]', file);
+    const versionesPayload: VersionPayload[] = this.versionesIdioma.map((version) => ({
+      key: version.id,
+      idioma: version.idioma,
+      titulo,
+      descripcion,
+      numeroCapitulo: 1,
+      tituloCapitulo: `${this.translationService.getTranslation('Capítulo')} 1`,
+      descripcionCapitulo: ''
+    }));
+
+    formData.append('versiones', JSON.stringify(versionesPayload));
+
+    this.versionesIdioma.forEach((version) => {
+      version.paginas.forEach((file) => {
+        formData.append(`paginas_${version.id}[]`, file);
+      });
     });
 
     this.cargando = true;
@@ -489,25 +635,7 @@ export class UploaderComponent {
           res.mensaje ||
           this.translationService.getTranslation('Obra guardada correctamente');
 
-        this.formulario.reset({
-          titulo: '',
-          descripcion: '',
-          idioma: 'GLOBAL',
-          tipoEntrega: 'manga',
-          aceptaAutoria: false
-        });
-
-        this.selectedCategories = [];
-        this.selectedFile = null;
-        this.selectedPages = [];
-
-        if (this.fileInput) {
-          this.fileInput.nativeElement.value = '';
-        }
-
-        if (this.fileInputPages) {
-          this.fileInputPages.nativeElement.value = '';
-        }
+        this.resetUploader();
 
         if (res.obra_id) {
           this.router.navigate(['/obra', res.obra_id]);
@@ -536,6 +664,51 @@ export class UploaderComponent {
         console.error(err);
       }
     });
+  }
+
+  private resetUploader(): void {
+    this.formulario.reset({
+      titulo: '',
+      descripcion: '',
+      tipoEntrega: 'manga',
+      aceptaAutoria: false
+    });
+
+    this.selectedCategories = [];
+    this.selectedFile = null;
+    this.versionCounter = 0;
+    this.versionPrincipalId = '';
+    this.versionesIdioma = [];
+    this.agregarVersionIdioma('ES');
+
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
+  }
+
+  private getVersionPrincipal(): IdiomaVersionUpload {
+    return (
+      this.versionesIdioma.find(version => version.id === this.versionPrincipalId) ||
+      this.versionesIdioma[0]
+    );
+  }
+
+  private getPrimerIdiomaDisponible(preferido?: string): string {
+    const usados = this.versionesIdioma.map(version => version.idioma);
+    const normalizado = String(preferido || '').trim().toUpperCase();
+
+    if (normalizado && !usados.includes(normalizado) && this.idiomas.some(idioma => idioma.value === normalizado)) {
+      return normalizado;
+    }
+
+    const idioma = this.idiomas.find(option => !usados.includes(option.value));
+
+    return idioma?.value || '';
+  }
+
+  private hasDuplicateLanguages(): boolean {
+    const idiomas = this.versionesIdioma.map(version => version.idioma);
+    return new Set(idiomas).size !== idiomas.length;
   }
 
   private esImagenValida(file: File, maxSize: number): boolean {

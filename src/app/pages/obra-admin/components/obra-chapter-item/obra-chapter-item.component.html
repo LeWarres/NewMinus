@@ -10,12 +10,25 @@
   </div>
 
   <div class="chapter-form">
+    <label *ngIf="versiones.length > 1">
+      {{ translationService.getTranslation('Idioma del capítulo') }}
+
+      <select [(ngModel)]="activeVersionKey" (ngModelChange)="onVersionChange()">
+        <option
+          *ngFor="let version of versiones"
+          [value]="getVersionKey(version)"
+        >
+          {{ getIdiomaLabel(version.idioma) }}
+        </option>
+      </select>
+    </label>
+
     <label>
       {{ translationService.getTranslation('Título del capítulo') }}
 
       <input
         type="text"
-        [(ngModel)]="capitulo.titulo"
+        [(ngModel)]="activeVersion.titulo"
         [placeholder]="translationService.getTranslation('Título del capítulo')"
       />
     </label>
@@ -24,7 +37,7 @@
       {{ translationService.getTranslation('Descripción del capítulo') }}
 
       <textarea
-        [(ngModel)]="capitulo.descripcion"
+        [(ngModel)]="activeVersion.descripcion"
         [placeholder]="translationService.getTranslation('Descripción del capítulo')"
       ></textarea>
     </label>
@@ -36,11 +49,11 @@
 
       <div
         class="pages-grid"
-        *ngIf="capitulo.paginas.length > 0 || selectedFiles.length > 0; else noPages"
+        *ngIf="activeVersion.paginas.length > 0 || selectedFiles.length > 0; else noPages"
       >
         <div
           class="page-thumb"
-          *ngFor="let pagina of capitulo.paginas"
+          *ngFor="let pagina of activeVersion.paginas"
         >
           <img
             [src]="imageUrl(pagina.imagen)"
@@ -56,7 +69,7 @@
           <button
             type="button"
             class="delete-page-btn"
-            (click)="eliminarPagina.emit(pagina)"
+            (click)="onEliminarPagina(pagina)"
           >
             {{ translationService.getTranslation('Eliminar') }}
           </button>
@@ -79,7 +92,7 @@
           <button
             type="button"
             class="delete-page-btn"
-            (click)="removeSelectedFile.emit(i)"
+            (click)="onRemoveSelectedFile(i)"
           >
             {{ translationService.getTranslation('Eliminar') }}
           </button>
@@ -133,7 +146,7 @@
 
     <p class="chapter-date">
       {{ translationService.getTranslation('Fecha de creación') }}:
-      {{ capitulo.creadoEn }}
+      {{ activeVersion.creadoEn }}
     </p>
 
     <p
@@ -151,6 +164,15 @@
       (click)="leerCapitulo.emit()"
     >
       {{ translationService.getTranslation('Leer') }}
+    </button>
+
+    <button
+      type="button"
+      class="danger-action"
+      (click)="onEliminarCapituloIdioma()"
+      [disabled]="!canDeleteActiveVersion"
+    >
+      {{ translationService.getTranslation('Eliminar capítulo en este idioma') }}
     </button>
   </div>
 </article>

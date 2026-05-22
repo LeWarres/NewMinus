@@ -15,7 +15,13 @@ export interface CapituloCardItem {
 
   genero?: string;
   categorias?: string[];
+
+  /*
+    Idioma real de esta versión de capítulo.
+    Debe venir desde capitulo_versiones.idioma.
+  */
   idioma?: string;
+
   portada?: string;
 
   tipoEntrega?: string;
@@ -25,6 +31,7 @@ export interface CapituloCardItem {
   promedioCalificacion?: number;
 
   capituloId: number;
+  capituloVersionId?: number;
   numeroCapitulo: number;
   tituloCapitulo?: string;
   descripcionCapitulo?: string;
@@ -80,12 +87,28 @@ export class CapituloCardComponent {
     );
   }
 
+  get displayLanguage(): string {
+    return String(this.item.idioma || 'GLOBAL')
+      .trim()
+      .toUpperCase();
+  }
+
   get languageLabel(): string {
-    return this.metadataService.getLanguageLabel(this.item.idioma);
+    return this.metadataService.getLanguageLabel(this.displayLanguage);
   }
 
   get languageFlagUrl(): string {
-    return this.metadataService.getLanguageFlagUrl(this.item.idioma);
+    return this.metadataService.getLanguageFlagUrl(this.displayLanguage);
+  }
+
+  get languageCode(): string {
+    return this.displayLanguage === 'GLOBAL'
+      ? 'GL'
+      : this.displayLanguage;
+  }
+
+  get languageBadgeTitle(): string {
+    return this.languageLabel;
   }
 
   get coverUrl(): string {

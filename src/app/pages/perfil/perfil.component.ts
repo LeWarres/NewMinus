@@ -43,6 +43,8 @@ interface PerfilObraApi {
   genero?: string;
   categorias?: string[];
   idioma?: string;
+  idiomasDisponibles?: string[];
+  idiomasExtraCount?: number;
   tipoEntrega?: string;
   serieConcluida?: boolean;
   portada?: string;
@@ -64,6 +66,7 @@ interface PerfilCapituloApi {
   genero?: string;
   categorias?: string[];
   idioma?: string;
+  capituloVersionId?: number;
   tipoEntrega?: string;
   numVisitas: number;
   obraNumVisitas?: number;
@@ -238,12 +241,23 @@ export class PerfilComponent implements OnInit {
   }
 
   abrirCapitulo(capitulo: CapituloCardItem): void {
-    this.router.navigate([
+    const commands = [
       '/obra',
       capitulo.obraId,
       'capitulo',
       capitulo.numeroCapitulo
-    ]);
+    ];
+
+    if (capitulo.idioma) {
+      this.router.navigate(commands, {
+        queryParams: {
+          idioma: capitulo.idioma
+        }
+      });
+      return;
+    }
+
+    this.router.navigate(commands);
   }
 
   abrirPerfilAutor(): void {
@@ -283,7 +297,7 @@ export class PerfilComponent implements OnInit {
   }
 
   trackByCapitulo(index: number, capitulo: PerfilCapitulo): number {
-    return capitulo.capituloId || index;
+    return capitulo.capituloVersionId || capitulo.capituloId || index;
   }
 
   private mapObra(obra: PerfilObraApi, user: User): PerfilObra {
@@ -295,6 +309,8 @@ export class PerfilComponent implements OnInit {
       genero: obra.genero,
       categorias: obra.categorias,
       idioma: obra.idioma,
+      idiomasDisponibles: obra.idiomasDisponibles || [],
+      idiomasExtraCount: obra.idiomasExtraCount || 0,
       tipoEntrega: obra.tipoEntrega,
       serieConcluida: obra.serieConcluida,
       portada: obra.portada,
@@ -325,6 +341,7 @@ export class PerfilComponent implements OnInit {
       promedioCalificacion: capitulo.promedioCalificacion || 0,
 
       capituloId: capitulo.capituloId,
+      capituloVersionId: capitulo.capituloVersionId,
       numeroCapitulo: capitulo.numeroCapitulo,
       tituloCapitulo: capitulo.tituloCapitulo,
       descripcionCapitulo: capitulo.descripcionCapitulo,

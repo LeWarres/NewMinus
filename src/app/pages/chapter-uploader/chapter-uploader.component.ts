@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -14,6 +14,23 @@ interface UploadChapterResponse {
   obra_id?: number;
   capitulo_id?: number;
   numero_capitulo?: number;
+  idioma?: string;
+  versiones_guardadas?: number;
+  paginas_guardadas?: number;
+}
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
+interface ChapterLanguageVersion {
+  uid: string;
+  idioma: string;
+  titulo: string;
+  descripcion: string;
+  pages: File[];
+  isDragging: boolean;
 }
 
 @Component({
@@ -27,17 +44,11 @@ interface UploadChapterResponse {
   styleUrl: './chapter-uploader.component.css'
 })
 export class ChapterUploaderComponent implements OnInit {
-  @ViewChild('fileInputPages') fileInputPages!: ElementRef<HTMLInputElement>;
-
   apiUrl = 'https://minuscreators.com/api/subir_capitulo.php';
 
   obraId = 0;
 
-  tituloCapitulo = '';
-  descripcionCapitulo = '';
-  numeroCapitulo = '';
-
-  selectedPages: File[] = [];
+  versiones: ChapterLanguageVersion[] = [];
 
   cargando = false;
   respuesta = '';
@@ -49,6 +60,28 @@ export class ChapterUploaderComponent implements OnInit {
     Este límite solo controla el peso total antes de optimizar.
   */
   maxTotalPagesSize = 300 * 1024 * 1024;
+
+  idiomas: SelectOption[] = [
+    { value: 'GLOBAL', label: 'Global' },
+    { value: 'ES', label: 'Español / Spanish' },
+    { value: 'EN', label: 'English' },
+    { value: 'JA', label: '日本語 / Japanese' },
+    { value: 'KO', label: '한국어 / Korean' },
+    { value: 'ZH', label: '中文 / Chinese' },
+    { value: 'FR', label: 'Français / French' },
+    { value: 'DE', label: 'Deutsch / German' },
+    { value: 'PT', label: 'Português / Portuguese' },
+    { value: 'IT', label: 'Italiano / Italian' },
+    { value: 'RU', label: 'Русский / Russian' },
+    { value: 'AR', label: 'العربية / Arabic' },
+    { value: 'HI', label: 'हिन्दी / Hindi' },
+    { value: 'ID', label: 'Bahasa Indonesia' },
+    { value: 'VI', label: 'Tiếng Việt / Vietnamese' },
+    { value: 'TH', label: 'ไทย / Thai' },
+    { value: 'TR', label: 'Türkçe / Turkish' },
+    { value: 'PL', label: 'Polski / Polish' },
+    { value: 'NL', label: 'Nederlands / Dutch' }
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -70,14 +103,90 @@ export class ChapterUploaderComponent implements OnInit {
 
     if (!this.obraId) {
       this.router.navigate(['/']);
+      return;
     }
+
+    this.agregarVersionIdioma();
   }
 
-  get selectedPagesTotalSize(): number {
-    return this.selectedPages.reduce((total, file) => total + file.size, 0);
+  get totalPagesSize(): number {
+    return this.versiones.reduce(
+      (total, version) => total + this.getVersionPagesTotalSize(version),
+      0
+    );
   }
 
-  onFilesSelectedPages(event: Event): void {
+  get totalPagesCount(): number {
+    return this.versiones.reduce(
+      (total, version) => total + version.pages.length,
+      0
+    );
+  }
+
+  agregarVersionIdioma(): void {
+    const idioma = this.getPrimerIdiomaDisponible();
+
+    if (!idioma) {
+      this.respuesta = this.translationService.getTranslation('Ya agregaste todos los idiomas disponibles');
+      return;
+    }
+
+    const nuevaVersion: ChapterLanguageVersion = {
+      uid: this.crearUid(),
+      idioma,
+      titulo: '',
+      descripcion: '',
+      pages: [],
+      isDragging: false
+    };
+
+    this.versiones = [
+      nuevaVersion,
+      ...this.versiones
+    ];
+
+    this.respuesta = '';
+  }
+
+  eliminarVersionIdioma(version: ChapterLanguageVersion): void {
+    if (this.versiones.length <= 1) {
+      this.respuesta = this.translationService.getTranslation('Debes dejar al menos un idioma para el capítulo');
+      return;
+    }
+
+    this.versiones = this.versiones.filter(item => item.uid !== version.uid);
+    this.respuesta = '';
+  }
+
+  onIdiomaChange(version: ChapterLanguageVersion): void {
+    const idiomaNormalizado = String(version.idioma || '').trim().toUpperCase();
+
+    if (!this.esIdiomaPermitido(idiomaNormalizado)) {
+      version.idioma = this.getPrimerIdiomaDisponible(version.uid) || 'GLOBAL';
+      return;
+    }
+
+    const duplicado = this.versiones.some(item => {
+      return item.uid !== version.uid && item.idioma === idiomaNormalizado;
+    });
+
+    if (duplicado) {
+      this.respuesta = this.translationService.getTranslation('No puedes repetir el mismo idioma en este capítulo');
+      version.idioma = this.getPrimerIdiomaDisponible(version.uid) || 'GLOBAL';
+      return;
+    }
+
+    version.idioma = idiomaNormalizado;
+    this.respuesta = '';
+  }
+
+  isIdiomaUsadoPorOtraVersion(idioma: string, version: ChapterLanguageVersion): boolean {
+    return this.versiones.some(item => {
+      return item.uid !== version.uid && item.idioma === idioma;
+    });
+  }
+
+  onFilesSelectedVersion(event: Event, version: ChapterLanguageVersion): void {
     const input = event.target as HTMLInputElement;
 
     if (!input.files || input.files.length === 0) {
@@ -85,13 +194,35 @@ export class ChapterUploaderComponent implements OnInit {
     }
 
     const files = Array.from(input.files);
-    this.agregarPaginas(files);
+    this.agregarPaginas(version, files);
 
     input.value = '';
   }
 
-  agregarPaginas(files: File[]): void {
-    let totalActual = this.selectedPagesTotalSize;
+  onDragOverVersion(event: DragEvent, version: ChapterLanguageVersion): void {
+    event.preventDefault();
+    version.isDragging = true;
+  }
+
+  onDragLeaveVersion(event: DragEvent, version: ChapterLanguageVersion): void {
+    event.preventDefault();
+    version.isDragging = false;
+  }
+
+  onDropVersion(event: DragEvent, version: ChapterLanguageVersion): void {
+    event.preventDefault();
+    version.isDragging = false;
+
+    if (!event.dataTransfer || event.dataTransfer.files.length === 0) {
+      return;
+    }
+
+    const files = Array.from(event.dataTransfer.files);
+    this.agregarPaginas(version, files);
+  }
+
+  agregarPaginas(version: ChapterLanguageVersion, files: File[]): void {
+    let totalActual = this.totalPagesSize;
     const paginasValidas: File[] = [];
     let omitidos = 0;
 
@@ -110,8 +241,8 @@ export class ChapterUploaderComponent implements OnInit {
       totalActual += file.size;
     }
 
-    this.selectedPages = [
-      ...this.selectedPages,
+    version.pages = [
+      ...version.pages,
       ...paginasValidas
     ];
 
@@ -124,12 +255,17 @@ export class ChapterUploaderComponent implements OnInit {
     this.respuesta = '';
   }
 
-  removePage(index: number): void {
-    this.selectedPages.splice(index, 1);
+  removePage(version: ChapterLanguageVersion, index: number): void {
+    version.pages.splice(index, 1);
+    version.pages = [...version.pages];
+  }
 
-    if (this.fileInputPages && this.selectedPages.length === 0) {
-      this.fileInputPages.nativeElement.value = '';
-    }
+  getVersionPagesTotalSize(version: ChapterLanguageVersion): number {
+    return version.pages.reduce((total, file) => total + file.size, 0);
+  }
+
+  getIdiomaLabel(value?: string): string {
+    return this.idiomas.find(idioma => idioma.value === value)?.label || value || '';
   }
 
   formatSize(bytes: number): string {
@@ -160,12 +296,16 @@ export class ChapterUploaderComponent implements OnInit {
       return;
     }
 
-    if (this.selectedPages.length === 0) {
-      this.respuesta = this.translationService.getTranslation('Debes agregar al menos una página');
+    if (this.versiones.length === 0) {
+      this.respuesta = this.translationService.getTranslation('Debes agregar al menos un idioma');
       return;
     }
 
-    if (this.selectedPagesTotalSize > this.maxTotalPagesSize) {
+    if (!this.validarVersiones()) {
+      return;
+    }
+
+    if (this.totalPagesSize > this.maxTotalPagesSize) {
       this.respuesta =
         this.translationService.getTranslation('El peso total de las páginas es demasiado grande');
       return;
@@ -174,12 +314,29 @@ export class ChapterUploaderComponent implements OnInit {
     const formData = new FormData();
 
     formData.append('obra_id', String(this.obraId));
-    formData.append('numero_capitulo', this.numeroCapitulo.trim() || '0');
-    formData.append('titulo', this.tituloCapitulo.trim() || '');
-    formData.append('descripcion', this.descripcionCapitulo.trim() || '');
+    const primeraVersion = this.versiones[0];
 
-    this.selectedPages.forEach((file) => {
-      formData.append('paginas[]', file);
+    /*
+      Campos legacy para compatibilidad con PHP anterior.
+      El PHP nuevo usa idiomaVersiones + paginas_UID[].
+    */
+    formData.append('idioma', primeraVersion.idioma || 'GLOBAL');
+    formData.append('titulo', primeraVersion.titulo.trim() || '');
+    formData.append('descripcion', primeraVersion.descripcion.trim() || '');
+
+    const versionesPayload = this.versiones.map(version => ({
+      uid: version.uid,
+      idioma: version.idioma,
+      titulo: version.titulo.trim(),
+      descripcion: version.descripcion.trim()
+    }));
+
+    formData.append('idiomaVersiones', JSON.stringify(versionesPayload));
+
+    this.versiones.forEach(version => {
+      version.pages.forEach(file => {
+        formData.append(`paginas_${version.uid}[]`, file);
+      });
     });
 
     this.cargando = true;
@@ -195,7 +352,7 @@ export class ChapterUploaderComponent implements OnInit {
           }
 
           this.authService.saveCsrfToken(csrfRes.csrfToken);
-          this.enviarCapitulo(formData);
+          this.enviarCapitulo(formData, primeraVersion.idioma);
         },
         error: (err) => {
           this.cargando = false;
@@ -207,10 +364,22 @@ export class ChapterUploaderComponent implements OnInit {
       return;
     }
 
-    this.enviarCapitulo(formData);
+    this.enviarCapitulo(formData, primeraVersion.idioma);
   }
 
-  private enviarCapitulo(formData: FormData): void {
+  trackByVersionUid(index: number, version: ChapterLanguageVersion): string {
+    return version.uid || String(index);
+  }
+
+  trackByFileName(index: number, file: File): string {
+    return `${file.name}-${file.size}-${index}`;
+  }
+
+  trackByIdiomaValue(index: number, idioma: SelectOption): string {
+    return idioma.value;
+  }
+
+  private enviarCapitulo(formData: FormData, idiomaFallback: string): void {
     this.http.post<UploadChapterResponse>(
       this.apiUrl,
       formData,
@@ -233,21 +402,19 @@ export class ChapterUploaderComponent implements OnInit {
           res.mensaje ||
           this.translationService.getTranslation('Capítulo subido correctamente');
 
-        this.selectedPages = [];
-        this.tituloCapitulo = '';
-        this.descripcionCapitulo = '';
-        this.numeroCapitulo = '';
-
-        if (this.fileInputPages) {
-          this.fileInputPages.nativeElement.value = '';
-        }
-
-        this.router.navigate([
-          '/obra',
-          this.obraId,
-          'capitulo',
-          res.numero_capitulo || 1
-        ]);
+        this.router.navigate(
+          [
+            '/obra',
+            this.obraId,
+            'capitulo',
+            res.numero_capitulo || 1
+          ],
+          {
+            queryParams: {
+              idioma: res.idioma || idiomaFallback || 'GLOBAL'
+            }
+          }
+        );
       },
       error: (err) => {
         this.cargando = false;
@@ -268,7 +435,7 @@ export class ChapterUploaderComponent implements OnInit {
         if (err.status === 409) {
           this.respuesta =
             err.error?.error ||
-            this.translationService.getTranslation('Ya existe un capítulo con ese número');
+            this.translationService.getTranslation('Ya existe una versión con ese idioma para este capítulo');
           return;
         }
 
@@ -279,6 +446,66 @@ export class ChapterUploaderComponent implements OnInit {
         console.error(err);
       }
     });
+  }
+
+  private validarVersiones(): boolean {
+    const idiomasUsados = new Set<string>();
+
+    for (const version of this.versiones) {
+      const idioma = String(version.idioma || '').trim().toUpperCase();
+
+      if (!this.esIdiomaPermitido(idioma)) {
+        this.respuesta = this.translationService.getTranslation('Selecciona un idioma válido');
+        return false;
+      }
+
+      if (idiomasUsados.has(idioma)) {
+        this.respuesta = this.translationService.getTranslation('No puedes repetir el mismo idioma en este capítulo');
+        return false;
+      }
+
+      idiomasUsados.add(idioma);
+      version.idioma = idioma;
+
+      if (version.titulo.trim().length > 150) {
+        this.respuesta = this.translationService.getTranslation('El título del capítulo es demasiado largo');
+        return false;
+      }
+
+      if (version.descripcion.trim().length > 5000) {
+        this.respuesta = this.translationService.getTranslation('La descripción del capítulo es demasiado larga');
+        return false;
+      }
+
+      if (version.pages.length === 0) {
+        this.respuesta = this.translationService.getTranslation('Cada idioma debe tener al menos una página');
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private getPrimerIdiomaDisponible(ignoreUid?: string): string {
+    const usados = new Set(
+      this.versiones
+        .filter(version => version.uid !== ignoreUid)
+        .map(version => version.idioma)
+    );
+
+    return this.idiomas.find(idioma => !usados.has(idioma.value))?.value || '';
+  }
+
+  private crearUid(): string {
+    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+      return crypto.randomUUID().replace(/-/g, '');
+    }
+
+    return `v${Date.now()}${Math.random().toString(16).slice(2)}`.replace(/[^a-zA-Z0-9]/g, '');
+  }
+
+  private esIdiomaPermitido(value: string): boolean {
+    return this.idiomas.some(idioma => idioma.value === value);
   }
 
   private esImagenValida(file: File, maxSize: number): boolean {

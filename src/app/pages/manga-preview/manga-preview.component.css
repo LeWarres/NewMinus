@@ -781,3 +781,124 @@
   }
 }
 
+
+/* Selector de idioma de lectura */
+.preview-language-bar {
+  grid-column: 1 / -1;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  padding: 16px 18px;
+  margin-bottom: -6px;
+
+  background:
+    linear-gradient(135deg, rgba(72, 58, 145, 0.78), rgba(33, 38, 78, 0.90));
+  border: 1px solid rgba(206, 190, 255, 0.18);
+  border-radius: 20px;
+
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.language-kicker {
+  display: block;
+  margin-bottom: 4px;
+
+  color: #c7ff16;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.preview-language-bar strong {
+  color: white;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.language-select-wrap {
+  min-width: 280px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+
+  color: #d8dcff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.language-select-wrap select {
+  width: 100%;
+  padding: 12px 42px 12px 14px;
+
+  appearance: none;
+  background:
+    linear-gradient(135deg, rgba(13, 18, 36, 0.92), rgba(25, 28, 68, 0.96));
+  color: white;
+
+  border: 1px solid rgba(199, 255, 22, 0.34);
+  border-radius: 14px;
+  outline: none;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
+
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 10px 22px rgba(0, 0, 0, 0.16);
+}
+
+.language-select-wrap select:focus {
+  border-color: rgba(199, 255, 22, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 3px rgba(199, 255, 22, 0.10);
+}
+
+.language-select-wrap select:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.language-select-wrap option {
+  background: #1a1633;
+  color: white;
+}
+
+.empty-language-chapters {
+  padding: 18px;
+  margin-top: 14px;
+
+  color: #fff1c8;
+  font-weight: 900;
+  text-align: center;
+
+  background: rgba(13, 18, 36, 0.42);
+  border: 1px solid rgba(255, 241, 200, 0.18);
+  border-radius: 18px;
+}
+
+@media (max-width: 1200px) {
+  .preview-language-bar {
+    margin-bottom: 14px;
+  }
+}
+
+@media (max-width: 720px) {
+  .preview-language-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .language-select-wrap {
+    min-width: 0;
+  }
+}

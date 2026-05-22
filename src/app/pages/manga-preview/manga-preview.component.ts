@@ -22,6 +22,8 @@ import { CommentsSectionComponent } from '../../components/comments-section/comm
 
 interface Capitulo {
   id: number;
+  versionId?: number;
+  idioma?: string;
   numeroCapitulo: number;
   titulo: string;
   descripcion?: string;
@@ -35,6 +37,11 @@ interface CategoriaPreviewItem {
   label: string;
 }
 
+interface IdiomaPreviewItem {
+  value: string;
+  label: string;
+}
+
 interface ObraPreview {
   id: number;
   usuarioId: number | null;
@@ -43,6 +50,9 @@ interface ObraPreview {
   genero?: string;
   categorias?: string[];
   idioma?: string;
+  idiomaOriginal?: string;
+  idiomaActual?: string;
+  idiomasDisponibles?: string[];
   tipoEntrega?: string;
   serieConcluida?: boolean;
   portada?: string;
@@ -92,6 +102,8 @@ export class MangaPreviewComponent implements OnInit {
   obra: ObraPreview | null = null;
   currentUser: CurrentUser | null = null;
 
+  selectedLanguage = 'GLOBAL';
+
   isMobileView = false;
   isCurrentUser = false;
 
@@ -122,7 +134,12 @@ export class MangaPreviewComponent implements OnInit {
         return;
       }
 
-      this.cargarPreview(id);
+      const idiomaQuery =
+        this.route.snapshot.queryParamMap.get('idioma') ||
+        this.route.snapshot.queryParamMap.get('lang') ||
+        '';
+
+      this.cargarPreview(id, idiomaQuery);
 
       window.scrollTo({
         top: 0,
@@ -141,14 +158,14 @@ export class MangaPreviewComponent implements OnInit {
     this.isMobileView = window.innerWidth <= 1200;
   }
 
-  cargarPreview(id: string): void {
+  cargarPreview(id: string, idioma?: string): void {
     this.cargando = true;
     this.error = '';
     this.mensaje = '';
 
     this.http
       .get<ObraPreviewResponse>(
-        `${this.apiUrl}?id=${id}`,
+        this.buildPreviewUrl(id, idioma),
         {
           withCredentials: true
         }
@@ -173,6 +190,9 @@ export class MangaPreviewComponent implements OnInit {
 
           this.currentUser = this.authService.getCurrentUser();
           this.isCurrentUser = this.currentUser?.id === this.obra.usuarioId;
+          this.selectedLanguage = this.normalizarIdiomaBusqueda(
+            this.obra.idiomaActual || this.obra.idioma || idioma || 'GLOBAL'
+          );
 
           this.registrarVista(this.obra.id);
         },
@@ -209,12 +229,19 @@ export class MangaPreviewComponent implements OnInit {
       return;
     }
 
-    this.router.navigate([
-      '/obra',
-      this.obra.id,
-      'capitulo',
-      capitulo.numeroCapitulo
-    ]);
+    this.router.navigate(
+      [
+        '/obra',
+        this.obra.id,
+        'capitulo',
+        capitulo.numeroCapitulo
+      ],
+      {
+        queryParams: {
+          idioma: this.selectedLanguage
+        }
+      }
+    );
   }
 
   leerPrimerCapitulo(): void {
@@ -238,7 +265,14 @@ export class MangaPreviewComponent implements OnInit {
       return;
     }
 
-    this.router.navigate(['/obra', this.obra.id, 'subir-capitulo']);
+    this.router.navigate(
+      ['/obra', this.obra.id, 'subir-capitulo'],
+      {
+        queryParams: {
+          idioma: this.selectedLanguage
+        }
+      }
+    );
   }
 
   abrirPerfilAutor(): void {
@@ -290,6 +324,53 @@ export class MangaPreviewComponent implements OnInit {
         nsfw: 'incluir'
       }
     });
+  }
+
+  onLanguageChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const idioma = this.normalizarIdiomaBusqueda(select.value);
+
+    if (!this.obra || idioma === this.selectedLanguage) {
+      return;
+    }
+
+    this.selectedLanguage = idioma;
+
+    this.router.navigate(
+      ['/obra', this.obra.id],
+      {
+        queryParams: {
+          idioma
+        },
+        queryParamsHandling: 'merge',
+        replaceUrl: true
+      }
+    );
+
+    this.cargarPreview(String(this.obra.id), idioma);
+  }
+
+  getIdiomasDisponibles(): IdiomaPreviewItem[] {
+    const idiomas = this.obra?.idiomasDisponibles?.length
+      ? this.obra.idiomasDisponibles
+      : [this.obra?.idioma || 'GLOBAL'];
+
+    return Array.from(new Set(
+      idiomas
+        .map(idioma => this.normalizarIdiomaBusqueda(idioma))
+        .filter(Boolean)
+    )).map(value => ({
+      value,
+      label: this.getIdiomaLabel(value)
+    }));
+  }
+
+  trackByIdioma(index: number, idioma: IdiomaPreviewItem): string {
+    return idioma.value || String(index);
+  }
+
+  getSelectedLanguageLabel(): string {
+    return this.getIdiomaLabel(this.selectedLanguage || this.obra?.idioma || 'GLOBAL');
   }
 
   onSubscriptionChange(event: SubscriptionChange): void {
@@ -447,6 +528,19 @@ export class MangaPreviewComponent implements OnInit {
 
   enviarReporteDesdeObra(payload: ReporteContenidoPayload): void {
     console.log('Reporte de obra enviado:', payload);
+  }
+
+  private buildPreviewUrl(id: string, idioma?: string): string {
+    const params = new URLSearchParams();
+    params.set('id', id);
+
+    const idiomaNormalizado = this.normalizarIdiomaBusqueda(idioma || this.selectedLanguage || '');
+
+    if (idiomaNormalizado) {
+      params.set('idioma', idiomaNormalizado);
+    }
+
+    return `${this.apiUrl}?${params.toString()}`;
   }
 
   private normalizarIdiomaBusqueda(idioma?: string): string {

@@ -32,39 +32,60 @@
         </div>
       </div>
 
-      <div class="chapter-controls">
-        <button
-          type="button"
-          class="chapter-btn"
-          (click)="previousChapter()"
-          [disabled]="!hasPreviousChapter"
-        >
-          &#10094;
-        </button>
+      <div class="reader-select-stack">
+        <div class="language-control" *ngIf="idiomasDisponiblesCapitulo.length > 0">
+          <label for="reader-language-select">
+            {{ translationService.getTranslation('Idioma de lectura') }}
+          </label>
 
-        <select [(ngModel)]="selectedChapter" (change)="onChapterChange($event)">
-          <option
-            *ngFor="let chapter of obra.capitulos; trackBy: trackByChapter"
-            [value]="chapter.numeroCapitulo"
+          <select
+            id="reader-language-select"
+            [(ngModel)]="selectedLanguage"
+            (change)="onLanguageChange($event)"
           >
-            {{ translationService.getTranslation('Capítulo') }}
-            {{ chapter.numeroCapitulo }}
-            -
-            {{
-              chapter.titulo ||
-              (translationService.getTranslation('Capítulo') + ' ' + chapter.numeroCapitulo)
-            }}
-          </option>
-        </select>
+            <option
+              *ngFor="let idioma of idiomasDisponiblesCapitulo; trackBy: trackByIdioma"
+              [value]="idioma.idioma"
+            >
+              {{ getIdiomaLabel(idioma.idioma) }}
+            </option>
+          </select>
+        </div>
 
-        <button
-          type="button"
-          class="chapter-btn"
-          (click)="nextChapter()"
-          [disabled]="!hasNextChapter"
-        >
-          &#10095;
-        </button>
+        <div class="chapter-controls">
+          <button
+            type="button"
+            class="chapter-btn"
+            (click)="previousChapter()"
+            [disabled]="!hasPreviousChapter"
+          >
+            &#10094;
+          </button>
+
+          <select [(ngModel)]="selectedChapter" (change)="onChapterChange($event)">
+            <option
+              *ngFor="let chapter of obra.capitulos; trackBy: trackByChapter"
+              [value]="chapter.numeroCapitulo"
+            >
+              {{ translationService.getTranslation('Capítulo') }}
+              {{ chapter.numeroCapitulo }}
+              -
+              {{
+                chapter.titulo ||
+                (translationService.getTranslation('Capítulo') + ' ' + chapter.numeroCapitulo)
+              }}
+            </option>
+          </select>
+
+          <button
+            type="button"
+            class="chapter-btn"
+            (click)="nextChapter()"
+            [disabled]="!hasNextChapter"
+          >
+            &#10095;
+          </button>
+        </div>
       </div>
     </header>
 
@@ -176,7 +197,7 @@
           <p>
             {{ obra.genero || translationService.getTranslation('Sin género') }}
             ·
-            {{ obra.idioma || 'ES' }}
+            {{ getIdiomaLabel(selectedLanguage) }}
           </p>
 
           <button type="button" class="favorite-btn" (click)="toggleFavorite()">
@@ -330,7 +351,6 @@
             [showCount]="false"
             (subscriptionChange)="onSubscriptionChange($event)"
           ></app-subscribe-button>
-
         </section>
 
         <div class="chapter-bottom-nav">
@@ -351,16 +371,16 @@
           </button>
         </div>
 
-       <section class="reader-report-section" *ngIf="obra && !isCurrentAuthor">
-  <app-reportar-contenido
-    textoBoton="Reportar capítulo"
-    [urlReportada]="urlReporteActual"
-    [tituloContenido]="obra.titulo"
-    [contextoContenido]="contextoReporteCapitulo"
-    [enviando]="reporteEnviando"
-    (reporteConfirmado)="enviarReporteDesdeReader($event)">
-  </app-reportar-contenido>
-</section>
+        <section class="reader-report-section" *ngIf="obra">
+          <app-reportar-contenido
+            textoBoton="Reportar capítulo"
+            [urlReportada]="urlReporteActual"
+            [tituloContenido]="obra.titulo"
+            [contextoContenido]="contextoReporteCapitulo"
+            [enviando]="reporteEnviando"
+            (reporteConfirmado)="enviarReporteDesdeReader($event)"
+          ></app-reportar-contenido>
+        </section>
 
         <app-comments-section
           class="reader-comments-host"

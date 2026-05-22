@@ -120,19 +120,6 @@
           ></app-obra-category-selector>
 
           <label>
-            {{ translationService.getTranslation('Idioma') }}
-
-            <select [(ngModel)]="obra.idioma">
-              <option
-                *ngFor="let idioma of idiomas"
-                [value]="idioma.value"
-              >
-                {{ idioma.label }}
-              </option>
-            </select>
-          </label>
-
-          <label>
             {{ translationService.getTranslation('Tipo de obra') }}
 
             <select [(ngModel)]="obra.tipoEntrega">
@@ -223,15 +210,16 @@
         <app-obra-chapter-item
           *ngFor="let capitulo of obra.capitulos"
           [capitulo]="capitulo"
-          [selectedFiles]="selectedChapterFiles[capitulo.id] || []"
+          [selectedFilesByVersion]="selectedChapterFiles"
           [maxPageFileSize]="maxPageFileSize"
-          [pageUploadMessage]="pageUploadMessages[capitulo.id] || ''"
-          [capituloMensaje]="capituloMensajes[capitulo.id] || ''"
+          [pageUploadMessagesByVersion]="pageUploadMessages"
+          [capituloMensajesByVersion]="capituloMensajes"
           [siteUrl]="siteUrl"
           (leerCapitulo)="leerCapitulo(capitulo)"
+          (eliminarCapituloIdioma)="eliminarCapituloIdioma(capitulo, $event)"
           (eliminarPagina)="eliminarPagina(capitulo, $event)"
           (chapterFilesSelected)="onChapterPagesSelected($event, capitulo)"
-          (removeSelectedFile)="removeSelectedChapterFile(capitulo.id, $event)"
+          (removeSelectedFile)="removeSelectedChapterFile($event, capitulo.id)"
         ></app-obra-chapter-item>
       </div>
 

@@ -13,6 +13,36 @@
   <div class="overlay"></div>
 
   <div class="content">
+    <section class="preview-language-bar" *ngIf="getIdiomasDisponibles().length > 0">
+      <div>
+        <span class="language-kicker">
+          {{ translationService.getTranslation('Idioma de lectura') }}
+        </span>
+
+        <strong>
+          {{ getSelectedLanguageLabel() }}
+        </strong>
+      </div>
+
+      <label class="language-select-wrap">
+        <span>
+          {{ translationService.getTranslation('Mostrar capítulos en') }}
+        </span>
+
+        <select
+          [value]="selectedLanguage"
+          [disabled]="getIdiomasDisponibles().length <= 1"
+          (change)="onLanguageChange($event)"
+        >
+          <option
+            *ngFor="let idioma of getIdiomasDisponibles(); trackBy: trackByIdioma"
+            [value]="idioma.value"
+          >
+            {{ idioma.label }}
+          </option>
+        </select>
+      </label>
+    </section>
     <div class="left-panel" *ngIf="!isMobileView">
       <div class="episodes-header">
         <h2>
@@ -59,6 +89,10 @@
           <span>👁️ {{ getCapituloVisitas(capitulo) }}</span>
         </div>
       </button>
+
+      <div class="empty-language-chapters" *ngIf="obra.capitulos.length === 0">
+        {{ translationService.getTranslation('No hay capítulos disponibles en este idioma') }}
+      </div>
     </div>
 
     <div class="right-panel">
@@ -79,9 +113,9 @@
             <button
               type="button"
               class="lang-tag clickable-tag"
-              (click)="abrirIdiomaObra(obra.idioma)"
+              (click)="abrirIdiomaObra(selectedLanguage)"
             >
-              {{ getIdiomaLabel(obra.idioma) }}
+              {{ getSelectedLanguageLabel() }}
             </button>
 
             <button
@@ -314,6 +348,10 @@
             <span>👁️ {{ getCapituloVisitas(capitulo) }}</span>
           </div>
         </button>
+
+        <div class="empty-language-chapters mobile-empty" *ngIf="obra.capitulos.length === 0">
+          {{ translationService.getTranslation('No hay capítulos disponibles en este idioma') }}
+        </div>
       </div>
     </div>
   </div>

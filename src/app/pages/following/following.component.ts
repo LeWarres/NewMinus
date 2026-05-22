@@ -99,12 +99,17 @@ export class FollowingComponent implements OnInit {
   }
 
   abrirItem(item: CapituloCardItem): void {
-    this.router.navigate([
-      '/obra',
-      item.obraId,
-      'capitulo',
-      item.numeroCapitulo
-    ]);
+    this.router.navigate(
+      [
+        '/obra',
+        item.obraId,
+        'capitulo',
+        item.numeroCapitulo
+      ],
+      {
+        queryParams: this.chapterQueryParams(item)
+      }
+    );
   }
 
   abrirPerfil(item: CapituloCardItem): void {
@@ -115,7 +120,13 @@ export class FollowingComponent implements OnInit {
     this.router.navigate(['/perfil', item.usuarioId]);
   }
 
-  trackByCapitulo(index: number, item: CapituloCardItem): number {
-    return item.capituloId || index;
+  trackByCapitulo(index: number, item: CapituloCardItem): number | string {
+    return item.capituloVersionId || item.capituloId || `${item.obraId}-${item.numeroCapitulo}-${item.idioma || 'GLOBAL'}-${index}`;
+  }
+
+  private chapterQueryParams(item: CapituloCardItem): Record<string, string> {
+    return item.idioma
+      ? { idioma: item.idioma }
+      : {};
   }
 }
