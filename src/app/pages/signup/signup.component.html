@@ -202,6 +202,22 @@
           </button>
         </div>
 
+        <label class="terms-check-row" for="acceptTerms">
+          <input
+            id="acceptTerms"
+            type="checkbox"
+            name="aceptaTerminos"
+            [(ngModel)]="aceptaTerminos"
+          />
+
+          <span>
+            {{ translationService.getTranslation('Acepto los') }}
+            <a href="/terminos/Minus_Creators_Terms_and_Conditions.pdf" target="_blank" rel="noopener noreferrer">
+              {{ translationService.getTranslation('términos y condiciones') }}
+            </a>
+          </span>
+        </label>
+
         <app-turnstile-widget
           (tokenChange)="turnstileToken = $event"
           (expired)="turnstileToken = ''"

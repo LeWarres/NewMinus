@@ -231,7 +231,7 @@
 
         <ng-template #noCover>
           <div class="preview-panel empty-preview">
-            <div class="file-preview-icon">✨</div>
+            <div class="file-preview-icon">📁</div>
 
             <div>
               <h3>
@@ -273,7 +273,7 @@
         (drop)="onDropPages($event)"
         [class.dragover]="isDraggingPages"
       >
-        <div class="upload-icon">📚</div>
+        <div class="upload-icon">🖼️</div>
 
         <h3>
           {{ translationService.getTranslation('Arrastra las páginas aquí') }}
@@ -349,6 +349,69 @@
     >
       {{ respuesta }}
     </p>
+
+    <section class="authorship-panel">
+      <div class="authorship-inner">
+        <div class="authorship-header">
+          <span class="authorship-title">
+            {{ translationService.getTranslation('Aviso de autoria') }}
+          </span>
+
+          <p>
+            {{ translationService.getTranslation('Aviso de autoria detalle') }}
+          </p>
+        </div>
+
+        <div class="authorship-examples">
+          <article class="auth-example allowed">
+            <div class="example-mark allowed-mark">✓</div>
+
+            <div class="example-body">
+              <div class="example-text">
+                <strong>
+                  {{ translationService.getTranslation('Ejemplo permitido') }}
+                </strong>
+
+                <p>
+                  {{ translationService.getTranslation('Imagen de ejemplo permitida') }}
+                </p>
+              </div>
+
+              <img src="/obras/paleta/af.webp" [alt]="translationService.getTranslation('Ejemplo permitido')" />
+            </div>
+          </article>
+
+          <article class="auth-example not-allowed">
+            <div class="example-mark not-allowed-mark">×</div>
+
+            <div class="example-body">
+              <div class="example-text">
+                <strong>
+                  {{ translationService.getTranslation('Ejemplo no permitido') }}
+                </strong>
+
+                <p>
+                  {{ translationService.getTranslation('Imagen de ejemplo no permitida') }}
+                </p>
+              </div>
+
+              <img src="/obras/paleta/portada.webp" [alt]="translationService.getTranslation('Ejemplo no permitido')" />
+            </div>
+          </article>
+        </div>
+
+        <label class="authorship-checkbox">
+          <input
+            type="checkbox"
+            formControlName="aceptaAutoria"
+          />
+
+          <span>
+            {{ translationService.getTranslation('Acepto que el contenido que subo es de mi autoría') }}
+          </span>
+        </label>
+      </div>
+    </section>
 
     <button
       type="submit"

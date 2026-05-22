@@ -172,6 +172,34 @@
   font-weight: 800;
 }
 
+.authorship-notice {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+
+  background: rgba(13, 18, 36, 0.52);
+  border: 1px solid rgba(199, 255, 22, 0.18);
+  border-radius: 16px;
+}
+
+.authorship-notice strong {
+  display: block;
+  margin-bottom: 6px;
+
+  color: #c7ff16;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.authorship-notice p {
+  margin: 0;
+
+  color: #e7e9ff;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 /* Form */
 .form-grid {
   display: grid;
@@ -542,10 +570,182 @@ select option {
   text-align: center;
   color: #c7ff16;
   font-weight: 900;
-
   background: rgba(13, 18, 36, 0.46);
   border: 1px solid rgba(199, 255, 22, 0.18);
   border-radius: 16px;
+}
+
+.authorship-panel {
+  position: relative;
+  margin-top: 24px;
+  margin-bottom: 10px;
+  overflow: hidden;
+
+  background:
+    linear-gradient(135deg, rgba(48, 51, 105, 0.84), rgba(33, 38, 78, 0.94));
+  border-radius: 18px;
+  border: 1px solid rgba(206, 190, 255, 0.18);
+  box-shadow:
+    0 14px 26px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.authorship-panel::before,
+.authorship-panel::after {
+  content: '';
+  display: block;
+  width: 100%;
+  background: linear-gradient(90deg, #2f2b66, #3d357a 45%, #2f2b66);
+}
+
+.authorship-panel::before {
+  height: 18px;
+}
+
+.authorship-panel::after {
+  height: 18px;
+}
+
+.authorship-inner {
+  padding: 18px;
+  color: #f5f7ff;
+}
+
+.authorship-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.authorship-title {
+  display: block;
+  color: #c7ff16;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.authorship-header p {
+  margin: 0;
+  max-width: 680px;
+  color: #eef0ff;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.authorship-examples {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.auth-example {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 12px;
+  align-items: center;
+
+  padding: 10px 10px 10px 12px;
+  border-radius: 14px;
+  background: rgba(13, 18, 36, 0.42);
+}
+
+.auth-example.allowed {
+  background: rgba(28, 150, 87, 0.12);
+  border: 1px solid rgba(199, 255, 22, 0.18);
+}
+
+.auth-example.not-allowed {
+  background: rgba(229, 57, 57, 0.08);
+  border: 1px solid rgba(229, 57, 57, 0.22);
+}
+
+.example-mark {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.allowed-mark {
+  color: #1f9d55;
+  background: rgba(28, 150, 87, 0.14);
+}
+
+.not-allowed-mark {
+  color: #e53939;
+  background: rgba(229, 57, 57, 0.12);
+}
+
+.example-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.example-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.auth-example strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #fff7ea;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.auth-example p {
+  margin: 0;
+  color: #d8dcff;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.auth-example img {
+  width: 92px;
+  height: 122px;
+  flex: 0 0 auto;
+  object-fit: cover;
+  display: block;
+  border-radius: 10px;
+  border: 1px solid rgba(206, 190, 255, 0.16);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.20);
+}
+
+.authorship-checkbox {
+  margin-top: 18px;
+  padding: 14px 16px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  background: rgba(13, 18, 36, 0.50);
+  border: 1px solid rgba(199, 255, 22, 0.18);
+  border-radius: 14px;
+
+  color: #fff7ea;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.authorship-checkbox input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+
+  accent-color: #c7ff16;
 }
 
 .submit-btn {
@@ -682,6 +882,27 @@ select option {
 }
 
 @media (max-width: 620px) {
+  .authorship-header {
+    flex-direction: column;
+  }
+
+  .authorship-examples {
+    grid-template-columns: 1fr;
+  }
+
+  .authorship-panel {
+    margin-top: 20px;
+  }
+
+  .example-body {
+    align-items: flex-start;
+  }
+
+  .auth-example img {
+    width: 78px;
+    height: 104px;
+  }
+
   .category-header {
     flex-direction: column;
   }

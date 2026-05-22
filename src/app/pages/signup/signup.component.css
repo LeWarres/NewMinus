@@ -363,6 +363,43 @@ select:focus {
   line-height: 1.45;
 }
 
+.terms-check-row {
+  margin-top: 16px;
+  padding: 11px 12px;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  background: rgba(9, 14, 26, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+
+  color: rgba(255, 247, 234, 0.82);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.terms-check-row input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  flex: 0 0 auto;
+
+  accent-color: #f4a63b;
+}
+
+.terms-check-row a {
+  color: #f8b85a;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.terms-check-row a:hover {
+  text-decoration: underline;
+}
+
 .password-container {
   position: relative;
 

@@ -49,6 +49,7 @@ export class SignupComponent {
   mostrarPassword = false;
   mostrarConfirmPassword = false;
   mostrarNsfw = false;
+  aceptaTerminos = false;
 
   cargando = false;
   error = '';
@@ -192,6 +193,11 @@ export class SignupComponent {
       return;
     }
 
+    if (!this.aceptaTerminos) {
+      this.error = this.translationService.getTranslation('Debes aceptar los términos y condiciones para continuar');
+      return;
+    }
+
     if (!this.turnstileToken) {
       this.error = this.translationService.getTranslation('Completa la verificación anti-bot');
       return;
@@ -248,6 +254,7 @@ export class SignupComponent {
             this.confirmPassword = '';
             this.nacionalidad = '';
             this.mostrarNsfw = false;
+            this.aceptaTerminos = false;
             this.selectedReadingLanguages = [
               this.getDefaultReadingLanguage()
             ];

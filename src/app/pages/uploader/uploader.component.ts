@@ -168,7 +168,8 @@ export class UploaderComponent {
       titulo: ['', Validators.required],
       descripcion: [''],
       idioma: ['GLOBAL'],
-      tipoEntrega: ['manga', Validators.required]
+      tipoEntrega: ['manga', Validators.required],
+      aceptaAutoria: [false, Validators.requiredTrue]
     });
   }
 
@@ -377,8 +378,14 @@ export class UploaderComponent {
   }
 
   enviarFormulario(): void {
-    if (this.formulario.invalid) {
+    if (this.formulario.get('titulo')?.invalid) {
       this.respuesta = this.translationService.getTranslation('El título es obligatorio');
+      this.formulario.markAllAsTouched();
+      return;
+    }
+
+    if (!this.formulario.get('aceptaAutoria')?.value) {
+      this.respuesta = this.translationService.getTranslation('Debes aceptar la autoria antes de enviar');
       this.formulario.markAllAsTouched();
       return;
     }
@@ -486,7 +493,8 @@ export class UploaderComponent {
           titulo: '',
           descripcion: '',
           idioma: 'GLOBAL',
-          tipoEntrega: 'manga'
+          tipoEntrega: 'manga',
+          aceptaAutoria: false
         });
 
         this.selectedCategories = [];
