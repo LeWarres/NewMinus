@@ -13,6 +13,10 @@ import {
 } from '../../components/subscribe-button/subscribe-button.component';
 
 import { CommentsSectionComponent } from '../../components/comments-section/comments-section.component';
+import {
+  ReportarContenidoComponent,
+  ReporteContenidoPayload
+} from '../../components/reportar-contenido/reportar-contenido.component';
 
 interface Capitulo {
   id: number;
@@ -67,13 +71,14 @@ type FetchPriorityMode = 'high' | 'low' | 'auto';
 @Component({
   selector: 'app-reader',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterModule,
-    SubscribeButtonComponent,
-    CommentsSectionComponent
-  ],
+ imports: [
+  CommonModule,
+  FormsModule,
+  RouterModule,
+  SubscribeButtonComponent,
+  CommentsSectionComponent,
+  ReportarContenidoComponent
+],
   templateUrl: './reader.component.html',
   styleUrl: './reader.component.css'
 })
@@ -99,6 +104,28 @@ export class ReaderComponent implements OnInit {
   isDoublePageSwapped = false;
   currentPageIndex = 0;
   scrollProgress = 0;
+
+  reporteEnviando = false;
+
+get urlReporteActual(): string {
+  if (!this.obra) {
+    return '';
+  }
+
+  return `${this.siteUrl}/obra/${this.obra.id}/capitulo/${this.obra.capituloActual.numeroCapitulo}`;
+}
+
+get contextoReporteCapitulo(): string {
+  if (!this.obra) {
+    return '';
+  }
+
+  return `Capítulo ${this.obra.capituloActual.numeroCapitulo}: ${this.obra.capituloActual.titulo}`;
+}
+
+enviarReporteDesdeReader(payload: ReporteContenidoPayload): void {
+  console.log('Reporte listo para enviar:', payload);
+}
 
   constructor(
     private route: ActivatedRoute,
