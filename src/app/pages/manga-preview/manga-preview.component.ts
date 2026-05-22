@@ -13,6 +13,11 @@ import {
   SubscriptionChange
 } from '../../components/subscribe-button/subscribe-button.component';
 
+import {
+  ReportarContenidoComponent,
+  ReporteContenidoPayload
+} from '../../components/reportar-contenido/reportar-contenido.component';
+
 import { CommentsSectionComponent } from '../../components/comments-section/comments-section.component';
 
 interface Capitulo {
@@ -74,7 +79,8 @@ type FetchPriorityMode = 'high' | 'low' | 'auto';
     RouterModule,
     SubscribeButtonComponent,
     CommentsSectionComponent,
-    RatingStarsComponent
+    RatingStarsComponent,
+    ReportarContenidoComponent
   ],
   templateUrl: './manga-preview.component.html',
   styleUrl: './manga-preview.component.css'
@@ -422,6 +428,25 @@ export class MangaPreviewComponent implements OnInit {
       this.obra?.descripcion ||
       this.translationService.getTranslation('Esta obra todavía no tiene descripción.')
     );
+  }
+
+  get urlReporteObra(): string {
+    if (!this.obra) {
+      return '';
+    }
+    return `https://minuscreators.com/obra/${this.obra.id}`;
+  }
+
+  get contextoReporteObra(): string {
+    if (!this.obra) {
+      return '';
+    }
+
+    return `Obra de ${this.obra.autor}`;
+  }
+
+  enviarReporteDesdeObra(payload: ReporteContenidoPayload): void {
+    console.log('Reporte de obra enviado:', payload);
   }
 
   private normalizarIdiomaBusqueda(idioma?: string): string {

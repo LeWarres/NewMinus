@@ -200,6 +200,16 @@
             </button>
           </div>
 
+          <section class="obra-report-section" *ngIf="obra && !isCurrentUser">
+              <app-reportar-contenido
+                textoBoton="Reportar obra"
+                [urlReportada]="urlReporteObra"
+                [tituloContenido]="obra.titulo"
+                [contextoContenido]="contextoReporteObra"
+                (reporteConfirmado)="enviarReporteDesdeObra($event)">
+              </app-reportar-contenido>
+            </section>
+
           <div class="social-buttons" [class.hidden]="!showDetails">
             <a
               *ngIf="obra.facebook"

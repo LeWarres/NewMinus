@@ -330,6 +330,7 @@
             [showCount]="false"
             (subscriptionChange)="onSubscriptionChange($event)"
           ></app-subscribe-button>
+
         </section>
 
         <div class="chapter-bottom-nav">
@@ -349,6 +350,17 @@
             {{ translationService.getTranslation('Siguiente') }} &#10095;
           </button>
         </div>
+
+       <section class="reader-report-section" *ngIf="obra && !isCurrentAuthor">
+  <app-reportar-contenido
+    textoBoton="Reportar capítulo"
+    [urlReportada]="urlReporteActual"
+    [tituloContenido]="obra.titulo"
+    [contextoContenido]="contextoReporteCapitulo"
+    [enviando]="reporteEnviando"
+    (reporteConfirmado)="enviarReporteDesdeReader($event)">
+  </app-reportar-contenido>
+</section>
 
         <app-comments-section
           class="reader-comments-host"
