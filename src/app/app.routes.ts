@@ -9,6 +9,7 @@ import { EditProfileComponent } from './pages/edit-profile/edit-profile.componen
 import { ReaderComponent } from './pages/reader/reader.component';
 import { CategoriasComponent } from './pages/categorias/categorias.component';
 import { FollowingComponent } from './pages/following/following.component';
+import { TopComponent } from './pages/top/top.component';
 import { ChapterUploaderComponent } from './pages/chapter-uploader/chapter-uploader.component';
 import { MangaPreviewComponent } from './pages/manga-preview/manga-preview.component';
 import { ObraAdminComponent } from './pages/obra-admin/obra-admin.component';
@@ -50,6 +51,10 @@ export const routes: Routes = [
   {
     path: 'following',
     component: FollowingComponent
+  },
+  {
+    path: 'top',
+    component: TopComponent
   },
   {
     path: 'categorias',

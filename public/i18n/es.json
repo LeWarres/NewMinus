@@ -2,6 +2,10 @@
   "Creators": "Creadores",
   "Sobre Nosotros": "Inicio",
   "Noticias": "Seguidos",
+  "Top": "Top",
+  "Top histórico": "Top histórico",
+  "Top 7 días": "Top 7 días",
+  "Top 30 días": "Top 30 días",
   "© Monthly Awards": "Reader Ejemplo",
   "Géneros": "Géneros",
   "Mi perfil": "Mi perfil",
@@ -439,6 +443,12 @@
   "No se confirmaron imágenes insertadas": "No se confirmaron imágenes insertadas",
   "Numeración automática por idioma": "Numeración automática por idioma",
   "El número del capítulo se asignará según el siguiente capítulo disponible para cada idioma.": "El número del capítulo se asignará según el siguiente capítulo disponible para cada idioma.",
-  "Idioma de lectura": "Idioma de lectura"
+  "Idioma de lectura": "Idioma de lectura",
+    "Recomendadas por categoría": "Recomendadas por categoría",
+  "Cambia de categoría para descubrir obras aleatorias en tus idiomas.": "Cambia de categoría para descubrir obras aleatorias en tus idiomas.",
+  "Cargando recomendaciones": "Cargando recomendaciones",
+  "No se pudieron cargar las recomendaciones": "No se pudieron cargar las recomendaciones",
+  "Error al cargar recomendaciones": "Error al cargar recomendaciones",
+  "No hay recomendaciones para esta categoría.": "No hay recomendaciones para esta categoría."
 
 }

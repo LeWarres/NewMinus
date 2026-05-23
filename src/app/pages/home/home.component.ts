@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 
 import { TranslationService } from '../../services/translation.service';
 import { AuthService, CurrentUser } from '../../services/auth.service';
+import { RecommendedCarouselComponent } from '../../components/recommended-carousel/recommended-carousel.component';
 
 import {
   ObraCardComponent,
@@ -35,12 +36,19 @@ interface CapitulosResponse {
   items: CapituloCardItem[];
 }
 
+interface HeroBannerImage {
+  src: string;
+  href: string;
+  alt: string;
+}
+
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [
     CommonModule,
     RouterModule,
+    RecommendedCarouselComponent,
     ObraCardComponent,
     CapituloCardComponent
   ],
@@ -51,20 +59,26 @@ export class HomeComponent implements OnInit, OnDestroy {
   obrasUrl = 'https://minuscreators.com/api/listar_obras.php';
   capitulosUrl = 'https://minuscreators.com/api/capitulos_recientes.php';
   followingUrl = 'https://minuscreators.com/api/following.php';
+  populares7DiasUrl = 'https://minuscreators.com/api/populares_7_dias.php';
 
   currentUser: CurrentUser | null = null;
 
   obrasNuevas: Obra[] = [];
   capitulosNuevos: CapituloCardItem[] = [];
   followingItems: CapituloCardItem[] = [];
+  obrasRecomendadas: ObraCardItem[] = [];
+  obrasPopulares7Dias: Obra[] = [];
+  heroBannerImages: HeroBannerImage[] = [];
 
   cargandoObras = false;
   cargandoCapitulos = false;
   cargandoFollowing = false;
+  cargandoPopulares7Dias = false;
 
   errorObras = '';
   errorCapitulos = '';
   errorFollowing = '';
+  errorPopulares7Dias = '';
 
   private languageSubscription?: Subscription;
 
@@ -91,6 +105,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     this.currentUser = this.authService.getCurrentUser();
+    this.updateHeroBannerImages();
 
     /*
       Recarga Home cuando cambia el idioma de la interfaz.
@@ -98,6 +113,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       Si hay sesión, el backend usa usuario_idiomas_lectura.
     */
     this.languageSubscription = this.translationService.currentLanguage$.subscribe(() => {
+      this.updateHeroBannerImages();
       this.cargarContenidoPrincipal();
     });
 
@@ -111,8 +127,48 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   cargarContenidoPrincipal(): void {
+    this.cargarPopulares7Dias();
     this.cargarObrasNuevas();
     this.cargarCapitulosNuevos();
+  }
+
+  cargarPopulares7Dias(): void {
+    this.cargandoPopulares7Dias = true;
+    this.errorPopulares7Dias = '';
+
+    const params = this.homeParams()
+      .set('limite', '10');
+
+    this.http
+      .get<ObrasResponse>(
+        this.populares7DiasUrl,
+        {
+          params,
+          withCredentials: true
+        }
+      )
+      .subscribe({
+        next: (res) => {
+          this.cargandoPopulares7Dias = false;
+
+          if (!res.success) {
+            this.errorPopulares7Dias =
+              res.error ||
+              this.translationService.getTranslation('No se pudieron cargar las obras populares');
+            return;
+          }
+
+          this.obrasPopulares7Dias = res.obras || [];
+        },
+        error: (err) => {
+          this.cargandoPopulares7Dias = false;
+          this.errorPopulares7Dias =
+            err.error?.error ||
+            this.translationService.getTranslation('Error al cargar obras populares');
+
+          console.error(err);
+        }
+      });
   }
 
   cargarObrasNuevas(): void {
@@ -121,7 +177,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     const params = this.homeParams()
       .set('orden', 'recientes')
-      .set('limite', '12');
+      .set('limite', '10');
 
     this.http
       .get<ObrasResponse>(
@@ -160,7 +216,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.errorCapitulos = '';
 
     const params = this.homeParams()
-      .set('limite', '12');
+      .set('limite', '10');
 
     this.http
       .get<CapitulosResponse>(
@@ -207,7 +263,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     this.http
       .get<CapitulosResponse>(
-        `${this.followingUrl}?limite=12`,
+        `${this.followingUrl}?limite=8`,
         {
           withCredentials: true
         }
@@ -244,8 +300,15 @@ export class HomeComponent implements OnInit, OnDestroy {
       });
   }
 
-  abrirObra(obra: { id: number }): void {
-    this.router.navigate(['/obra', obra.id]);
+  abrirObra(obra: { id: number; idioma?: string }): void {
+    this.router.navigate(
+      ['/obra', obra.id],
+      {
+        queryParams: obra.idioma
+          ? { idioma: obra.idioma }
+          : {}
+      }
+    );
   }
 
   abrirCapitulo(item: CapituloCardItem): void {
@@ -280,7 +343,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   discoverRandomStory(): void {
     type RandomItem =
-      | { tipo: 'obra'; id: number }
+      | { tipo: 'obra'; id: number; idioma?: string }
       | {
           tipo: 'capitulo';
           obraId: number;
@@ -289,9 +352,22 @@ export class HomeComponent implements OnInit, OnDestroy {
         };
 
     const disponibles: RandomItem[] = [
+      ...this.obrasRecomendadas.map((obra): RandomItem => ({
+        tipo: 'obra',
+        id: obra.id,
+        idioma: obra.idioma
+      })),
+
+      ...this.obrasPopulares7Dias.map((obra): RandomItem => ({
+        tipo: 'obra',
+        id: obra.id,
+        idioma: obra.idioma
+      })),
+
       ...this.obrasNuevas.map((obra): RandomItem => ({
         tipo: 'obra',
-        id: obra.id
+        id: obra.id,
+        idioma: obra.idioma
       })),
 
       ...this.capitulosNuevos.map((item): RandomItem => ({
@@ -310,7 +386,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     const elegido = disponibles[randomIndex];
 
     if (elegido.tipo === 'obra') {
-      this.router.navigate(['/obra', elegido.id]);
+      this.router.navigate(
+        ['/obra', elegido.id],
+        {
+          queryParams: elegido.idioma
+            ? { idioma: elegido.idioma }
+            : {}
+        }
+      );
       return;
     }
 
@@ -329,6 +412,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     );
   }
 
+  verMasCategoriaRecomendada(): void {
+    this.router.navigate(['/categorias'], {
+      queryParams: {
+        idioma: 'preferidos'
+      }
+    });
+  }
+
   nextCarousel(id: string): void {
     this.scrollCarousel(id, 1);
   }
@@ -345,10 +436,52 @@ export class HomeComponent implements OnInit, OnDestroy {
     return item.capituloVersionId || item.capituloId || `${item.obraId}-${item.numeroCapitulo}-${item.idioma || 'GLOBAL'}-${index}`;
   }
 
+  trackByHeroBanner(index: number, image: HeroBannerImage): string {
+    return image.src || `${index}`;
+  }
+
+  get discoverButtonLabel(): string {
+    const currentLanguage = this.translationService
+      .getCurrentLanguage()
+      .trim()
+      .toLowerCase();
+
+    return currentLanguage === 'es'
+      ? 'Historia Random'
+      : 'Random Story';
+  }
+
+  onRecommendationsChange(items: ObraCardItem[]): void {
+    this.obrasRecomendadas = items || [];
+  }
+
   private chapterQueryParams(item: CapituloCardItem): Record<string, string> {
     return item.idioma
       ? { idioma: item.idioma }
       : {};
+  }
+
+  private updateHeroBannerImages(): void {
+    const currentLanguage = this.translationService
+      .getCurrentLanguage()
+      .trim()
+      .toLowerCase();
+
+    const imageNames = currentLanguage === 'es'
+      ? ['dises', 'yues', 'ines']
+      : ['disen', 'yuen', 'inen'];
+
+    const imageLinks = [
+      'https://discord.gg/FMSBa3cYE',
+      'https://www.youtube.com/@CarlitoxBanana',
+      'https://x.com/CBanana26797'
+    ];
+
+    this.heroBannerImages = imageNames.map((name, index) => ({
+      src: `/obras/paleta/${name}.webp`,
+      href: imageLinks[index] || '/',
+      alt: `Minus Creators banner ${index + 1}`
+    }));
   }
 
   private homeParams(): HttpParams {

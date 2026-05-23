@@ -1,0 +1,103 @@
+.top-page {
+  min-height: 100vh;
+  padding: 32px 28px 60px;
+  color: #ffffff;
+
+  background:
+    radial-gradient(circle at top left, rgba(199, 255, 22, 0.14), transparent 30%),
+    radial-gradient(circle at top right, rgba(72, 58, 145, 0.24), transparent 30%),
+    linear-gradient(135deg, #0d1224 0%, #121826 45%, #18142e 100%);
+}
+
+.top-section {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.top-section {
+  margin-bottom: 48px;
+}
+
+.spotlight-section {
+  padding-bottom: 12px;
+}
+
+.section-header {
+  margin-bottom: 18px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+}
+
+.section-header h2 {
+  margin: 0;
+
+  color: #ffffff;
+  font-size: 30px;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.32);
+}
+
+.section-header p {
+  margin: 7px 0 0;
+  color: #c7c9ef;
+  font-weight: 600;
+}
+
+.section-header a {
+  color: #c7ff16;
+  font-weight: 900;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.section-header a:hover {
+  text-decoration: underline;
+}
+
+.estado {
+  padding: 26px;
+
+  color: #d8dcff;
+  text-align: center;
+
+  background: linear-gradient(135deg, rgba(72, 58, 145, 0.86), rgba(44, 43, 104, 0.9));
+  border: 1px solid rgba(206, 190, 255, 0.18);
+  border-radius: 18px;
+
+  box-shadow:
+    0 18px 38px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.estado.error {
+  color: #ff9aa3;
+}
+
+.top-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 22px;
+}
+
+.top-grid app-obra-card {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .top-page {
+    padding: 24px 16px 44px;
+  }
+}
+
+@media (max-width: 560px) {
+  .top-page {
+    padding: 20px 12px 40px;
+  }
+
+  .top-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+  }
+}

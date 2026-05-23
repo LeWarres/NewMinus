@@ -7,6 +7,9 @@ import { combineLatest } from 'rxjs';
 
 import { TranslationService } from '../../services/translation.service';
 import { AuthService, CurrentUser } from '../../services/auth.service';
+import { RecommendedCarouselComponent } from '../../components/recommended-carousel/recommended-carousel.component';
+
+import { ObraCardItem } from '../../components/cards/obra-card/obra-card.component';
 
 import {
   SubscribeButtonComponent,
@@ -85,6 +88,7 @@ type FetchPriorityMode = 'high' | 'low' | 'auto';
     CommonModule,
     FormsModule,
     RouterModule,
+    RecommendedCarouselComponent,
     SubscribeButtonComponent,
     CommentsSectionComponent,
     ReportarContenidoComponent
@@ -117,6 +121,7 @@ export class ReaderComponent implements OnInit {
   scrollProgress = 0;
 
   reporteEnviando = false;
+  recommendationsResetKey = 0;
 
   constructor(
     private route: ActivatedRoute,
@@ -306,6 +311,7 @@ export class ReaderComponent implements OnInit {
         this.selectedLanguage = this.normalizarIdiomaLectura(
           this.obra.idiomaActual || this.obra.capituloActual.idioma || this.obra.idioma || idioma || 'GLOBAL'
         );
+        this.recommendationsResetKey += 1;
 
         this.images = this.obra.paginas.map((pagina) => {
           return this.imageUrl(pagina.imagen);
@@ -600,6 +606,33 @@ export class ReaderComponent implements OnInit {
     };
 
     return labels[normalized] || normalized;
+  }
+
+  verMasCategoriaRecomendada(): void {
+    this.router.navigate(['/categorias'], {
+      queryParams: {
+        idioma: 'preferidos'
+      }
+    });
+  }
+
+  abrirObraRecomendada(obra: ObraCardItem): void {
+    this.router.navigate(
+      ['/obra', obra.id],
+      {
+        queryParams: obra.idioma
+          ? { idioma: obra.idioma }
+          : {}
+      }
+    );
+  }
+
+  abrirAutorRecomendado(obra: ObraCardItem): void {
+    if (!obra.usuarioId) {
+      return;
+    }
+
+    this.router.navigate(['/perfil', obra.usuarioId]);
   }
 
   getReaderImageLoading(index: number): ImageLoadingMode {

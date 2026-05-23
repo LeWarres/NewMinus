@@ -1,0 +1,78 @@
+<div class="recommended-carousel" [class.reader-variant]="context === 'reader'">
+  <div class="section-header recommended-header">
+    <div>
+      <h2>
+        {{ translationService.getTranslation(titleKey) }}
+      </h2>
+
+      <p>
+        {{ translationService.getTranslation(subtitleKey) }}
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="section-link-btn"
+      (click)="onViewMore()"
+    >
+      {{ translationService.getTranslation(viewMoreLabelKey) }} &#10095;
+    </button>
+  </div>
+
+  <div class="recommended-tabs">
+    <button
+      type="button"
+      *ngFor="let categoria of recommendedCategories; trackBy: trackByRecommendedCategory"
+      [class.active]="categoria.value === categoriaRecomendadaSeleccionada"
+      (click)="cambiarCategoriaRecomendada(categoria)"
+    >
+      {{ getCategoriaLabel(categoria.value) }}
+    </button>
+  </div>
+
+  <p *ngIf="cargandoRecomendadas" class="estado">
+    {{ translationService.getTranslation('Cargando recomendaciones') }}...
+  </p>
+
+  <p *ngIf="errorRecomendadas" class="estado error">
+    {{ errorRecomendadas }}
+  </p>
+
+  <div
+    class="carousel-container"
+    *ngIf="!cargandoRecomendadas && obrasRecomendadas.length > 0; else noRecomendadas"
+  >
+    <button
+      type="button"
+      class="carousel-btn prev-btn"
+      (click)="prevCarousel()"
+    >
+      &#10094;
+    </button>
+
+    <div class="carousel-track" #carouselTrack>
+      <app-obra-card
+        class="carousel-card"
+        *ngFor="let obra of obrasRecomendadas; trackBy: trackByRecommendedObra"
+        [obra]="obra"
+        [label]="categoriaRecomendadaLabel"
+        (openObra)="onOpenObra($event)"
+        (openAutor)="onOpenAutor($event)"
+      ></app-obra-card>
+    </div>
+
+    <button
+      type="button"
+      class="carousel-btn next-btn"
+      (click)="nextCarousel()"
+    >
+      &#10095;
+    </button>
+  </div>
+
+  <ng-template #noRecomendadas>
+    <p class="estado" *ngIf="!cargandoRecomendadas && !errorRecomendadas">
+      {{ translationService.getTranslation('No hay recomendaciones para esta categoría.') }}
+    </p>
+  </ng-template>
+</div>

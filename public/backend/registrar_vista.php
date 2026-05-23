@@ -121,8 +121,8 @@ try {
 
     $stmtInsert = $conexion->prepare(
         "INSERT INTO obra_vistas
-         (obra_id, user_id, ip)
-         VALUES (?, ?, ?)"
+         (obra_id, user_id, ip, created_at)
+         VALUES (?, ?, ?, NOW())"
     );
 
     $stmtInsert->bind_param(

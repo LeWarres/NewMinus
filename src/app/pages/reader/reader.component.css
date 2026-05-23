@@ -513,6 +513,11 @@
   margin: 0 auto;
 }
 
+.reader-recommended-section {
+  max-width: 980px;
+  margin: 26px auto 24px;
+}
+
 .reader-report-section {
   width: 100%;
   max-width: 900px;

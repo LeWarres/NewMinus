@@ -1,15 +1,24 @@
 <div class="home-page">
   <section class="home-hero">
-    <div>
-      <span class="eyebrow">Minus Creators</span>
-
-      <h1>
-        {{ translationService.getTranslation('Descubre nuevas historias') }}
-      </h1>
-
-      <p>
-        {{ translationService.getTranslation('Lee obras nuevas, continúa capítulos recientes y sigue a tus creadores favoritos.') }}
-      </p>
+    <div class="hero-content">
+      <div class="hero-banner-strip" *ngIf="heroBannerImages.length > 0">
+        <a
+          *ngFor="let image of heroBannerImages; trackBy: trackByHeroBanner"
+          class="hero-banner-link"
+          [href]="image.href"
+          [attr.aria-label]="image.alt"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            class="hero-banner-image"
+            [src]="image.src"
+            [alt]="image.alt"
+            loading="lazy"
+            decoding="async"
+          />
+        </a>
+      </div>
     </div>
 
     <button
@@ -17,8 +26,85 @@
       class="random-story-btn"
       (click)="discoverRandomStory()"
     >
-      {{ translationService.getTranslation('Descubrir') }}
+      {{ discoverButtonLabel }}
     </button>
+  </section>
+
+  <section class="home-section recommended-section">
+    <app-recommended-carousel
+      [context]="'home'"
+      (openObra)="abrirObra($event)"
+      (openAutor)="abrirPerfilObra($event)"
+      (viewMore)="verMasCategoriaRecomendada()"
+      (recommendationsChange)="onRecommendationsChange($event)"
+    ></app-recommended-carousel>
+  </section>
+
+  <section class="home-section trending-section">
+    <div class="section-header">
+      <div>
+        <h2>
+          {{ translationService.getTranslation('Más populares de los últimos 7 días') }}
+        </h2>
+
+        <p>
+          {{ translationService.getTranslation('Obras con más vistas recientes en tus idiomas.') }}
+        </p>
+      </div>
+
+      <a
+        routerLink="/categorias"
+        [queryParams]="{ orden: 'populares', idioma: 'preferidos' }"
+      >
+        {{ translationService.getTranslation('Ver mas') }} &#10095;
+      </a>
+    </div>
+
+    <p *ngIf="cargandoPopulares7Dias" class="estado">
+      {{ translationService.getTranslation('Cargando obras populares') }}...
+    </p>
+
+    <p *ngIf="errorPopulares7Dias" class="estado error">
+      {{ errorPopulares7Dias }}
+    </p>
+
+    <div
+      class="carousel-container"
+      *ngIf="!cargandoPopulares7Dias && obrasPopulares7Dias.length > 0; else noPopulares7Dias"
+    >
+      <button
+        type="button"
+        class="carousel-btn prev-btn"
+        (click)="prevCarousel('populares-7-dias')"
+      >
+        &#10094;
+      </button>
+
+      <div class="carousel-track" id="populares-7-dias">
+        <app-obra-card
+          class="carousel-card"
+          *ngFor="let obra of obrasPopulares7Dias; trackBy: trackByObra"
+          [obra]="obra"
+          [label]="translationService.getTranslation('Popular esta semana')"
+          (openObra)="abrirObra($event)"
+          (openAutor)="abrirPerfilObra($event)"
+        ></app-obra-card>
+      </div>
+
+      <button
+        type="button"
+        class="carousel-btn next-btn"
+        (click)="nextCarousel('populares-7-dias')"
+      >
+        &#10095;
+      </button>
+    </div>
+
+    <ng-template #noPopulares7Dias>
+      <p class="estado" *ngIf="!cargandoPopulares7Dias && !errorPopulares7Dias">
+        {{ translationService.getTranslation('Todavía no hay obras populares esta semana.') }}
+      </p>
+    </ng-template>
   </section>
 
   <section class="home-section">

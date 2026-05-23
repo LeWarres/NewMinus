@@ -1,0 +1,121 @@
+<div class="top-page">
+  <section class="top-section">
+    <div class="section-header">
+      <div>
+        <h2>
+          {{ translationService.getTranslation('Top histórico') }}
+        </h2>
+
+        <p>
+          {{ translationService.getTranslation('Los 5 trabajos con más visitas acumuladas en la plataforma.') }}
+        </p>
+      </div>
+    </div>
+
+    <p *ngIf="cargandoHistorico" class="estado">
+      {{ translationService.getTranslation('Cargando top histórico') }}...
+    </p>
+
+    <p *ngIf="errorHistorico" class="estado error">
+      {{ errorHistorico }}
+    </p>
+
+    <div class="top-grid" *ngIf="!cargandoHistorico && topHistorico.length > 0; else sinHistorico">
+      <app-obra-card
+        *ngFor="let obra of topHistorico; trackBy: trackByObra"
+        [obra]="obra"
+        [label]="translationService.getTranslation('Top histórico')"
+        (openObra)="abrirObra($event)"
+        (openAutor)="abrirPerfilObra($event)"
+      ></app-obra-card>
+    </div>
+
+    <ng-template #sinHistorico>
+      <p class="estado" *ngIf="!cargandoHistorico && !errorHistorico">
+        {{ translationService.getTranslation('Todavía no hay suficientes obras para mostrar el top histórico.') }}
+      </p>
+    </ng-template>
+  </section>
+
+  <section class="top-section spotlight-section">
+    <div class="section-header">
+      <div>
+        <h2>
+          {{ translationService.getTranslation('Top 7 días') }}
+        </h2>
+
+        <p>
+          {{ translationService.getTranslation('Las obras más vistas durante la última semana.') }}
+        </p>
+      </div>
+
+      <a routerLink="/categorias" [queryParams]="{ orden: 'populares', idioma: 'preferidos' }">
+        {{ translationService.getTranslation('Ver mas') }} &#10095;
+      </a>
+    </div>
+
+    <p *ngIf="cargando7Dias" class="estado">
+      {{ translationService.getTranslation('Cargando top de 7 días') }}...
+    </p>
+
+    <p *ngIf="error7Dias" class="estado error">
+      {{ error7Dias }}
+    </p>
+
+    <div class="top-grid" *ngIf="!cargando7Dias && top7Dias.length > 0; else sin7Dias">
+      <app-obra-card
+        *ngFor="let obra of top7Dias; trackBy: trackByObra"
+        [obra]="obra"
+        [label]="translationService.getTranslation('Top 7 días')"
+        (openObra)="abrirObra($event)"
+        (openAutor)="abrirPerfilObra($event)"
+      ></app-obra-card>
+    </div>
+
+    <ng-template #sin7Dias>
+      <p class="estado" *ngIf="!cargando7Dias && !error7Dias">
+        {{ translationService.getTranslation('Todavía no hay obras para mostrar el top de 7 días.') }}
+      </p>
+    </ng-template>
+  </section>
+
+  <section class="top-section spotlight-section">
+    <div class="section-header">
+      <div>
+        <h2>
+          {{ translationService.getTranslation('Top 30 días') }}
+        </h2>
+
+        <p>
+          {{ translationService.getTranslation('Las obras más vistas durante los últimos 30 días.') }}
+        </p>
+      </div>
+    </div>
+
+    <p *ngIf="cargando30Dias" class="estado">
+      {{ translationService.getTranslation('Cargando top de 30 días') }}...
+    </p>
+
+    <p *ngIf="error30Dias" class="estado error">
+      {{ error30Dias }}
+    </p>
+
+    <div class="top-grid" *ngIf="!cargando30Dias && top30Dias.length > 0; else sin30Dias">
+      <app-obra-card
+        *ngFor="let obra of top30Dias; trackBy: trackByObra"
+        [obra]="obra"
+        [label]="translationService.getTranslation('Top 30 días')"
+        (openObra)="abrirObra($event)"
+        (openAutor)="abrirPerfilObra($event)"
+      ></app-obra-card>
+    </div>
+
+    <ng-template #sin30Dias>
+      <p class="estado" *ngIf="!cargando30Dias && !error30Dias">
+        {{ translationService.getTranslation('Todavía no hay obras para mostrar el top de 30 días.') }}
+      </p>
+    </ng-template>
+  </section>
+
+
+</div>

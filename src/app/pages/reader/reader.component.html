@@ -382,6 +382,18 @@
           ></app-reportar-contenido>
         </section>
 
+        <section class="reader-recommended-section">
+          <app-recommended-carousel
+            [context]="'reader'"
+            [initialCategory]="'todos'"
+            [resetKey]="recommendationsResetKey"
+            [excludeObraId]="obra.id"
+            (openObra)="abrirObraRecomendada($event)"
+            (openAutor)="abrirAutorRecomendado($event)"
+            (viewMore)="verMasCategoriaRecomendada()"
+          ></app-recommended-carousel>
+        </section>
+
         <app-comments-section
           class="reader-comments-host"
           tipo="capitulo"
