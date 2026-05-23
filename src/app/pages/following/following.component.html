@@ -1,14 +1,14 @@
 <div class="following-page">
   <section class="following-hero">
     <div>
-      <span class="eyebrow">Minus Creators</span>
+      <span class="eyebrow">{{ translationService.getTranslation('common.brand.minus_creators') }}</span>
 
       <h1>
-        {{ translationService.getTranslation('Noticias') }}
+        {{ translationService.getTranslation('following.hero.title') }}
       </h1>
 
       <p>
-        {{ translationService.getTranslation('Capítulos nuevos de los creadores a los que estás suscrito.') }}
+        {{ translationService.getTranslation('following.hero.description') }}
       </p>
     </div>
 
@@ -16,13 +16,13 @@
       <strong>{{ items.length }}</strong>
 
       <span>
-        {{ translationService.getTranslation('actualizaciones') }}
+        {{ translationService.getTranslation('following.hero.count_updates') }}
       </span>
     </div>
   </section>
 
   <p *ngIf="cargando" class="estado">
-    {{ translationService.getTranslation('Cargando actualizaciones') }}...
+    {{ translationService.getTranslation('following.state.loading_updates') }}...
   </p>
 
   <p *ngIf="error" class="estado error">
@@ -44,15 +44,15 @@
   <ng-template #sinItems>
     <div class="empty-state" *ngIf="!cargando && !error">
       <h2>
-        {{ translationService.getTranslation('No hay capítulos nuevos todavía') }}
+        {{ translationService.getTranslation('following.empty.title') }}
       </h2>
 
       <p>
-        {{ translationService.getTranslation('Cuando los creadores a los que estás suscrito suban nuevos capítulos, aparecerán aquí.') }}
+        {{ translationService.getTranslation('following.empty.description') }}
       </p>
 
       <button type="button" routerLink="/categorias">
-        {{ translationService.getTranslation('Explorar creadores') }}
+        {{ translationService.getTranslation('following.empty.button') }}
       </button>
     </div>
   </ng-template>

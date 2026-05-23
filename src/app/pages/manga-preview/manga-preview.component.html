@@ -1,5 +1,5 @@
 <div class="preview-state" *ngIf="cargando">
-  {{ translationService.getTranslation('Cargando obra') }}...
+  {{ translationService.getTranslation('common.state.loading_work') }}...
 </div>
 
 <div class="preview-state error" *ngIf="error">
@@ -16,7 +16,7 @@
     <section class="preview-language-bar" *ngIf="getIdiomasDisponibles().length > 0">
       <div>
         <span class="language-kicker">
-          {{ translationService.getTranslation('Idioma de lectura') }}
+          {{ translationService.getTranslation('common.labels.reading_language') }}
         </span>
 
         <strong>
@@ -26,7 +26,7 @@
 
       <label class="language-select-wrap">
         <span>
-          {{ translationService.getTranslation('Mostrar capítulos en') }}
+          {{ translationService.getTranslation('mangaPreview.language.show_chapters_in') }}
         </span>
 
         <select
@@ -46,12 +46,12 @@
     <div class="left-panel" *ngIf="!isMobileView">
       <div class="episodes-header">
         <h2>
-          {{ translationService.getTranslation('Capítulos') }}
+          {{ translationService.getTranslation('common.labels.chapters') }}
         </h2>
 
         <span>
           {{ obra.capitulos.length }}
-          {{ translationService.getTranslation('capítulos') }}
+          {{ translationService.getTranslation('common.labels.chapters_lower') }}
         </span>
       </div>
 
@@ -71,7 +71,7 @@
 
         <div class="episode-info">
           <span class="episode-badge">
-            {{ translationService.getTranslation('Capítulo') }}
+            {{ translationService.getTranslation('common.labels.chapter') }}
             {{ capitulo.numeroCapitulo }}
           </span>
 
@@ -91,7 +91,7 @@
       </button>
 
       <div class="empty-language-chapters" *ngIf="obra.capitulos.length === 0">
-        {{ translationService.getTranslation('No hay capítulos disponibles en este idioma') }}
+        {{ translationService.getTranslation('mangaPreview.chapters.empty_by_language') }}
       </div>
     </div>
 
@@ -140,7 +140,7 @@
 
             <ng-template #sinCategoriasPreview>
               <span class="genre-tag">
-                {{ translationService.getTranslation('Sin categoría') }}
+                {{ translationService.getTranslation('common.labels.no_category') }}
               </span>
             </ng-template>
           </div>
@@ -152,17 +152,17 @@
           <div class="stats">
             <span>
               👁️ {{ obra.numVisitas }}
-              {{ translationService.getTranslation('Vistas') }}
+              {{ translationService.getTranslation('common.stats.views') }}
             </span>
 
             <span>
               📚 {{ obra.capitulos.length }}
-              {{ translationService.getTranslation('capítulos') }}
+              {{ translationService.getTranslation('common.labels.chapters_lower') }}
             </span>
 
             <span>
               ⭐ {{ obra.totalSuscriptores }}
-              {{ translationService.getTranslation('suscriptores') }}
+              {{ translationService.getTranslation('mangaPreview.stats.subscribers') }}
             </span>
           </div>
 
@@ -206,7 +206,7 @@
               *ngIf="isCurrentUser"
               (click)="subirCapitulo()"
             >
-              {{ translationService.getTranslation('Subir capítulo') }}
+              {{ translationService.getTranslation('common.actions.upload_chapter') }}
             </button>
           </div>
 
@@ -221,7 +221,7 @@
               (click)="leerPrimerCapitulo()"
               [disabled]="obra.capitulos.length === 0"
             >
-              {{ translationService.getTranslation('Leer desde el inicio') }}
+              {{ translationService.getTranslation('mangaPreview.actions.read_from_start') }}
             </button>
 
             <button
@@ -230,13 +230,13 @@
               (click)="leerUltimoCapitulo()"
               [disabled]="obra.capitulos.length === 0"
             >
-              {{ translationService.getTranslation('Último capítulo') }}
+              {{ translationService.getTranslation('mangaPreview.actions.latest_chapter') }}
             </button>
           </div>
 
           <section class="obra-report-section" *ngIf="obra && !isCurrentUser">
               <app-reportar-contenido
-                textoBoton="Reportar obra"
+                [textoBoton]="translationService.getTranslation('mangaPreview.actions.report_work')"
                 [urlReportada]="urlReporteObra"
                 [tituloContenido]="obra.titulo"
                 [contextoContenido]="contextoReporteObra"
@@ -252,7 +252,7 @@
               rel="noopener noreferrer"
               class="facebook"
             >
-              Facebook
+              {{ translationService.getTranslation('common.social.facebook') }}
             </a>
 
             <a
@@ -262,7 +262,7 @@
               rel="noopener noreferrer"
               class="twitter"
             >
-              Twitter
+              {{ translationService.getTranslation('mangaPreview.social.twitter') }}
             </a>
 
             <a
@@ -272,18 +272,18 @@
               rel="noopener noreferrer"
               class="instagram"
             >
-              Instagram
+              {{ translationService.getTranslation('common.social.instagram') }}
             </a>
           </div>
 
           <div class="meta" [class.hidden]="!showDetails">
             <div class="metadata">
-              📅 {{ translationService.getTranslation('Publicado') }}:
+              📅 {{ translationService.getTranslation('mangaPreview.meta.published') }}:
               {{ obra.fechaCreacion }}
             </div>
 
             <div class="metadata">
-              📝 {{ translationService.getTranslation('Autor') }}:
+              📝 {{ translationService.getTranslation('mangaPreview.meta.author') }}:
               {{ obra.autor }}
             </div>
           </div>
@@ -295,8 +295,8 @@
           >
             {{
               showDetails
-                ? translationService.getTranslation('Ocultar detalles') + ' ⮝'
-                : translationService.getTranslation('Ver detalles') + ' ⮟'
+                ? translationService.getTranslation('mangaPreview.actions.hide_details') + ' ⮝'
+                : translationService.getTranslation('mangaPreview.actions.show_details') + ' ⮟'
             }}
           </button>
         </div>
@@ -305,12 +305,12 @@
       <div class="episode-container" *ngIf="isMobileView">
         <div class="episodes-header mobile">
           <h2>
-            {{ translationService.getTranslation('Capítulos') }}
+            {{ translationService.getTranslation('common.labels.chapters') }}
           </h2>
 
           <span>
             {{ obra.capitulos.length }}
-            {{ translationService.getTranslation('capítulos') }}
+            {{ translationService.getTranslation('common.labels.chapters_lower') }}
           </span>
         </div>
 
@@ -330,7 +330,7 @@
 
           <div class="episode-info">
             <span class="episode-badge">
-              {{ translationService.getTranslation('Capítulo') }}
+              {{ translationService.getTranslation('common.labels.chapter') }}
               {{ capitulo.numeroCapitulo }}
             </span>
 
@@ -350,7 +350,7 @@
         </button>
 
         <div class="empty-language-chapters mobile-empty" *ngIf="obra.capitulos.length === 0">
-          {{ translationService.getTranslation('No hay capítulos disponibles en este idioma') }}
+          {{ translationService.getTranslation('mangaPreview.chapters.empty_by_language') }}
         </div>
       </div>
     </div>

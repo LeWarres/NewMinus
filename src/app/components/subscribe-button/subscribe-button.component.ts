@@ -128,7 +128,7 @@ export class SubscribeButtonComponent implements OnInit, OnChanges {
           if (!res.success) {
             this.error =
               res.error ||
-              this.translationService.getTranslation('No se pudo actualizar la suscripción');
+              this.translationService.getTranslation('subscribeButton.update_error');
             return;
           }
 
@@ -161,14 +161,14 @@ export class SubscribeButtonComponent implements OnInit, OnChanges {
 
           this.error =
             err.error?.error ||
-            this.translationService.getTranslation('Error al actualizar suscripción');
+            this.translationService.getTranslation('subscribeButton.update_error_generic');
 
           console.error(err);
         }
       });
     }, () => {
       this.loading = false;
-      this.error = this.translationService.getTranslation('No se pudo preparar la acción');
+      this.error = this.translationService.getTranslation('common.error.prepare_action_failed');
     });
   }
 

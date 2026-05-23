@@ -44,11 +44,11 @@
     <div class="section-header">
       <div>
         <h2>
-          {{ translationService.getTranslation('Más populares de los últimos 7 días') }}
+          {{ translationService.getTranslation('home.trending.title') }}
         </h2>
 
         <p>
-          {{ translationService.getTranslation('Obras con más vistas recientes en tus idiomas.') }}
+          {{ translationService.getTranslation('home.trending.description') }}
         </p>
       </div>
 
@@ -56,12 +56,12 @@
         routerLink="/categorias"
         [queryParams]="{ orden: 'populares', idioma: 'preferidos' }"
       >
-        {{ translationService.getTranslation('Ver mas') }} &#10095;
+          {{ translationService.getTranslation('common.actions.view_more') }} &#10095;
       </a>
     </div>
 
     <p *ngIf="cargandoPopulares7Dias" class="estado">
-      {{ translationService.getTranslation('Cargando obras populares') }}...
+      {{ translationService.getTranslation('home.trending.loading') }}...
     </p>
 
     <p *ngIf="errorPopulares7Dias" class="estado error">
@@ -85,7 +85,7 @@
           class="carousel-card"
           *ngFor="let obra of obrasPopulares7Dias; trackBy: trackByObra"
           [obra]="obra"
-          [label]="translationService.getTranslation('Popular esta semana')"
+          [label]="translationService.getTranslation('home.trending.card_label')"
           (openObra)="abrirObra($event)"
           (openAutor)="abrirPerfilObra($event)"
         ></app-obra-card>
@@ -102,7 +102,7 @@
 
     <ng-template #noPopulares7Dias>
       <p class="estado" *ngIf="!cargandoPopulares7Dias && !errorPopulares7Dias">
-        {{ translationService.getTranslation('Todavía no hay obras populares esta semana.') }}
+        {{ translationService.getTranslation('home.trending.empty') }}
       </p>
     </ng-template>
   </section>
@@ -111,21 +111,21 @@
     <div class="section-header">
       <div>
         <h2>
-          {{ translationService.getTranslation('Nuevas obras subidas') }}
+          {{ translationService.getTranslation('home.newWorks.title') }}
         </h2>
 
         <p>
-          {{ translationService.getTranslation('Obras recién publicadas por la comunidad.') }}
+          {{ translationService.getTranslation('home.newWorks.description') }}
         </p>
       </div>
 
       <a routerLink="/categorias">
-        {{ translationService.getTranslation('Ver mas') }} &#10095;
+          {{ translationService.getTranslation('common.actions.view_more') }} &#10095;
       </a>
     </div>
 
     <p *ngIf="cargandoObras" class="estado">
-      {{ translationService.getTranslation('Cargando obras') }}...
+      {{ translationService.getTranslation('common.state.loading_works') }}...
     </p>
 
     <p *ngIf="errorObras" class="estado error">
@@ -149,7 +149,7 @@
           class="carousel-card"
           *ngFor="let obra of obrasNuevas; trackBy: trackByObra"
           [obra]="obra"
-          [label]="translationService.getTranslation('Nueva obra')"
+          [label]="translationService.getTranslation('home.newWorks.card_label')"
           (openObra)="abrirObra($event)"
           (openAutor)="abrirPerfilObra($event)"
         ></app-obra-card>
@@ -166,7 +166,7 @@
 
     <ng-template #noObras>
       <p class="estado" *ngIf="!cargandoObras && !errorObras">
-        {{ translationService.getTranslation('Todavía no hay obras publicadas.') }}
+        {{ translationService.getTranslation('home.newWorks.empty') }}
       </p>
     </ng-template>
   </section>
@@ -175,21 +175,21 @@
     <div class="section-header">
       <div>
         <h2>
-          {{ translationService.getTranslation('Nuevos episodios') }}
+          {{ translationService.getTranslation('home.newChapters.title') }}
         </h2>
 
         <p>
-          {{ translationService.getTranslation('Capítulos recién agregados a obras existentes.') }}
+          {{ translationService.getTranslation('home.newChapters.description') }}
         </p>
       </div>
 
       <a routerLink="/categorias">
-        {{ translationService.getTranslation('Ver mas') }} &#10095;
+          {{ translationService.getTranslation('common.actions.view_more') }} &#10095;
       </a>
     </div>
 
     <p *ngIf="cargandoCapitulos" class="estado">
-      {{ translationService.getTranslation('Cargando capítulos') }}...
+      {{ translationService.getTranslation('home.newChapters.loading') }}...
     </p>
 
     <p *ngIf="errorCapitulos" class="estado error">
@@ -229,7 +229,7 @@
 
     <ng-template #noCapitulos>
       <p class="estado" *ngIf="!cargandoCapitulos && !errorCapitulos">
-        {{ translationService.getTranslation('Todavía no hay capítulos publicados.') }}
+        {{ translationService.getTranslation('home.newChapters.empty') }}
       </p>
     </ng-template>
   </section>
@@ -238,21 +238,21 @@
     <div class="section-header">
       <div>
         <h2>
-          {{ translationService.getTranslation('Noticias') }}
+          {{ translationService.getTranslation('common.labels.news') }}
         </h2>
 
         <p>
-          {{ translationService.getTranslation('Actualizaciones recientes de los creadores a los que estás suscrito.') }}
+          {{ translationService.getTranslation('home.following.description') }}
         </p>
       </div>
 
       <a routerLink="/following">
-        {{ translationService.getTranslation('Ver mas') }} &#10095;
+          {{ translationService.getTranslation('common.actions.view_more') }} &#10095;
       </a>
     </div>
 
     <p *ngIf="cargandoFollowing" class="estado">
-      {{ translationService.getTranslation('Cargando lo que sigues') }}...
+      {{ translationService.getTranslation('home.following.loading') }}...
     </p>
 
     <p *ngIf="errorFollowing" class="estado error">
@@ -293,7 +293,7 @@
 
     <ng-template #noFollowing>
       <p class="estado" *ngIf="!cargandoFollowing && !errorFollowing">
-        {{ translationService.getTranslation('Todavía no hay actualizaciones de tus suscripciones.') }}
+        {{ translationService.getTranslation('home.following.empty') }}
       </p>
     </ng-template>
   </section>

@@ -16,10 +16,6 @@ export interface CapituloCardItem {
   genero?: string;
   categorias?: string[];
 
-  /*
-    Idioma real de esta versión de capítulo.
-    Debe venir desde capitulo_versiones.idioma.
-  */
   idioma?: string;
 
   portada?: string;
@@ -129,11 +125,11 @@ export class CapituloCardComponent {
       .toLowerCase();
 
     const labels: Record<string, string> = {
-      comic: 'Comic',
-      manga: 'Manga',
-      libro: 'Libro',
-      novela: 'Novela',
-      artwork: 'Artwork'
+      comic: 'common.work_type.comic',
+      manga: 'common.work_type.manga',
+      libro: 'common.work_type.book',
+      novela: 'common.work_type.novel',
+      artwork: 'common.work_type.artwork'
     };
 
     const label = labels[normalized];

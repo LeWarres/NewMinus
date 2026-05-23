@@ -301,7 +301,7 @@ export class CategoriasComponent implements OnInit {
           if (!res.success) {
             this.error =
               res.error ||
-              this.translationService.getTranslation('No se pudieron cargar los resultados');
+              this.translationService.getTranslation('categorias.error.no_resultados');
             return;
           }
 
@@ -312,7 +312,7 @@ export class CategoriasComponent implements OnInit {
           this.cargando = false;
           this.error =
             err.error?.error ||
-            this.translationService.getTranslation('Error al cargar los resultados');
+            this.translationService.getTranslation('categorias.error.error_resultados');
 
           console.error(err);
         }
@@ -363,7 +363,7 @@ export class CategoriasComponent implements OnInit {
 
   getCategoriaLabel(value?: string): string {
     if (!value || value === 'todos') {
-      return this.translationService.getTranslation('Todos');
+      return this.translationService.getTranslation('categorias.common.todos');
     }
 
     return this.metadataService.getCategoryLabel(value);
@@ -375,11 +375,11 @@ export class CategoriasComponent implements OnInit {
 
   getIdiomaLabel(value?: string): string {
     if (!value || value.toLowerCase() === 'todos') {
-      return this.translationService.getTranslation('Todos los idiomas');
+      return this.translationService.getTranslation('categorias.idioma.todos');
     }
 
     if (value === 'preferidos') {
-      return this.translationService.getTranslation('Mis idiomas');
+      return this.translationService.getTranslation('categorias.idioma.preferidos');
     }
 
     return this.metadataService.getLanguageLabel(value);
@@ -395,16 +395,16 @@ export class CategoriasComponent implements OnInit {
       .toLowerCase();
 
     const labels: Record<string, string> = {
-      todos: 'Todos los tipos',
-      comic: 'Comic',
-      manga: 'Manga',
-      libro: 'Libro',
-      novela: 'Novela',
-      artwork: 'Artwork'
+      todos: 'categorias.tipo_obra.todos',
+      comic: 'common.work_type.comic',
+      manga: 'common.work_type.manga',
+      libro: 'common.work_type.book',
+      novela: 'common.work_type.novel',
+      artwork: 'common.work_type.artwork'
     };
 
     return this.translationService.getTranslation(
-      labels[normalized] || 'Todos los tipos'
+      labels[normalized] || 'categorias.tipo_obra.todos'
     );
   }
 
@@ -414,14 +414,14 @@ export class CategoriasComponent implements OnInit {
 
   getFiltroNsfwLabel(): string {
     if (this.filtroNsfw === 'ocultar') {
-      return this.translationService.getTranslation('Sin contenido NSFW');
+      return this.translationService.getTranslation('common.labels.nsfw_content');
     }
 
     if (this.filtroNsfw === 'solo') {
-      return this.translationService.getTranslation('Solo contenido NSFW');
+      return this.translationService.getTranslation('common.labels.nsfw_content');
     }
 
-    return this.translationService.getTranslation('Con contenido NSFW');
+    return this.translationService.getTranslation('common.labels.nsfw_content');
   }
 
   hasActiveFilters(): boolean {

@@ -3,17 +3,17 @@
     <div class="section-header">
       <div>
         <h2>
-          {{ translationService.getTranslation('Top histórico') }}
+          {{ translationService.getTranslation('common.top.historical') }}
         </h2>
 
         <p>
-          {{ translationService.getTranslation('Los 5 trabajos con más visitas acumuladas en la plataforma.') }}
+          {{ translationService.getTranslation('top.historical.description') }}
         </p>
       </div>
     </div>
 
     <p *ngIf="cargandoHistorico" class="estado">
-      {{ translationService.getTranslation('Cargando top histórico') }}...
+      {{ translationService.getTranslation('top.historical.loading') }}...
     </p>
 
     <p *ngIf="errorHistorico" class="estado error">
@@ -24,7 +24,7 @@
       <app-obra-card
         *ngFor="let obra of topHistorico; trackBy: trackByObra"
         [obra]="obra"
-        [label]="translationService.getTranslation('Top histórico')"
+        [label]="translationService.getTranslation('common.top.historical')"
         (openObra)="abrirObra($event)"
         (openAutor)="abrirPerfilObra($event)"
       ></app-obra-card>
@@ -32,7 +32,7 @@
 
     <ng-template #sinHistorico>
       <p class="estado" *ngIf="!cargandoHistorico && !errorHistorico">
-        {{ translationService.getTranslation('Todavía no hay suficientes obras para mostrar el top histórico.') }}
+        {{ translationService.getTranslation('top.historical.empty') }}
       </p>
     </ng-template>
   </section>
@@ -41,21 +41,21 @@
     <div class="section-header">
       <div>
         <h2>
-          {{ translationService.getTranslation('Top 7 días') }}
+          {{ translationService.getTranslation('common.top.weekly') }}
         </h2>
 
         <p>
-          {{ translationService.getTranslation('Las obras más vistas durante la última semana.') }}
+          {{ translationService.getTranslation('top.weekly.description') }}
         </p>
       </div>
 
       <a routerLink="/categorias" [queryParams]="{ orden: 'populares', idioma: 'preferidos' }">
-        {{ translationService.getTranslation('Ver mas') }} &#10095;
+        {{ translationService.getTranslation('common.actions.view_more') }} &#10095;
       </a>
     </div>
 
     <p *ngIf="cargando7Dias" class="estado">
-      {{ translationService.getTranslation('Cargando top de 7 días') }}...
+      {{ translationService.getTranslation('top.weekly.loading') }}...
     </p>
 
     <p *ngIf="error7Dias" class="estado error">
@@ -66,7 +66,7 @@
       <app-obra-card
         *ngFor="let obra of top7Dias; trackBy: trackByObra"
         [obra]="obra"
-        [label]="translationService.getTranslation('Top 7 días')"
+        [label]="translationService.getTranslation('common.top.weekly')"
         (openObra)="abrirObra($event)"
         (openAutor)="abrirPerfilObra($event)"
       ></app-obra-card>
@@ -74,7 +74,7 @@
 
     <ng-template #sin7Dias>
       <p class="estado" *ngIf="!cargando7Dias && !error7Dias">
-        {{ translationService.getTranslation('Todavía no hay obras para mostrar el top de 7 días.') }}
+        {{ translationService.getTranslation('top.weekly.empty') }}
       </p>
     </ng-template>
   </section>
@@ -83,17 +83,17 @@
     <div class="section-header">
       <div>
         <h2>
-          {{ translationService.getTranslation('Top 30 días') }}
+          {{ translationService.getTranslation('common.top.monthly') }}
         </h2>
 
         <p>
-          {{ translationService.getTranslation('Las obras más vistas durante los últimos 30 días.') }}
+          {{ translationService.getTranslation('top.monthly.description') }}
         </p>
       </div>
     </div>
 
     <p *ngIf="cargando30Dias" class="estado">
-      {{ translationService.getTranslation('Cargando top de 30 días') }}...
+      {{ translationService.getTranslation('top.monthly.loading') }}...
     </p>
 
     <p *ngIf="error30Dias" class="estado error">
@@ -104,7 +104,7 @@
       <app-obra-card
         *ngFor="let obra of top30Dias; trackBy: trackByObra"
         [obra]="obra"
-        [label]="translationService.getTranslation('Top 30 días')"
+        [label]="translationService.getTranslation('common.top.monthly')"
         (openObra)="abrirObra($event)"
         (openAutor)="abrirPerfilObra($event)"
       ></app-obra-card>
@@ -112,7 +112,7 @@
 
     <ng-template #sin30Dias>
       <p class="estado" *ngIf="!cargando30Dias && !error30Dias">
-        {{ translationService.getTranslation('Todavía no hay obras para mostrar el top de 30 días.') }}
+        {{ translationService.getTranslation('top.monthly.empty') }}
       </p>
     </ng-template>
   </section>

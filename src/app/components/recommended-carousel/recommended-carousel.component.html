@@ -31,7 +31,7 @@
   </div>
 
   <p *ngIf="cargandoRecomendadas" class="estado">
-    {{ translationService.getTranslation('Cargando recomendaciones') }}...
+    {{ translationService.getTranslation('common.state.loading') }}...
   </p>
 
   <p *ngIf="errorRecomendadas" class="estado error">
@@ -45,6 +45,7 @@
     <button
       type="button"
       class="carousel-btn prev-btn"
+      [attr.aria-label]="translationService.getTranslation('common.actions.previous')"
       (click)="prevCarousel()"
     >
       &#10094;
@@ -64,6 +65,7 @@
     <button
       type="button"
       class="carousel-btn next-btn"
+      [attr.aria-label]="translationService.getTranslation('common.actions.next')"
       (click)="nextCarousel()"
     >
       &#10095;
@@ -72,7 +74,7 @@
 
   <ng-template #noRecomendadas>
     <p class="estado" *ngIf="!cargandoRecomendadas && !errorRecomendadas">
-      {{ translationService.getTranslation('No hay recomendaciones para esta categoría.') }}
+      {{ translationService.getTranslation('recommendedCarousel.no_recommendations') }}
     </p>
   </ng-template>
 </div>

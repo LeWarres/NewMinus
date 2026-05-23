@@ -74,7 +74,7 @@ export class FollowingComponent implements OnInit {
           if (!res.success) {
             this.error =
               res.error ||
-              this.translationService.getTranslation('No se pudieron cargar las actualizaciones');
+              this.translationService.getTranslation('following.error.load_updates_failed');
             return;
           }
 
@@ -91,7 +91,7 @@ export class FollowingComponent implements OnInit {
 
           this.error =
             err.error?.error ||
-            this.translationService.getTranslation('Error al cargar las actualizaciones');
+            this.translationService.getTranslation('following.error.load_updates_error');
 
           console.error(err);
         }

@@ -3,25 +3,27 @@
 
   <main class="signup-card">
     <section class="brand-panel">
-      <div class="brand-badge">MINUS</div>
+      <div class="brand-badge">
+        {{ translationService.getTranslation('common.brand.minus') }}
+      </div>
 
       <h1>
-        {{ translationService.getTranslation('Crea tu cuenta') }}
+        {{ translationService.getTranslation('signup.hero.title') }}
       </h1>
 
       <p>
-        {{ translationService.getTranslation('Únete a Minus Creators para publicar obras, seguir autores y descubrir nuevos capítulos.') }}
+        {{ translationService.getTranslation('signup.hero.description') }}
       </p>
     </section>
 
     <section class="form-panel">
       <div class="form-header">
         <h2>
-          {{ translationService.getTranslation('sightup') }}
+          {{ translationService.getTranslation('common.actions.signup') }}
         </h2>
 
         <p>
-          {{ translationService.getTranslation('Usa un correo real para poder verificar tu cuenta.') }}
+          {{ translationService.getTranslation('signup.form.description') }}
         </p>
       </div>
 
@@ -29,7 +31,7 @@
         <div class="verify-icon">✓</div>
 
         <h2>
-          {{ translationService.getTranslation('Verifica tu correo') }}
+          {{ translationService.getTranslation('common.notice.verify_email') }}
         </h2>
 
         <p>
@@ -37,13 +39,13 @@
         </p>
 
         <button type="button" class="submit-button" (click)="goToLogin()">
-          {{ translationService.getTranslation('Ir al login') }}
+          {{ translationService.getTranslation('common.actions.go_to_login') }}
         </button>
       </div>
 
       <form *ngIf="!registroCompletado" (ngSubmit)="register()" class="signup-form">
         <label for="username">
-          {{ translationService.getTranslation('NombredeUsuario') }}
+          {{ translationService.getTranslation('common.form.username_label') }}
         </label>
 
         <input
@@ -51,13 +53,13 @@
           type="text"
           name="username"
           [(ngModel)]="username"
-          placeholder="MinusCreator"
+          [placeholder]="translationService.getTranslation('signup.fields.username_placeholder')"
           autocomplete="username"
           required
         />
 
         <label for="email">
-          {{ translationService.getTranslation('mail') }}
+          {{ translationService.getTranslation('common.form.email_label') }}
         </label>
 
         <input
@@ -65,13 +67,13 @@
           type="email"
           name="email"
           [(ngModel)]="email"
-          placeholder="tuemail@gmail.com"
+          [placeholder]="translationService.getTranslation('common.form.email_placeholder')"
           autocomplete="email"
           required
         />
 
         <label for="nacionalidad">
-          {{ translationService.getTranslation('Nacionalidad') }}
+          {{ translationService.getTranslation('common.form.nationality_label') }}
         </label>
 
         <select
@@ -80,11 +82,14 @@
           [(ngModel)]="nacionalidad"
         >
           <option value="">
-            {{ translationService.getTranslation('Selecciona un país') }}
+            {{ translationService.getTranslation('common.form.select_country_placeholder') }}
           </option>
 
-          <option *ngFor="let country of countries; trackBy: trackByCountryName" [value]="country.name">
-            {{ country.name }}
+          <option
+            *ngFor="let country of countries; trackBy: trackByCountryName"
+            [value]="country.name"
+          >
+            {{ getCountryLabel(country) }}
           </option>
         </select>
 
@@ -92,11 +97,11 @@
           <div class="reading-languages-header">
             <div>
               <span>
-                {{ translationService.getTranslation('Idiomas de lectura') }}
+                {{ translationService.getTranslation('common.labels.reading_languages') }}
               </span>
 
               <p>
-                {{ translationService.getTranslation('Elige los idiomas en los que quieres leer obras') }}
+                {{ translationService.getTranslation('common.reading.description') }}
               </p>
             </div>
 
@@ -118,18 +123,18 @@
           </div>
 
           <p class="helper-note">
-            {{ translationService.getTranslation('Podrás cambiar esto después desde tu perfil.') }}
+            {{ translationService.getTranslation('signup.reading.helper') }}
           </p>
         </section>
 
         <section class="content-preferences-panel">
           <div class="content-preferences-header">
             <span>
-              {{ translationService.getTranslation('Preferencias de contenido') }}
+              {{ translationService.getTranslation('common.labels.content_preferences') }}
             </span>
 
             <p>
-              {{ translationService.getTranslation('El contenido NSFW estará oculto por defecto. Puedes cambiarlo después desde tu perfil.') }}
+              {{ translationService.getTranslation('common.content.nsfw_default_hidden_description') }}
             </p>
           </div>
 
@@ -144,18 +149,18 @@
 
             <span class="toggle-copy">
               <strong>
-                {{ translationService.getTranslation('Mostrar contenido NSFW en el Home') }}
+                {{ translationService.getTranslation('common.content.show_nsfw_home') }}
               </strong>
 
               <small>
-                {{ translationService.getTranslation('Esto no afecta las actualizaciones de creadores que sigues.') }}
+                {{ translationService.getTranslation('common.content.toggle_following_help') }}
               </small>
             </span>
           </label>
         </section>
 
         <label for="password">
-          {{ translationService.getTranslation('Contrasena') }}
+          {{ translationService.getTranslation('common.form.password_label') }}
         </label>
 
         <div class="password-container">
@@ -164,7 +169,7 @@
             [type]="mostrarPassword ? 'text' : 'password'"
             name="password"
             [(ngModel)]="password"
-            [placeholder]="translationService.getTranslation('Mínimo 8 caracteres')"
+            [placeholder]="translationService.getTranslation('common.form.password_min_placeholder')"
             autocomplete="new-password"
             required
           />
@@ -173,13 +178,18 @@
             type="button"
             class="toggle-password"
             (click)="togglePassword()"
+            [attr.aria-label]="
+              mostrarPassword
+                ? translationService.getTranslation('login.form.password_hide')
+                : translationService.getTranslation('login.form.password_show')
+            "
           >
             {{ mostrarPassword ? '🙈' : '👁️' }}
           </button>
         </div>
 
         <label for="confirmPassword">
-          {{ translationService.getTranslation('Confirmar contraseña') }}
+          {{ translationService.getTranslation('common.form.confirm_password_label') }}
         </label>
 
         <div class="password-container">
@@ -188,7 +198,7 @@
             [type]="mostrarConfirmPassword ? 'text' : 'password'"
             name="confirmPassword"
             [(ngModel)]="confirmPassword"
-            [placeholder]="translationService.getTranslation('Repite tu contraseña')"
+            [placeholder]="translationService.getTranslation('common.form.confirm_password_placeholder')"
             autocomplete="new-password"
             required
           />
@@ -197,6 +207,11 @@
             type="button"
             class="toggle-password"
             (click)="toggleConfirmPassword()"
+            [attr.aria-label]="
+              mostrarConfirmPassword
+                ? translationService.getTranslation('login.form.password_hide')
+                : translationService.getTranslation('login.form.password_show')
+            "
           >
             {{ mostrarConfirmPassword ? '🙈' : '👁️' }}
           </button>
@@ -211,9 +226,9 @@
           />
 
           <span>
-            {{ translationService.getTranslation('Acepto los') }}
+            {{ translationService.getTranslation('signup.terms.accept_prefix') }}
             <a href="/terminos/Minus_Creators_Terms_and_Conditions.pdf" target="_blank" rel="noopener noreferrer">
-              {{ translationService.getTranslation('términos y condiciones') }}
+              {{ translationService.getTranslation('signup.terms.link_text') }}
             </a>
           </span>
         </label>
@@ -234,7 +249,7 @@
 
         <button type="submit" class="submit-button" [disabled]="cargando">
           <span *ngIf="!cargando">
-            {{ translationService.getTranslation('sightup') }}
+            {{ translationService.getTranslation('common.actions.signup') }}
           </span>
 
           <span *ngIf="cargando" class="loader"></span>
@@ -243,11 +258,11 @@
 
       <div class="login-box-link">
         <span>
-          {{ translationService.getTranslation('Ya tienes cuenta') }}
+          {{ translationService.getTranslation('signup.login.prompt') }}
         </span>
 
         <a routerLink="/login">
-          {{ translationService.getTranslation('login') }}
+          {{ translationService.getTranslation('common.actions.login_lower') }}
         </a>
       </div>
     </section>

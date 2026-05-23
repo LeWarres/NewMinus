@@ -21,7 +21,8 @@ interface UploadChapterResponse {
 
 interface SelectOption {
   value: string;
-  label: string;
+  labelKey: string;
+  nativeLabel: string;
 }
 
 interface ChapterLanguageVersion {
@@ -55,32 +56,28 @@ export class ChapterUploaderComponent implements OnInit {
 
   maxPageFileSize = 8 * 1024 * 1024;
 
-  /*
-    Sin límite por cantidad de páginas.
-    Este límite solo controla el peso total antes de optimizar.
-  */
   maxTotalPagesSize = 300 * 1024 * 1024;
 
   idiomas: SelectOption[] = [
-    { value: 'GLOBAL', label: 'Global' },
-    { value: 'ES', label: 'Español / Spanish' },
-    { value: 'EN', label: 'English' },
-    { value: 'JA', label: '日本語 / Japanese' },
-    { value: 'KO', label: '한국어 / Korean' },
-    { value: 'ZH', label: '中文 / Chinese' },
-    { value: 'FR', label: 'Français / French' },
-    { value: 'DE', label: 'Deutsch / German' },
-    { value: 'PT', label: 'Português / Portuguese' },
-    { value: 'IT', label: 'Italiano / Italian' },
-    { value: 'RU', label: 'Русский / Russian' },
-    { value: 'AR', label: 'العربية / Arabic' },
-    { value: 'HI', label: 'हिन्दी / Hindi' },
-    { value: 'ID', label: 'Bahasa Indonesia' },
-    { value: 'VI', label: 'Tiếng Việt / Vietnamese' },
-    { value: 'TH', label: 'ไทย / Thai' },
-    { value: 'TR', label: 'Türkçe / Turkish' },
-    { value: 'PL', label: 'Polski / Polish' },
-    { value: 'NL', label: 'Nederlands / Dutch' }
+    { value: 'GLOBAL', labelKey: 'common.languages.global', nativeLabel: 'Global' },
+    { value: 'ES', labelKey: 'common.languages.es', nativeLabel: 'Español' },
+    { value: 'EN', labelKey: 'common.languages.en', nativeLabel: 'English' },
+    { value: 'JA', labelKey: 'common.languages.ja', nativeLabel: '日本語' },
+    { value: 'KO', labelKey: 'common.languages.ko', nativeLabel: '한국어' },
+    { value: 'ZH', labelKey: 'common.languages.zh', nativeLabel: '中文' },
+    { value: 'FR', labelKey: 'common.languages.fr', nativeLabel: 'Français' },
+    { value: 'DE', labelKey: 'common.languages.de', nativeLabel: 'Deutsch' },
+    { value: 'PT', labelKey: 'common.languages.pt', nativeLabel: 'Português' },
+    { value: 'IT', labelKey: 'common.languages.it', nativeLabel: 'Italiano' },
+    { value: 'RU', labelKey: 'common.languages.ru', nativeLabel: 'Русский' },
+    { value: 'AR', labelKey: 'common.languages.ar', nativeLabel: 'العربية' },
+    { value: 'HI', labelKey: 'common.languages.hi', nativeLabel: 'हिन्दी' },
+    { value: 'ID', labelKey: 'common.languages.id', nativeLabel: 'Bahasa Indonesia' },
+    { value: 'VI', labelKey: 'common.languages.vi', nativeLabel: 'Tiếng Việt' },
+    { value: 'TH', labelKey: 'common.languages.th', nativeLabel: 'ไทย' },
+    { value: 'TR', labelKey: 'common.languages.tr', nativeLabel: 'Türkçe' },
+    { value: 'PL', labelKey: 'common.languages.pl', nativeLabel: 'Polski' },
+    { value: 'NL', labelKey: 'common.languages.nl', nativeLabel: 'Nederlands' }
   ];
 
   constructor(
@@ -127,7 +124,7 @@ export class ChapterUploaderComponent implements OnInit {
     const idioma = this.getPrimerIdiomaDisponible();
 
     if (!idioma) {
-      this.respuesta = this.translationService.getTranslation('Ya agregaste todos los idiomas disponibles');
+      this.respuesta = this.translationService.getTranslation('common.error.all_languages_added');
       return;
     }
 
@@ -150,7 +147,7 @@ export class ChapterUploaderComponent implements OnInit {
 
   eliminarVersionIdioma(version: ChapterLanguageVersion): void {
     if (this.versiones.length <= 1) {
-      this.respuesta = this.translationService.getTranslation('Debes dejar al menos un idioma para el capítulo');
+      this.respuesta = this.translationService.getTranslation('chapterUploader.error.min_one_language_version');
       return;
     }
 
@@ -171,7 +168,7 @@ export class ChapterUploaderComponent implements OnInit {
     });
 
     if (duplicado) {
-      this.respuesta = this.translationService.getTranslation('No puedes repetir el mismo idioma en este capítulo');
+      this.respuesta = this.translationService.getTranslation('chapterUploader.error.duplicate_language');
       version.idioma = this.getPrimerIdiomaDisponible(version.uid) || 'GLOBAL';
       return;
     }
@@ -248,7 +245,7 @@ export class ChapterUploaderComponent implements OnInit {
 
     if (omitidos > 0) {
       this.respuesta =
-        this.translationService.getTranslation('Algunas páginas no se agregaron por límite de tamaño');
+        this.translationService.getTranslation('common.error.pages_skipped_size_limit');
       return;
     }
 
@@ -264,8 +261,28 @@ export class ChapterUploaderComponent implements OnInit {
     return version.pages.reduce((total, file) => total + file.size, 0);
   }
 
+  getIdiomaOptionLabel(idioma: SelectOption): string {
+    const translated = this.translationService.getTranslation(idioma.labelKey);
+
+    if (!translated || translated === idioma.labelKey) {
+      return idioma.nativeLabel;
+    }
+
+    if (translated === idioma.nativeLabel) {
+      return translated;
+    }
+
+    return `${translated} / ${idioma.nativeLabel}`;
+  }
+
   getIdiomaLabel(value?: string): string {
-    return this.idiomas.find(idioma => idioma.value === value)?.label || value || '';
+    const idioma = this.idiomas.find(item => item.value === value);
+
+    if (!idioma) {
+      return value || '';
+    }
+
+    return this.getIdiomaOptionLabel(idioma);
   }
 
   formatSize(bytes: number): string {
@@ -292,12 +309,12 @@ export class ChapterUploaderComponent implements OnInit {
     }
 
     if (!this.obraId) {
-      this.respuesta = this.translationService.getTranslation('No se encontró la obra');
+      this.respuesta = this.translationService.getTranslation('common.error.work_not_found');
       return;
     }
 
     if (this.versiones.length === 0) {
-      this.respuesta = this.translationService.getTranslation('Debes agregar al menos un idioma');
+      this.respuesta = this.translationService.getTranslation('chapterUploader.error.add_at_least_one_language');
       return;
     }
 
@@ -307,7 +324,7 @@ export class ChapterUploaderComponent implements OnInit {
 
     if (this.totalPagesSize > this.maxTotalPagesSize) {
       this.respuesta =
-        this.translationService.getTranslation('El peso total de las páginas es demasiado grande');
+        this.translationService.getTranslation('common.error.total_pages_size_too_large');
       return;
     }
 
@@ -316,10 +333,6 @@ export class ChapterUploaderComponent implements OnInit {
     formData.append('obra_id', String(this.obraId));
     const primeraVersion = this.versiones[0];
 
-    /*
-      Campos legacy para compatibilidad con PHP anterior.
-      El PHP nuevo usa idiomaVersiones + paginas_UID[].
-    */
     formData.append('idioma', primeraVersion.idioma || 'GLOBAL');
     formData.append('titulo', primeraVersion.titulo.trim() || '');
     formData.append('descripcion', primeraVersion.descripcion.trim() || '');
@@ -347,7 +360,7 @@ export class ChapterUploaderComponent implements OnInit {
         next: (csrfRes) => {
           if (!csrfRes.success || !csrfRes.csrfToken) {
             this.cargando = false;
-            this.respuesta = this.translationService.getTranslation('No se pudo preparar la subida');
+            this.respuesta = this.translationService.getTranslation('common.error.prepare_upload_failed');
             return;
           }
 
@@ -356,7 +369,7 @@ export class ChapterUploaderComponent implements OnInit {
         },
         error: (err) => {
           this.cargando = false;
-          this.respuesta = this.translationService.getTranslation('No se pudo preparar la subida');
+          this.respuesta = this.translationService.getTranslation('common.error.prepare_upload_failed');
           console.error(err);
         }
       });
@@ -394,13 +407,13 @@ export class ChapterUploaderComponent implements OnInit {
         if (!res.success) {
           this.respuesta =
             res.error ||
-            this.translationService.getTranslation('No se pudo subir el capítulo');
+            this.translationService.getTranslation('chapterUploader.error.upload_failed');
           return;
         }
 
         this.respuesta =
           res.mensaje ||
-          this.translationService.getTranslation('Capítulo subido correctamente');
+          this.translationService.getTranslation('chapterUploader.success.uploaded');
 
         this.router.navigate(
           [
@@ -428,20 +441,20 @@ export class ChapterUploaderComponent implements OnInit {
         if (err.status === 403) {
           this.respuesta =
             err.error?.error ||
-            this.translationService.getTranslation('No tienes permiso para realizar esta acción');
+            this.translationService.getTranslation('common.error.no_permission');
           return;
         }
 
         if (err.status === 409) {
           this.respuesta =
             err.error?.error ||
-            this.translationService.getTranslation('Ya existe una versión con ese idioma para este capítulo');
+            this.translationService.getTranslation('chapterUploader.error.language_version_exists');
           return;
         }
 
         this.respuesta =
           err.error?.error ||
-          this.translationService.getTranslation('Error al subir capítulo');
+          this.translationService.getTranslation('chapterUploader.error.upload_error');
 
         console.error(err);
       }
@@ -455,12 +468,12 @@ export class ChapterUploaderComponent implements OnInit {
       const idioma = String(version.idioma || '').trim().toUpperCase();
 
       if (!this.esIdiomaPermitido(idioma)) {
-        this.respuesta = this.translationService.getTranslation('Selecciona un idioma válido');
+        this.respuesta = this.translationService.getTranslation('chapterUploader.error.invalid_language');
         return false;
       }
 
       if (idiomasUsados.has(idioma)) {
-        this.respuesta = this.translationService.getTranslation('No puedes repetir el mismo idioma en este capítulo');
+        this.respuesta = this.translationService.getTranslation('chapterUploader.error.duplicate_language');
         return false;
       }
 
@@ -468,17 +481,17 @@ export class ChapterUploaderComponent implements OnInit {
       version.idioma = idioma;
 
       if (version.titulo.trim().length > 150) {
-        this.respuesta = this.translationService.getTranslation('El título del capítulo es demasiado largo');
+        this.respuesta = this.translationService.getTranslation('chapterUploader.error.title_too_long');
         return false;
       }
 
       if (version.descripcion.trim().length > 5000) {
-        this.respuesta = this.translationService.getTranslation('La descripción del capítulo es demasiado larga');
+        this.respuesta = this.translationService.getTranslation('chapterUploader.error.description_too_long');
         return false;
       }
 
       if (version.pages.length === 0) {
-        this.respuesta = this.translationService.getTranslation('Cada idioma debe tener al menos una página');
+        this.respuesta = this.translationService.getTranslation('chapterUploader.error.at_least_one_page_per_language');
         return false;
       }
     }

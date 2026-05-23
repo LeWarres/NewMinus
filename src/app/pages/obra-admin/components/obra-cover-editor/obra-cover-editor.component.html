@@ -9,7 +9,7 @@
 
   <div class="cover-actions">
     <label class="file-action">
-      {{ translationService.getTranslation('Cambiar portada') }}
+      {{ translationService.getTranslation('obraAdmin.cover.change_cover') }}
 
       <input
         type="file"
@@ -19,9 +19,9 @@
     </label>
 
     <p class="selected-file">
-      {{ translationService.getTranslation('JPG, PNG, WEBP') }} ·
-      {{ translationService.getTranslation('Max') }} {{ formatSize(maxCoverFileSize) }} ·
-      {{ translationService.getTranslation('Se optimizará a WEBP') }}
+      {{ translationService.getTranslation('common.file.formats') }} ·
+      {{ translationService.getTranslation('common.file.max') }} {{ formatSize(maxCoverFileSize) }} ·
+      {{ translationService.getTranslation('common.file.optimized_webp') }}
     </p>
 
     <p *ngIf="coverFile" class="selected-file">
@@ -29,7 +29,7 @@
     </p>
 
     <p class="save-hint" *ngIf="coverFile">
-      {{ translationService.getTranslation('La portada se guardará al presionar Guardar todo') }}
+      {{ translationService.getTranslation('obraAdmin.cover.saved_on_save_all') }}
     </p>
   </div>
 </div>

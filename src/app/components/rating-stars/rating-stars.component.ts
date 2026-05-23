@@ -27,10 +27,11 @@ interface CalificacionObraResponse {
   styleUrl: './rating-stars.component.css'
 })
 export class RatingStarsComponent implements OnInit, OnChanges {
-    // trackBy para estrellas
-    trackByStar(index: number, star: number): number {
-      return star;
-    }
+  // trackBy para estrellas
+  trackByStar(index: number, star: number): number {
+    return star;
+  }
+
   @Input({ required: true }) obraId!: number | null;
   @Input() ownerUserId: number | null = null;
   @Input() currentUserId: number | null = null;
@@ -111,9 +112,7 @@ export class RatingStarsComponent implements OnInit, OnChanges {
         this.cargando = false;
 
         if (!res.success) {
-          this.error =
-            res.error ||
-            this.translationService.getTranslation('No se pudo cargar la calificación');
+          this.error = res.error || this.translationService.getTranslation('ratingStars.load_error');
           return;
         }
 
@@ -124,8 +123,7 @@ export class RatingStarsComponent implements OnInit, OnChanges {
       error: (err) => {
         this.cargando = false;
         this.error =
-          err.error?.error ||
-          this.translationService.getTranslation('No se pudo cargar la calificación');
+          err.error?.error || this.translationService.getTranslation('ratingStars.load_error');
 
         console.error(err);
       }
@@ -136,15 +134,13 @@ export class RatingStarsComponent implements OnInit, OnChanges {
     this.currentUser = this.authService.getCurrentUser();
 
     if (this.isOwner) {
-      this.mensaje =
-        this.translationService.getTranslation('No puedes calificar tu propia obra.');
+      this.mensaje = this.translationService.getTranslation('ratingStars.cannot_rate_own_work');
       this.error = '';
       return;
     }
 
     if (!this.currentUser) {
-      this.mensaje =
-        this.translationService.getTranslation('Para calificar debes iniciar sesión.');
+      this.mensaje = this.translationService.getTranslation('ratingStars.login_required');
       return;
     }
 
@@ -173,8 +169,7 @@ export class RatingStarsComponent implements OnInit, OnChanges {
 
           if (!res.success) {
             this.error =
-              res.error ||
-              this.translationService.getTranslation('No se pudo guardar la calificación');
+              res.error || this.translationService.getTranslation('ratingStars.save_error');
             return;
           }
 
@@ -184,7 +179,7 @@ export class RatingStarsComponent implements OnInit, OnChanges {
           this.hoverCalificacion = 0;
 
           this.mensaje =
-            this.translationService.getTranslation('Calificación guardada');
+            this.translationService.getTranslation('ratingStars.saved');
         },
         error: (err) => {
           this.guardando = false;
@@ -193,13 +188,12 @@ export class RatingStarsComponent implements OnInit, OnChanges {
             this.authService.clearSession();
             this.currentUser = null;
             this.mensaje =
-              this.translationService.getTranslation('Para calificar debes iniciar sesión.');
+              this.translationService.getTranslation('ratingStars.login_required');
             return;
           }
 
           this.error =
-            err.error?.error ||
-            this.translationService.getTranslation('No se pudo guardar la calificación');
+            err.error?.error || this.translationService.getTranslation('ratingStars.save_error');
 
           console.error(err);
         }
@@ -207,7 +201,7 @@ export class RatingStarsComponent implements OnInit, OnChanges {
     }, () => {
       this.guardando = false;
       this.error =
-        this.translationService.getTranslation('No se pudo preparar la acción');
+        this.translationService.getTranslation('common.error.prepare_action_failed');
     });
   }
 

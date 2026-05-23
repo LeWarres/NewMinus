@@ -154,7 +154,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           if (!res.success) {
             this.errorPopulares7Dias =
               res.error ||
-              this.translationService.getTranslation('No se pudieron cargar las obras populares');
+              this.translationService.getTranslation('home.error.popular_works_failed');
             return;
           }
 
@@ -164,7 +164,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           this.cargandoPopulares7Dias = false;
           this.errorPopulares7Dias =
             err.error?.error ||
-            this.translationService.getTranslation('Error al cargar obras populares');
+            this.translationService.getTranslation('home.error.popular_works_error');
 
           console.error(err);
         }
@@ -194,7 +194,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           if (!res.success) {
             this.errorObras =
               res.error ||
-              this.translationService.getTranslation('No se pudieron cargar las obras');
+              this.translationService.getTranslation('home.error.works_failed');
             return;
           }
 
@@ -204,7 +204,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           this.cargandoObras = false;
           this.errorObras =
             err.error?.error ||
-            this.translationService.getTranslation('Error al cargar obras');
+            this.translationService.getTranslation('home.error.works_error');
 
           console.error(err);
         }
@@ -233,7 +233,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           if (!res.success) {
             this.errorCapitulos =
               res.error ||
-              this.translationService.getTranslation('No se pudieron cargar los capítulos');
+              this.translationService.getTranslation('home.error.chapters_failed');
             return;
           }
 
@@ -243,7 +243,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           this.cargandoCapitulos = false;
           this.errorCapitulos =
             err.error?.error ||
-            this.translationService.getTranslation('Error al cargar capítulos');
+            this.translationService.getTranslation('home.error.chapters_error');
 
           console.error(err);
         }
@@ -275,7 +275,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           if (!res.success) {
             this.errorFollowing =
               res.error ||
-              this.translationService.getTranslation('No se pudo cargar lo que sigues');
+              this.translationService.getTranslation('home.error.following_failed');
             return;
           }
 
@@ -293,7 +293,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
           this.errorFollowing =
             err.error?.error ||
-            this.translationService.getTranslation('Error al cargar lo que sigues');
+            this.translationService.getTranslation('home.error.following_error');
 
           console.error(err);
         }
@@ -441,14 +441,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   get discoverButtonLabel(): string {
-    const currentLanguage = this.translationService
-      .getCurrentLanguage()
-      .trim()
-      .toLowerCase();
-
-    return currentLanguage === 'es'
-      ? 'Historia Random'
-      : 'Random Story';
+    return this.translationService.getTranslation('home.hero.random_button');
   }
 
   onRecommendationsChange(items: ObraCardItem[]): void {
@@ -480,7 +473,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.heroBannerImages = imageNames.map((name, index) => ({
       src: `/obras/paleta/${name}.webp`,
       href: imageLinks[index] || '/',
-      alt: `Minus Creators banner ${index + 1}`
+      alt: `${this.translationService.getTranslation('home.hero.banner_alt_prefix')} ${index + 1}`
     }));
   }
 

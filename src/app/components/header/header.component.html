@@ -4,7 +4,7 @@
     type="button"
     (click)="toggleMenu()"
     [attr.aria-expanded]="menuOpen"
-    aria-label="Menu"
+    [attr.aria-label]="translationService.getTranslation('common.actions.menu')"
   >
     ☰
   </button>
@@ -13,7 +13,7 @@
     <a routerLink="/" class="logo-link">
       <img
         src="/obras/paleta/logo.png"
-        alt="MINUS Logo"
+        [alt]="translationService.getTranslation('common.brand.logo_alt')"
         class="logo-image"
       />
     </a>
@@ -23,25 +23,25 @@
     <ul>
       <li>
         <a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
-          {{ translationService.getTranslation('Sobre Nosotros') }}
+          {{ translationService.getTranslation('common.navigation.home') }}
         </a>
       </li>
 
       <li>
         <a routerLink="/following" routerLinkActive="active-link">
-          {{ translationService.getTranslation('Noticias') }}
+          {{ translationService.getTranslation('common.labels.news') }}
         </a>
       </li>
 
       <li>
         <a routerLink="/top" routerLinkActive="active-link">
-          {{ translationService.getTranslation('Top') }}
+          {{ translationService.getTranslation('common.labels.top') }}
         </a>
       </li>
 
       <li>
         <a routerLink="/categorias" routerLinkActive="active-link">
-          {{ translationService.getTranslation('Géneros') }}
+          {{ translationService.getTranslation('common.labels.genres') }}
         </a>
       </li>
     </ul>
@@ -50,7 +50,7 @@
       <input
         type="text"
         [(ngModel)]="searchQuery"
-        [placeholder]="translationService.getTranslation('Keyword')"
+        [placeholder]="translationService.getTranslation('common.search.placeholder')"
         (keyup.enter)="search()"
       />
 
@@ -61,7 +61,7 @@
 
     <div class="upload-lang-container">
       <button class="upload-btn" type="button" (click)="navigateToUploader()">
-        {{ translationService.getTranslation('Subir obra') }}
+        {{ translationService.getTranslation('common.actions.upload_work') }}
       </button>
 
       <div class="language-menu-container">
@@ -87,7 +87,7 @@
 
         <div class="language-dropdown" *ngIf="languageMenuOpen">
           <div class="language-dropdown-title">
-            {{ translationService.getTranslation('Idioma') }}
+            {{ translationService.getTranslation('common.labels.language') }}
           </div>
 
           <button
@@ -119,11 +119,11 @@
 
   <div class="auth-area" *ngIf="!currentUser">
     <button class="login-btn" type="button" (click)="navigateToLogin()">
-      {{ translationService.getTranslation('login') }}
+      {{ translationService.getTranslation('common.actions.login') }}
     </button>
 
     <button class="signup-btn" type="button" (click)="navigateToSignup()">
-      {{ translationService.getTranslation('sightup') }}
+      {{ translationService.getTranslation('common.actions.signup') }}
     </button>
   </div>
 
@@ -138,11 +138,11 @@
 
     <div class="user-dropdown" *ngIf="userMenuOpen">
       <button type="button" (click)="goToProfile()">
-        {{ translationService.getTranslation('Mi perfil') }}
+        {{ translationService.getTranslation('common.actions.my_profile') }}
       </button>
 
       <button type="button" (click)="logout()">
-        {{ translationService.getTranslation('Cerrar sesión') }}
+        {{ translationService.getTranslation('common.actions.logout') }}
       </button>
     </div>
   </div>

@@ -143,7 +143,7 @@ export class ReaderComponent implements OnInit {
       const idioma = queryParams.get('idioma') || queryParams.get('lang') || undefined;
 
       if (!id) {
-        this.error = this.translationService.getTranslation('No se encontró la obra');
+        this.error = this.translationService.getTranslation('common.error.work_not_found');
         return;
       }
 
@@ -301,7 +301,7 @@ export class ReaderComponent implements OnInit {
         if (!res.success || !res.obra) {
           this.error =
             res.error ||
-            this.translationService.getTranslation('No se pudo cargar la obra');
+            this.translationService.getTranslation('common.error.load_work_failed');
           return;
         }
 
@@ -339,7 +339,7 @@ export class ReaderComponent implements OnInit {
         this.cargando = false;
         this.error =
           err.error?.error ||
-          this.translationService.getTranslation('Error al cargar la obra');
+          this.translationService.getTranslation('common.error.load_work_error');
 
         console.error(err);
       }

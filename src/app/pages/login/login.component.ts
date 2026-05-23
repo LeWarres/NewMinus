@@ -70,26 +70,26 @@ export class LoginComponent implements OnInit {
 
       if (registered === '1') {
         this.mensaje = this.translationService.getTranslation(
-          'Cuenta creada. Revisa tu correo para verificarla antes de iniciar sesión.'
+          'login.notice.account_created'
         );
       }
 
       if (verified === '1') {
         this.mensaje = this.translationService.getTranslation(
-          'Correo verificado correctamente. Ya puedes iniciar sesión.'
+          'login.notice.email_verified'
         );
       }
 
       if (verified === '0') {
         if (reason === 'invalid') {
           this.error = this.translationService.getTranslation(
-            'El enlace de verificación no es válido o ya expiró.'
+            'login.error.verification_link_invalid'
           );
           return;
         }
 
         this.error = this.translationService.getTranslation(
-          'No se pudo verificar el correo.'
+          'login.error.verification_failed'
         );
       }
     });
@@ -104,7 +104,7 @@ export class LoginComponent implements OnInit {
     const password = this.password;
 
     if (!email || !password) {
-      this.error = this.translationService.getTranslation('Completa email y contraseña');
+      this.error = this.translationService.getTranslation('login.error.email_password_required');
       this.mensaje = '';
       return;
     }
@@ -128,7 +128,7 @@ export class LoginComponent implements OnInit {
         this.cargando = false;
 
         if (!res.success || !res.authenticated || !res.user) {
-          this.error = res.error || this.translationService.getTranslation('No fue posible iniciar sesión');
+          this.error = res.error || this.translationService.getTranslation('login.error.login_failed');
           return;
         }
 
@@ -143,13 +143,13 @@ export class LoginComponent implements OnInit {
 
         if (err.status === 403 && err.error?.requiresVerification) {
           this.error = serverError || this.translationService.getTranslation(
-            'Debes verificar tu correo antes de iniciar sesión'
+            'login.error.email_verification_required'
           );
           this.mostrarReenviarVerificacion = true;
           return;
         }
 
-        this.error = serverError || this.translationService.getTranslation('Error al iniciar sesión');
+        this.error = serverError || this.translationService.getTranslation('login.error.login_error');
         console.error(err);
       }
     });

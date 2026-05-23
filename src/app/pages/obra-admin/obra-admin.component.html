@@ -1,6 +1,6 @@
 <div class="obra-admin-page">
   <p *ngIf="cargando" class="admin-state">
-    {{ translationService.getTranslation('Cargando obra') }}
+    {{ translationService.getTranslation('common.state.loading_work') }}
   </p>
 
   <p *ngIf="error" class="admin-state error">
@@ -10,27 +10,27 @@
   <ng-container *ngIf="obra">
     <section class="admin-hero">
       <div class="hero-info">
-        <span class="eyebrow">Minus Creators</span>
+        <span class="eyebrow">{{ translationService.getTranslation('common.brand.minus_creators') }}</span>
 
         <h1>
-          {{ translationService.getTranslation('Administrar obra') }}
+          {{ translationService.getTranslation('common.actions.manage_work') }}
         </h1>
 
         <p>
-          {{ translationService.getTranslation('Gestiona la información de tu obra y sus capítulos') }}
+          {{ translationService.getTranslation('obraAdmin.hero.description') }}
         </p>
 
         <div class="hero-actions">
           <button type="button" class="secondary-action" (click)="volverPerfil()">
-            ← {{ translationService.getTranslation('Mi perfil') }}
+            ← {{ translationService.getTranslation('obraAdmin.actions.my_profile') }}
           </button>
 
           <button type="button" class="secondary-action" (click)="verPreview()">
-            {{ translationService.getTranslation('Ver preview') }}
+            {{ translationService.getTranslation('obraAdmin.actions.view_preview') }}
           </button>
 
           <button type="button" class="primary-action" (click)="subirCapitulo()">
-            + {{ translationService.getTranslation('Subir capítulo') }}
+            + {{ translationService.getTranslation('common.actions.upload_chapter') }}
           </button>
 
           <button
@@ -41,8 +41,8 @@
           >
             {{
               eliminandoObra
-                ? translationService.getTranslation('Eliminando')
-                : translationService.getTranslation('Eliminar obra')
+                ? translationService.getTranslation('obraAdmin.actions.deleting')
+                : translationService.getTranslation('obraAdmin.actions.delete_work')
             }}
           </button>
         </div>
@@ -57,11 +57,11 @@
 
         <div class="cover-stats">
           <span>
-            {{ totalCapitulos }} {{ translationService.getTranslation('Capitulos') }}
+            {{ totalCapitulos }} {{ translationService.getTranslation('common.labels.chapters') }}
           </span>
 
           <span>
-            {{ obra.numVisitas }} {{ translationService.getTranslation('Vistas') }}
+            {{ obra.numVisitas }} {{ translationService.getTranslation('common.stats.views') }}
           </span>
         </div>
       </div>
@@ -72,11 +72,11 @@
         <div class="card-header">
           <div>
             <span class="section-kicker">
-              {{ translationService.getTranslation('Obra') }}
+              {{ translationService.getTranslation('common.labels.work') }}
             </span>
 
             <h2>
-              {{ translationService.getTranslation('Información de la obra') }}
+              {{ translationService.getTranslation('common.work.info_title') }}
             </h2>
           </div>
         </div>
@@ -93,21 +93,21 @@
 
         <div class="form-grid">
           <label class="full">
-            {{ translationService.getTranslation('Título') }}
+            {{ translationService.getTranslation('common.labels.title') }}
 
             <input
               type="text"
               [(ngModel)]="obra.titulo"
-              [placeholder]="translationService.getTranslation('Título')"
+              [placeholder]="translationService.getTranslation('common.labels.title')"
             />
           </label>
 
           <label class="full">
-            {{ translationService.getTranslation('Descripción') }}
+            {{ translationService.getTranslation('common.labels.description') }}
 
             <textarea
               [(ngModel)]="obra.descripcion"
-              [placeholder]="translationService.getTranslation('Descripción')"
+              [placeholder]="translationService.getTranslation('common.labels.description')"
             ></textarea>
           </label>
 
@@ -120,7 +120,7 @@
           ></app-obra-category-selector>
 
           <label>
-            {{ translationService.getTranslation('Tipo de obra') }}
+            {{ translationService.getTranslation('common.labels.work_type') }}
 
             <select [(ngModel)]="obra.tipoEntrega">
               <option
@@ -140,7 +140,7 @@
 
       <aside class="admin-card summary-card">
         <span class="section-kicker">
-          {{ translationService.getTranslation('Resumen') }}
+          {{ translationService.getTranslation('obraAdmin.summary.kicker') }}
         </span>
 
         <h2>{{ obra.titulo }}</h2>
@@ -148,27 +148,27 @@
         <div class="summary-list">
           <div>
             <strong>{{ totalCapitulos }}</strong>
-            <span>{{ translationService.getTranslation('Capitulos') }}</span>
+            <span>{{ translationService.getTranslation('common.labels.chapters') }}</span>
           </div>
 
           <div>
             <strong>{{ obra.numVisitas }}</strong>
-            <span>{{ translationService.getTranslation('Vistas') }}</span>
+            <span>{{ translationService.getTranslation('common.stats.views') }}</span>
           </div>
 
           <div>
-            <strong>{{ obra.idioma || 'GLOBAL' }}</strong>
-            <span>{{ translationService.getTranslation('Idioma') }}</span>
+            <strong>{{ getIdiomaLabel(obra.idioma || 'GLOBAL') }}</strong>
+            <span>{{ translationService.getTranslation('common.labels.language') }}</span>
           </div>
 
           <div>
             <strong>{{ getTipoObraLabel(obra.tipoEntrega) }}</strong>
-            <span>{{ translationService.getTranslation('Tipo de obra') }}</span>
+            <span>{{ translationService.getTranslation('common.labels.work_type') }}</span>
           </div>
 
           <div>
             <strong>{{ getSelectedCategoriesLabel() }}</strong>
-            <span>{{ translationService.getTranslation('Categorías') }}</span>
+            <span>{{ translationService.getTranslation('common.labels.categories') }}</span>
           </div>
         </div>
 
@@ -177,7 +177,7 @@
           class="primary-action full-btn"
           (click)="subirCapitulo()"
         >
-          + {{ translationService.getTranslation('Subir nuevo capítulo') }}
+          + {{ translationService.getTranslation('common.actions.upload_new_chapter') }}
         </button>
       </aside>
     </div>
@@ -186,11 +186,11 @@
       <div class="card-header chapters-header">
         <div>
           <span class="section-kicker">
-            {{ translationService.getTranslation('Capitulos') }}
+            {{ translationService.getTranslation('common.labels.chapters') }}
           </span>
 
           <h2>
-            {{ translationService.getTranslation('Administrar capítulos') }}
+            {{ translationService.getTranslation('obraAdmin.chapters.manage_title') }}
           </h2>
         </div>
 
@@ -199,7 +199,7 @@
           class="primary-action"
           (click)="subirCapitulo()"
         >
-          + {{ translationService.getTranslation('Subir capítulo') }}
+          + {{ translationService.getTranslation('common.actions.upload_chapter') }}
         </button>
       </div>
 
@@ -226,11 +226,11 @@
       <ng-template #noChapters>
         <div class="empty-state">
           <h3>
-            {{ translationService.getTranslation('No hay capítulos todavía') }}
+            {{ translationService.getTranslation('obraAdmin.chapters.empty_title') }}
           </h3>
 
           <p>
-            {{ translationService.getTranslation('Sube el primer capítulo para que tus lectores puedan empezar') }}
+            {{ translationService.getTranslation('obraAdmin.chapters.empty_description') }}
           </p>
 
           <button
@@ -238,7 +238,7 @@
             class="primary-action"
             (click)="subirCapitulo()"
           >
-            + {{ translationService.getTranslation('Subir capítulo') }}
+            + {{ translationService.getTranslation('common.actions.upload_chapter') }}
           </button>
         </div>
       </ng-template>

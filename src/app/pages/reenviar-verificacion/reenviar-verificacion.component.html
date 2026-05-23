@@ -6,28 +6,28 @@
       <div class="brand-badge">MINUS</div>
 
       <h1>
-        {{ translationService.getTranslation('Reenviar verificación') }}
+        {{ translationService.getTranslation('common.actions.resend_verification') }}
       </h1>
 
       <p>
-        {{ translationService.getTranslation('Te enviaremos un nuevo enlace para activar tu cuenta.') }}
+        {{ translationService.getTranslation('reenviarVerificacion.hero.description') }}
       </p>
     </section>
 
     <section class="form-panel">
       <div class="form-header">
         <h2>
-          {{ translationService.getTranslation('Verifica tu correo') }}
+          {{ translationService.getTranslation('common.notice.verify_email') }}
         </h2>
 
         <p>
-          {{ translationService.getTranslation('Escribe el correo con el que te registraste.') }}
+          {{ translationService.getTranslation('reenviarVerificacion.form.description') }}
         </p>
       </div>
 
       <form (ngSubmit)="enviar()" class="auth-form">
         <label for="email">
-          {{ translationService.getTranslation('mail') }}
+          {{ translationService.getTranslation('common.form.email_label') }}
         </label>
 
         <input
@@ -56,7 +56,7 @@
 
         <button type="submit" class="submit-button" [disabled]="cargando">
           <span *ngIf="!cargando">
-            {{ translationService.getTranslation('Reenviar verificación') }}
+            {{ translationService.getTranslation('common.actions.resend_verification') }}
           </span>
 
           <span *ngIf="cargando" class="loader"></span>
@@ -65,7 +65,7 @@
 
       <div class="bottom-link">
         <a routerLink="/login">
-          {{ translationService.getTranslation('Volver al login') }}
+          {{ translationService.getTranslation('common.actions.back_to_login') }}
         </a>
       </div>
     </section>

@@ -3,7 +3,7 @@
     <img
       class="banner-image"
       [src]="bannerUrl"
-      [alt]="translationService.getTranslation('Banner de perfil')"
+      [alt]="translationService.getTranslation('perfil.images.banner_alt')"
       loading="eager"
       fetchpriority="high"
       decoding="async"
@@ -14,7 +14,7 @@
     <img
       class="avatar"
       [src]="avatarUrl"
-      [alt]="user.username || translationService.getTranslation('Avatar')"
+      [alt]="user.username || translationService.getTranslation('perfil.images.avatar_alt')"
       loading="eager"
       fetchpriority="high"
       decoding="async"
@@ -22,15 +22,15 @@
 
     <div class="info">
       <span class="nombre">
-        {{ user.username || translationService.getTranslation('Usuario desconocido') }}
+        {{ user.username || translationService.getTranslation('perfil.user.unknown') }}
       </span>
 
       <p class="usuario">
-        {{ user.username }} · {{ user.role || translationService.getTranslation('Sin rol') }}
+        {{ user.username }} · {{ user.role || translationService.getTranslation('perfil.user.no_role') }}
       </p>
 
       <p class="descripcion">
-        {{ user.nacionalidad || translationService.getTranslation('Nacionalidad no especificada') }}
+        {{ user.nacionalidad || translationService.getTranslation('perfil.user.no_nationality') }}
       </p>
 
       <div class="stats">
@@ -40,7 +40,7 @@
           </span>
 
           <span class="stat-label">
-            {{ translationService.getTranslation('Suscriptores') }}
+            {{ translationService.getTranslation('common.stats.subscribers') }}
           </span>
         </div>
 
@@ -50,7 +50,7 @@
           </span>
 
           <span class="stat-label">
-            {{ translationService.getTranslation('Obras') }}
+            {{ translationService.getTranslation('common.stats.works') }}
           </span>
         </div>
 
@@ -60,7 +60,7 @@
           </span>
 
           <span class="stat-label">
-            {{ translationService.getTranslation('Vistas') }}
+            {{ translationService.getTranslation('common.stats.views') }}
           </span>
         </div>
       </div>
@@ -115,7 +115,7 @@
           *ngIf="isCurrentUser"
           (click)="navigateToEditProfile()"
         >
-          {{ translationService.getTranslation('Editar Perfil') }}
+          {{ translationService.getTranslation('common.actions.edit_profile') }}
         </button>
       </div>
 
@@ -131,7 +131,7 @@
       [class.activo]="activeTab === 'news'"
       (click)="setActiveTab('news')"
     >
-      {{ translationService.getTranslation('News') }}
+      {{ translationService.getTranslation('perfil.tabs.news') }}
     </button>
 
     <button
@@ -139,7 +139,7 @@
       [class.activo]="activeTab === 'obras'"
       (click)="setActiveTab('obras')"
     >
-      {{ translationService.getTranslation('Obras') }}
+      {{ translationService.getTranslation('common.stats.works') }}
     </button>
 
     <button
@@ -147,7 +147,7 @@
       [class.activo]="activeTab === 'popular'"
       (click)="setActiveTab('popular')"
     >
-      {{ translationService.getTranslation('Most Popular') }}
+      {{ translationService.getTranslation('perfil.tabs.popular') }}
     </button>
   </nav>
 
@@ -168,7 +168,7 @@
           class="profile-card-action"
           (click)="subirCapitulo($event, capitulo.obraId)"
         >
-          {{ translationService.getTranslation('Subir capítulo') }}
+          {{ translationService.getTranslation('common.actions.upload_chapter') }}
         </button>
 
         <button
@@ -176,7 +176,7 @@
           class="profile-card-action secondary"
           (click)="administrarObra($event, capitulo.obraId)"
         >
-          {{ translationService.getTranslation('Administrar obra') }}
+          {{ translationService.getTranslation('common.actions.manage_work') }}
         </button>
       </div>
     </app-capitulo-card>
@@ -184,7 +184,7 @@
 
   <ng-template #noCapitulosNews>
     <p class="no-obras" *ngIf="activeTab === 'news'">
-      {{ translationService.getTranslation('No hay capítulos disponibles en esta sección') }}
+      {{ translationService.getTranslation('perfil.empty.no_chapters_in_section') }}
     </p>
   </ng-template>
 
@@ -206,7 +206,7 @@
           class="profile-card-action"
           (click)="subirCapitulo($event, obra.id)"
         >
-          {{ translationService.getTranslation('Subir capítulo') }}
+          {{ translationService.getTranslation('common.actions.upload_chapter') }}
         </button>
 
         <button
@@ -214,7 +214,7 @@
           class="profile-card-action secondary"
           (click)="administrarObra($event, obra.id)"
         >
-          {{ translationService.getTranslation('Administrar obra') }}
+          {{ translationService.getTranslation('common.actions.manage_work') }}
         </button>
       </div>
     </app-obra-card>
@@ -222,7 +222,7 @@
 
   <ng-template #noObras>
     <p class="no-obras" *ngIf="activeTab !== 'news'">
-      {{ translationService.getTranslation('No hay obras disponibles en esta sección') }}
+      {{ translationService.getTranslation('perfil.empty.no_works_in_section') }}
     </p>
   </ng-template>
 </div>
@@ -230,7 +230,7 @@
 <ng-template #loading>
   <div class="loading">
     <p>
-      {{ translationService.getTranslation('Cargando información del usuario') }}
+      {{ translationService.getTranslation('perfil.state.loading_user_info') }}
     </p>
   </div>
 </ng-template>

@@ -9,6 +9,7 @@ import {
 } from '../../services/reportes.service';
 
 import { AuthService } from '../../services/auth.service';
+import { TranslationService } from '../../services/translation.service';
 
 export interface ReporteContenidoPayload {
   url_reportada: string;
@@ -18,8 +19,6 @@ export interface ReporteContenidoPayload {
 
 interface RazonReporte {
   value: string;
-  titulo: string;
-  descripcion: string;
 }
 
 @Component({
@@ -33,7 +32,7 @@ interface RazonReporte {
   styleUrl: './reportar-contenido.component.css'
 })
 export class ReportarContenidoComponent {
-  @Input() textoBoton = 'Reportar';
+  @Input() textoBoton = 'common.actions.report';
   @Input() urlReportada = '';
   @Input() tituloContenido = '';
   @Input() contextoContenido = '';
@@ -51,54 +50,38 @@ export class ReportarContenidoComponent {
   error = '';
 
   razones: RazonReporte[] = [
-    {
-      value: 'contenido_inapropiado',
-      titulo: 'Contenido inapropiado',
-      descripcion: 'Contenido sexual, violento, ofensivo o que no debería estar publicado.'
-    },
-    {
-      value: 'spam',
-      titulo: 'Spam o engaño',
-      descripcion: 'Publicidad no deseada, enlaces sospechosos, estafa o contenido repetitivo.'
-    },
-    {
-      value: 'copyright',
-      titulo: 'Derechos de autor',
-      descripcion: 'Contenido publicado sin permiso del autor o propietario.'
-    },
-    {
-      value: 'error_imagen',
-      titulo: 'Error en imagen',
-      descripcion: 'Imagen rota, incorrecta, duplicada o que no carga.'
-    },
-    {
-      value: 'error_texto',
-      titulo: 'Error en texto o información',
-      descripcion: 'Título, capítulo, descripción o datos incorrectos.'
-    },
-    {
-      value: 'acoso',
-      titulo: 'Acoso o abuso',
-      descripcion: 'Insultos, amenazas, ataques o comportamiento abusivo.'
-    },
-    {
-      value: 'otro',
-      titulo: 'Otro motivo',
-      descripcion: 'El problema no aparece en esta lista.'
-    }
+    { value: 'contenido_inapropiado' },
+    { value: 'spam' },
+    { value: 'copyright' },
+    { value: 'error_imagen' },
+    { value: 'error_texto' },
+    { value: 'acoso' },
+    { value: 'otro' }
   ];
 
   constructor(
     private reportesService: ReportesService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    public translationService: TranslationService
   ) {}
+
+  get textoBotonTraducido(): string {
+    return this.translationService.getTranslation(this.textoBoton);
+  }
+
+  get mostrarBotonLogin(): boolean {
+    return (
+      this.error === this.translationService.getTranslation('reportarContenido.error.login_required') ||
+      this.error === this.translationService.getTranslation('reportarContenido.error.session_expired')
+    );
+  }
 
   abrirModal(): void {
     this.error = '';
 
     if (!this.urlReportada.trim()) {
-      this.error = 'No se encontró la URL del contenido que quieres reportar.';
+      this.error = this.translationService.getTranslation('reportarContenido.error.no_url');
       return;
     }
 
@@ -122,18 +105,24 @@ export class ReportarContenidoComponent {
   }
 
   obtenerTituloRazon(value: string): string {
-    const razon = this.razones.find(item => item.value === value);
-    return razon ? razon.titulo : value;
+    if (!value) {
+      return '';
+    }
+
+    return this.translationService.getTranslation(`reportarContenido.reasons.${value}.title`);
   }
 
   obtenerDescripcionRazon(value: string): string {
-    const razon = this.razones.find(item => item.value === value);
-    return razon ? razon.descripcion : '';
+    if (!value) {
+      return '';
+    }
+
+    return this.translationService.getTranslation(`reportarContenido.reasons.${value}.desc`);
   }
 
   irAComentarios(): void {
     if (!this.razonSeleccionadaValor) {
-      this.error = 'Selecciona una razón para continuar.';
+      this.error = this.translationService.getTranslation('reportarContenido.error.select_reason_continue');
       return;
     }
 
@@ -143,7 +132,7 @@ export class ReportarContenidoComponent {
 
   irAConfirmacion(): void {
     if (this.comentario.trim().length > 1000) {
-      this.error = 'El comentario no puede superar los 1000 caracteres.';
+      this.error = this.translationService.getTranslation('reportarContenido.error.comment_too_long');
       return;
     }
 
@@ -170,17 +159,17 @@ export class ReportarContenidoComponent {
     const usuario = this.authService.getCurrentUser();
 
     if (!usuario) {
-      this.error = 'Inicia sesión para poder reportar contenido.';
+      this.error = this.translationService.getTranslation('reportarContenido.error.login_required');
       return;
     }
 
     if (!this.urlReportada.trim()) {
-      this.error = 'No se encontró la URL del contenido que quieres reportar.';
+      this.error = this.translationService.getTranslation('reportarContenido.error.no_url');
       return;
     }
 
     if (!this.razonSeleccionadaValor) {
-      this.error = 'Selecciona una razón.';
+      this.error = this.translationService.getTranslation('reportarContenido.error.select_reason');
       this.pasoActual = 1;
       return;
     }
@@ -198,7 +187,9 @@ export class ReportarContenidoComponent {
         this.enviando = false;
 
         if (!res.success) {
-          this.error = res.error || 'No se pudo enviar el reporte.';
+          this.error =
+            res.error ||
+            this.translationService.getTranslation('reportarContenido.error.send_failed');
           return;
         }
 
@@ -214,20 +205,20 @@ export class ReportarContenidoComponent {
         this.enviando = false;
 
         if (err.status === 401) {
-          this.error = 'Tu sesión expiró. Inicia sesión de nuevo.';
+          this.error = this.translationService.getTranslation('reportarContenido.error.session_expired');
           return;
         }
 
         if (err.status === 409) {
           this.error =
             err.error?.error ||
-            'Ya reportaste este contenido. Puedes volver a reportarlo después de 24 horas.';
+            this.translationService.getTranslation('reportarContenido.error.already_reported');
           return;
         }
 
         this.error =
           err.error?.error ||
-          'Error al enviar el reporte. Inténtalo de nuevo.';
+          this.translationService.getTranslation('reportarContenido.error.send_error');
       }
     });
   }

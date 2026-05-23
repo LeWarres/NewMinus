@@ -4,72 +4,77 @@
   <div class="footer-content">
     <div class="footer-brand">
       <a routerLink="/" class="footer-logo">
-        <img src="/obras/paleta/logo.png" alt="MINUS Logo" />
+        <img src="/obras/paleta/logo.png" [alt]="translationService.getTranslation('footer.brand.logo_alt')" />
       </a>
 
       <p>
-        Plataforma para descubrir, leer y compartir webcomics de creadores independientes.
+        {{ translationService.getTranslation('footer.brand.description') }}
       </p>
     </div>
 
     <div class="footer-section">
-      <h3>Minus</h3>
+      <h3>{{ translationService.getTranslation('footer.sections.minus') }}</h3>
 
       <a routerLink="/">
-        Inicio
+        {{ translationService.getTranslation('footer.links.home') }}
       </a>
 
       <a routerLink="/categorias">
-        {{ translationService.getTranslation('Géneros') }}
+        {{ translationService.getTranslation('common.labels.genres') }}
       </a>
 
       <a routerLink="/following">
-        {{ translationService.getTranslation('Noticias') }}
+        {{ translationService.getTranslation('common.labels.news') }}
       </a>
     </div>
 
     <div class="footer-section">
-      <h3>Creadores</h3>
+      <h3>{{ translationService.getTranslation('footer.sections.creators') }}</h3>
 
       <a routerLink="/uploader">
-        {{ translationService.getTranslation('Subir obra') }}
+        {{ translationService.getTranslation('footer.links.upload_work') }}
       </a>
 
       <a routerLink="/signup">
-        {{ translationService.getTranslation('sightup') }}
+        {{ translationService.getTranslation('common.actions.signup') }}
       </a>
 
       <a routerLink="/login">
-        {{ translationService.getTranslation('login') }}
+        {{ translationService.getTranslation('common.actions.login') }}
       </a>
     </div>
 
     <div class="footer-section">
-      <h3>Comunidad</h3>
+      <h3>{{ translationService.getTranslation('footer.sections.community') }}</h3>
 
-      <a href="#" aria-label="Discord">
-        Discord
+      <a href="#" [attr.aria-label]="translationService.getTranslation('footer.community.discord')">
+        {{ translationService.getTranslation('footer.community.discord') }}
       </a>
 
-      <a href="#" aria-label="Twitter">
-        Twitter / X
+      <a href="#" [attr.aria-label]="translationService.getTranslation('common.social.twitter_x')">
+        {{ translationService.getTranslation('common.social.twitter_x') }}
       </a>
 
-      <a href="#" aria-label="Instagram">
-        Instagram
+      <a href="#" [attr.aria-label]="translationService.getTranslation('common.social.instagram')">
+        {{ translationService.getTranslation('common.social.instagram') }}
       </a>
     </div>
   </div>
 
   <div class="footer-bottom">
     <span>
-      © {{ currentYear }} Minus Creators. Todos los derechos reservados.
+      {{ translationService.getTranslation('footer.bottom.copyright_prefix') }}
+      {{ currentYear }}
+      {{ translationService.getTranslation('common.brand.minus_creators') }}.
+      {{ translationService.getTranslation('footer.bottom.copyright_suffix') }}
     </span>
 
     <div class="footer-bottom-links">
-      <a href="#">Privacidad</a>
-      <a href="#">Términos</a>
-      <a href="#">Soporte</a>
+      <a href="#">{{ translationService.getTranslation('footer.links.privacy') }}</a>
+      <a href="/terminos/Minus_Creators_Terms_and_Conditions.pdf" target="_blank" rel="noopener noreferrer">
+        {{ translationService.getTranslation('footer.links.terms') }}
+      </a>
+      <a href="#">{{ translationService.getTranslation('footer.links.support') }}</a>
     </div>
   </div>
 </footer>

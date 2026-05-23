@@ -38,9 +38,9 @@ export class RecommendedCarouselComponent implements OnInit, OnChanges, OnDestro
   @Input() resetKey = 0;
   @Input() excludeObraId: number | null = null;
 
-  @Input() titleKey = 'Recomendadas por categoría';
-  @Input() subtitleKey = 'Cambia de categoría para descubrir obras aleatorias en tus idiomas.';
-  @Input() viewMoreLabelKey = 'Ver mas';
+  @Input() titleKey = 'recommendedCarousel.title';
+  @Input() subtitleKey = 'recommendedCarousel.subtitle';
+  @Input() viewMoreLabelKey = 'common.actions.view_more';
 
   @Output() openObra = new EventEmitter<ObraCardItem>();
   @Output() openAutor = new EventEmitter<ObraCardItem>();
@@ -129,7 +129,7 @@ export class RecommendedCarouselComponent implements OnInit, OnChanges, OnDestro
           if (!res.success) {
             this.errorRecomendadas =
               res.error ||
-              this.translationService.getTranslation('No se pudieron cargar las recomendaciones');
+              this.translationService.getTranslation('recommendedCarousel.load_error');
             return;
           }
 
@@ -140,7 +140,7 @@ export class RecommendedCarouselComponent implements OnInit, OnChanges, OnDestro
           this.cargandoRecomendadas = false;
           this.errorRecomendadas =
             err.error?.error ||
-            this.translationService.getTranslation('Error al cargar recomendaciones');
+            this.translationService.getTranslation('recommendedCarousel.error');
 
           console.error(err);
         }
@@ -193,7 +193,7 @@ export class RecommendedCarouselComponent implements OnInit, OnChanges, OnDestro
 
   getCategoriaLabel(value?: string): string {
     if (!value || value === 'todos') {
-      return this.translationService.getTranslation('Todos');
+      return this.translationService.getTranslation('common.labels.all');
     }
 
     return this.metadataService.getCategoryLabel(value);

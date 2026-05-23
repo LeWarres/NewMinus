@@ -63,9 +63,9 @@ interface EliminarCapituloIdiomaResponse extends GenericResponse {
 })
 export class ObraAdminComponent implements OnInit {
   readonly i18nKeys = {
-    saveAll: 'Guardar todo',
-    saving: 'Guardando',
-    saveAllDescription: 'Este botón guardará obra, portada, capítulos y cambios de páginas pendientes'
+    saveAll: 'obraAdmin.save_all.button',
+    saving: 'common.state.saving',
+    saveAllDescription: 'obraAdmin.save_all.description'
   };
 
   adminUrl = 'https://minuscreators.com/api/obra_admin.php';
@@ -106,74 +106,74 @@ export class ObraAdminComponent implements OnInit {
   paginasPendientesEliminar: Record<string, AdminPagina[]> = {};
 
   categorias: SelectOption[] = [
-    { value: 'accion', label: 'Acción' },
-    { value: 'aventura', label: 'Aventura' },
-    { value: 'comedia', label: 'Comedia' },
-    { value: 'drama', label: 'Drama' },
-    { value: 'fantasia', label: 'Fantasía' },
-    { value: 'romance', label: 'Romance' },
-    { value: 'terror', label: 'Terror' },
-    { value: 'ciencia-ficcion', label: 'Ciencia ficción' },
-    { value: 'misterio', label: 'Misterio' },
-    { value: 'suspenso', label: 'Suspenso' },
-    { value: 'sobrenatural', label: 'Sobrenatural' },
-    { value: 'psicologico', label: 'Psicológico' },
-    { value: 'slice-of-life', label: 'Slice of life' },
-    { value: 'vida-escolar', label: 'Vida escolar' },
-    { value: 'deportes', label: 'Deportes' },
-    { value: 'artes-marciales', label: 'Artes marciales' },
-    { value: 'mecha', label: 'Mecha' },
-    { value: 'isekai', label: 'Isekai' },
-    { value: 'historico', label: 'Histórico' },
-    { value: 'musica', label: 'Música' },
-    { value: 'cocina', label: 'Cocina' },
-    { value: 'magia', label: 'Magia' },
-    { value: 'superheroes', label: 'Superhéroes' },
-    { value: 'crimen', label: 'Crimen' },
-    { value: 'post-apocaliptico', label: 'Post-apocalíptico' },
-    { value: 'cyberpunk', label: 'Cyberpunk' },
-    { value: 'steampunk', label: 'Steampunk' },
-    { value: 'guerra', label: 'Guerra' },
-    { value: 'parodia', label: 'Parodia' },
-    { value: 'tragedia', label: 'Tragedia' },
-    { value: 'shonen', label: 'Shonen' },
-    { value: 'shojo', label: 'Shojo' },
-    { value: 'seinen', label: 'Seinen' },
-    { value: 'josei', label: 'Josei' },
-    { value: 'kodomo', label: 'Kodomo' },
-    { value: 'boys-love', label: 'Boys Love' },
-    { value: 'girls-love', label: 'Girls Love' },
-    { value: 'nsfw', label: 'NSFW' }
+    { value: 'accion', label: 'common.categories.accion' },
+    { value: 'aventura', label: 'common.categories.aventura' },
+    { value: 'comedia', label: 'common.categories.comedia' },
+    { value: 'drama', label: 'common.categories.drama' },
+    { value: 'fantasia', label: 'common.categories.fantasia' },
+    { value: 'romance', label: 'common.categories.romance' },
+    { value: 'terror', label: 'common.categories.terror' },
+    { value: 'ciencia-ficcion', label: 'common.categories.ciencia_ficcion' },
+    { value: 'misterio', label: 'common.categories.misterio' },
+    { value: 'suspenso', label: 'common.categories.suspenso' },
+    { value: 'sobrenatural', label: 'common.categories.sobrenatural' },
+    { value: 'psicologico', label: 'common.categories.psicologico' },
+    { value: 'slice-of-life', label: 'common.categories.slice_of_life' },
+    { value: 'vida-escolar', label: 'common.categories.vida_escolar' },
+    { value: 'deportes', label: 'common.categories.deportes' },
+    { value: 'artes-marciales', label: 'common.categories.artes_marciales' },
+    { value: 'mecha', label: 'common.categories.mecha' },
+    { value: 'isekai', label: 'common.categories.isekai' },
+    { value: 'historico', label: 'common.categories.historico' },
+    { value: 'musica', label: 'common.categories.musica' },
+    { value: 'cocina', label: 'common.categories.cocina' },
+    { value: 'magia', label: 'common.categories.magia' },
+    { value: 'superheroes', label: 'common.categories.superheroes' },
+    { value: 'crimen', label: 'common.categories.crimen' },
+    { value: 'post-apocaliptico', label: 'common.categories.post_apocaliptico' },
+    { value: 'cyberpunk', label: 'common.categories.cyberpunk' },
+    { value: 'steampunk', label: 'common.categories.steampunk' },
+    { value: 'guerra', label: 'common.categories.guerra' },
+    { value: 'parodia', label: 'common.categories.parodia' },
+    { value: 'tragedia', label: 'common.categories.tragedia' },
+    { value: 'shonen', label: 'common.categories.shonen' },
+    { value: 'shojo', label: 'common.categories.shojo' },
+    { value: 'seinen', label: 'common.categories.seinen' },
+    { value: 'josei', label: 'common.categories.josei' },
+    { value: 'kodomo', label: 'common.categories.kodomo' },
+    { value: 'boys-love', label: 'common.categories.boys_love' },
+    { value: 'girls-love', label: 'common.categories.girls_love' },
+    { value: 'nsfw', label: 'common.categories.nsfw' }
   ];
 
   idiomas: SelectOption[] = [
-    { value: 'GLOBAL', label: 'Global' },
-    { value: 'ES', label: 'Español / Spanish' },
-    { value: 'EN', label: 'English' },
-    { value: 'JA', label: '日本語 / Japanese' },
-    { value: 'KO', label: '한국어 / Korean' },
-    { value: 'ZH', label: '中文 / Chinese' },
-    { value: 'FR', label: 'Français / French' },
-    { value: 'DE', label: 'Deutsch / German' },
-    { value: 'PT', label: 'Português / Portuguese' },
-    { value: 'IT', label: 'Italiano / Italian' },
-    { value: 'RU', label: 'Русский / Russian' },
-    { value: 'AR', label: 'العربية / Arabic' },
-    { value: 'HI', label: 'हिन्दी / Hindi' },
-    { value: 'ID', label: 'Bahasa Indonesia' },
-    { value: 'VI', label: 'Tiếng Việt / Vietnamese' },
-    { value: 'TH', label: 'ไทย / Thai' },
-    { value: 'TR', label: 'Türkçe / Turkish' },
-    { value: 'PL', label: 'Polski / Polish' },
-    { value: 'NL', label: 'Nederlands / Dutch' }
+    { value: 'GLOBAL', label: 'common.languages.global' },
+    { value: 'ES', label: 'common.languages.es' },
+    { value: 'EN', label: 'common.languages.en' },
+    { value: 'JA', label: 'common.languages.ja' },
+    { value: 'KO', label: 'common.languages.ko' },
+    { value: 'ZH', label: 'common.languages.zh' },
+    { value: 'FR', label: 'common.languages.fr' },
+    { value: 'DE', label: 'common.languages.de' },
+    { value: 'PT', label: 'common.languages.pt' },
+    { value: 'IT', label: 'common.languages.it' },
+    { value: 'RU', label: 'common.languages.ru' },
+    { value: 'AR', label: 'common.languages.ar' },
+    { value: 'HI', label: 'common.languages.hi' },
+    { value: 'ID', label: 'common.languages.id' },
+    { value: 'VI', label: 'common.languages.vi' },
+    { value: 'TH', label: 'common.languages.th' },
+    { value: 'TR', label: 'common.languages.tr' },
+    { value: 'PL', label: 'common.languages.pl' },
+    { value: 'NL', label: 'common.languages.nl' }
   ];
 
   tiposEntrega: SelectOption[] = [
-    { value: 'comic', label: 'Comic' },
-    { value: 'manga', label: 'Manga' },
-    { value: 'libro', label: 'Libro' },
-    { value: 'novela', label: 'Novela' },
-    { value: 'artwork', label: 'Artwork' }
+    { value: 'comic', label: 'common.work_type.comic' },
+    { value: 'manga', label: 'common.work_type.manga' },
+    { value: 'libro', label: 'common.work_type.book' },
+    { value: 'novela', label: 'common.work_type.novel' },
+    { value: 'artwork', label: 'common.work_type.artwork' }
   ];
 
   constructor(
@@ -220,7 +220,7 @@ export class ObraAdminComponent implements OnInit {
         this.cargando = false;
 
         if (!res.success || !res.obra) {
-          this.error = res.error || this.translationService.getTranslation('No se pudo cargar la obra');
+          this.error = res.error || this.translationService.getTranslation('common.error.load_work_failed');
           return;
         }
 
@@ -244,11 +244,11 @@ export class ObraAdminComponent implements OnInit {
         }
 
         if (err.status === 403) {
-          this.error = err.error?.error || this.translationService.getTranslation('No tienes permiso para realizar esta acción');
+          this.error = err.error?.error || this.translationService.getTranslation('common.error.no_permission');
           return;
         }
 
-        this.error = err.error?.error || this.translationService.getTranslation('Error al cargar la obra');
+        this.error = err.error?.error || this.translationService.getTranslation('common.error.load_work_error');
         console.error(err);
       }
     });
@@ -264,7 +264,7 @@ export class ObraAdminComponent implements OnInit {
     }
 
     if (this.selectedCategories.length >= this.maxCategories) {
-      this.mensajeObra = this.translationService.getTranslation('Solo puedes seleccionar hasta 3 categorías');
+      this.mensajeObra = this.translationService.getTranslation('common.error.max_categories');
       return;
     }
 
@@ -282,7 +282,7 @@ export class ObraAdminComponent implements OnInit {
 
   getSelectedCategoriesLabel(): string {
     if (this.selectedCategories.length === 0) {
-      return this.translationService.getTranslation('Sin categoría');
+      return this.translationService.getTranslation('common.labels.no_category');
     }
 
     return this.selectedCategories
@@ -292,7 +292,14 @@ export class ObraAdminComponent implements OnInit {
 
   getTipoObraLabel(value?: string): string {
     const option = this.tiposEntrega.find(tipo => tipo.value === value);
-    return this.translationService.getTranslation(option?.label || 'Manga');
+    return this.translationService.getTranslation(option?.label || 'common.work_type.manga');
+  }
+
+  getIdiomaLabel(value?: string): string {
+    const normalized = this.normalizeIdioma(value);
+    const option = this.idiomas.find(idioma => idioma.value === normalized);
+
+    return this.translationService.getTranslation(option?.label || 'common.languages.global');
   }
 
   guardarTodo(): void {
@@ -305,12 +312,12 @@ export class ObraAdminComponent implements OnInit {
     }
 
     if (!this.obra.titulo.trim()) {
-      this.mensajeObra = this.translationService.getTranslation('El título es obligatorio');
+      this.mensajeObra = this.translationService.getTranslation('common.validation.title_required');
       return;
     }
 
     if (this.selectedCategories.length > this.maxCategories) {
-      this.mensajeObra = this.translationService.getTranslation('Solo puedes seleccionar hasta 3 categorías');
+      this.mensajeObra = this.translationService.getTranslation('common.error.max_categories');
       return;
     }
 
@@ -335,7 +342,7 @@ export class ObraAdminComponent implements OnInit {
 
     if (!ready) {
       this.guardandoTodo = false;
-      this.mensajeObra = this.translationService.getTranslation('No se pudo preparar la acción');
+      this.mensajeObra = this.translationService.getTranslation('common.error.prepare_action_failed');
       return;
     }
 
@@ -351,7 +358,7 @@ export class ObraAdminComponent implements OnInit {
 
       if (!res.success) {
         this.guardandoTodo = false;
-        this.mensajeObra = res.error || this.translationService.getTranslation('No se pudo actualizar la obra');
+        this.mensajeObra = res.error || this.translationService.getTranslation('obraAdmin.error.update_work_failed');
         return;
       }
 
@@ -367,7 +374,7 @@ export class ObraAdminComponent implements OnInit {
 
         if (!coverRes.success) {
           this.guardandoTodo = false;
-          this.mensajeObra = coverRes.error || this.translationService.getTranslation('No se pudo actualizar la portada');
+          this.mensajeObra = coverRes.error || this.translationService.getTranslation('obraAdmin.error.update_cover_failed');
           return;
         }
 
@@ -402,7 +409,7 @@ export class ObraAdminComponent implements OnInit {
 
           if (!chapterRes.success) {
             this.guardandoTodo = false;
-            this.mensajeObra = chapterRes.error || this.translationService.getTranslation('No se pudo actualizar el capítulo');
+            this.mensajeObra = chapterRes.error || this.translationService.getTranslation('obraAdmin.error.update_chapter_failed');
             return;
           }
 
@@ -421,7 +428,7 @@ export class ObraAdminComponent implements OnInit {
 
             if (!deleteRes.success) {
               this.guardandoTodo = false;
-              this.mensajeObra = deleteRes.error || this.translationService.getTranslation('No se pudo eliminar la página');
+              this.mensajeObra = deleteRes.error || this.translationService.getTranslation('obraAdmin.error.delete_page_failed');
               return;
             }
           }
@@ -433,7 +440,7 @@ export class ObraAdminComponent implements OnInit {
 
             if (!uploadRes.success) {
               this.guardandoTodo = false;
-              this.mensajeObra = uploadRes.error || this.translationService.getTranslation('No se pudieron agregar las páginas');
+              this.mensajeObra = uploadRes.error || this.translationService.getTranslation('obraAdmin.error.add_pages_failed');
               return;
             }
           }
@@ -446,11 +453,11 @@ export class ObraAdminComponent implements OnInit {
       this.paginasPendientesEliminar = {};
       this.selectedChapterFiles = {};
       this.guardandoTodo = false;
-      this.mensajeObra = this.translationService.getTranslation('Todos los cambios se guardaron correctamente');
+      this.mensajeObra = this.translationService.getTranslation('obraAdmin.success.all_changes_saved');
       this.cargarObraAdmin(this.obra.id);
     } catch (err: any) {
       this.guardandoTodo = false;
-      this.mensajeObra = this.getFriendlyError(err, this.translationService.getTranslation('Error al guardar cambios'));
+      this.mensajeObra = this.getFriendlyError(err, this.translationService.getTranslation('obraAdmin.error.save_changes_error'));
       console.error(err);
     }
   }
@@ -499,7 +506,7 @@ export class ObraAdminComponent implements OnInit {
 
     if (!this.esImagenValida(file, this.maxCoverFileSize)) {
       this.mensajeObra =
-        this.translationService.getTranslation('La portada debe ser JPG, PNG o WEBP y pesar máximo') +
+        this.translationService.getTranslation('common.error.cover_invalid_max') +
         ` ${this.formatSize(this.maxCoverFileSize)}`;
       return;
     }
@@ -557,7 +564,7 @@ export class ObraAdminComponent implements OnInit {
     };
 
     this.pageUploadMessages[versionKey] = omitidos > 0
-      ? this.translationService.getTranslation('Algunas páginas no se agregaron por límite de tamaño')
+      ? this.translationService.getTranslation('common.error.pages_skipped_size_limit')
       : '';
   }
 
@@ -577,7 +584,7 @@ export class ObraAdminComponent implements OnInit {
     const pagina = event.pagina;
 
     const confirmar = confirm(
-      `${this.translationService.getTranslation('Eliminar')} ${this.translationService.getTranslation('Página')} ${pagina.numeroPagina}?`
+      `${this.translationService.getTranslation('common.actions.delete')} ${this.translationService.getTranslation('common.labels.page')} ${pagina.numeroPagina}?`
     );
 
     if (!confirmar) {
@@ -590,7 +597,7 @@ export class ObraAdminComponent implements OnInit {
     const pendientes = this.paginasPendientesEliminar[versionKey] || [];
     this.paginasPendientesEliminar[versionKey] = [...pendientes, pagina];
 
-    this.pageUploadMessages[versionKey] = this.translationService.getTranslation('La página se eliminará al guardar todo');
+    this.pageUploadMessages[versionKey] = this.translationService.getTranslation('obraAdmin.notice.page_deleted_on_save_all');
   }
 
   eliminarCapituloIdioma(capitulo: AdminCapitulo, version: AdminCapituloVersion): void {
@@ -599,13 +606,13 @@ export class ObraAdminComponent implements OnInit {
     }
 
     if ((version.id || 0) <= 0) {
-      this.mensajeObra = this.translationService.getTranslation('No se puede eliminar un capítulo sin versión guardada');
+      this.mensajeObra = this.translationService.getTranslation('obraAdmin.error.cannot_delete_unsaved_version');
       return;
     }
 
     const idioma = this.normalizeIdioma(version.idioma || 'GLOBAL');
     const confirmacion = confirm(
-      `${this.translationService.getTranslation('Esta acción eliminará solo el capítulo en el idioma seleccionado')}: ${idioma}`
+      `${this.translationService.getTranslation('obraAdmin.confirm.delete_selected_language_version')}: ${idioma}`
     );
 
     if (!confirmacion) {
@@ -630,7 +637,7 @@ export class ObraAdminComponent implements OnInit {
           if (!res.success) {
             this.mensajeObra =
               res.error ||
-              this.translationService.getTranslation('No se pudo eliminar el capítulo en este idioma');
+              this.translationService.getTranslation('obraAdmin.error.delete_chapter_language_failed');
             return;
           }
 
@@ -638,19 +645,19 @@ export class ObraAdminComponent implements OnInit {
 
           this.mensajeObra =
             res.mensaje ||
-            this.translationService.getTranslation('Capítulo eliminado en el idioma seleccionado');
+            this.translationService.getTranslation('obraAdmin.success.chapter_language_deleted');
         },
         error: (err) => {
           this.mensajeObra = this.getFriendlyError(
             err,
-            this.translationService.getTranslation('Error al eliminar el capítulo en este idioma')
+            this.translationService.getTranslation('obraAdmin.error.delete_chapter_language_error')
           );
 
           console.error(err);
         }
       });
     }, () => {
-      this.mensajeObra = this.translationService.getTranslation('No se pudo preparar la acción');
+      this.mensajeObra = this.translationService.getTranslation('common.error.prepare_action_failed');
     });
   }
 
@@ -660,7 +667,7 @@ export class ObraAdminComponent implements OnInit {
     }
 
     const confirmacion = prompt(
-      `${this.translationService.getTranslation('Esta acción eliminará la obra completa, todos sus capítulos y todas sus imágenes. Escribe ELIMINAR para confirmar')}: ${this.obra.titulo}`
+      `${this.translationService.getTranslation('obraAdmin.confirm.delete_work_full')}: ${this.obra.titulo}`
     );
 
     if (confirmacion !== 'ELIMINAR' && confirmacion !== 'DELETE') {
@@ -689,7 +696,7 @@ export class ObraAdminComponent implements OnInit {
           if (!res.success) {
             this.mensajeObra =
               res.error ||
-              this.translationService.getTranslation('No se pudo eliminar la obra');
+              this.translationService.getTranslation('obraAdmin.error.delete_work_failed');
             return;
           }
 
@@ -708,7 +715,7 @@ export class ObraAdminComponent implements OnInit {
           this.mensajeObra =
             this.getFriendlyError(
               err,
-              this.translationService.getTranslation('Error al eliminar la obra')
+              this.translationService.getTranslation('obraAdmin.error.delete_work_error')
             );
 
           console.error(err);
@@ -716,7 +723,7 @@ export class ObraAdminComponent implements OnInit {
       });
     }, () => {
       this.eliminandoObra = false;
-      this.mensajeObra = this.translationService.getTranslation('No se pudo preparar la acción');
+      this.mensajeObra = this.translationService.getTranslation('common.error.prepare_action_failed');
     });
   }
 
@@ -852,11 +859,11 @@ export class ObraAdminComponent implements OnInit {
     if (err.status === 401) {
       this.authService.clearSession();
       this.router.navigate(['/login']);
-      return this.translationService.getTranslation('No autenticado');
+      return this.translationService.getTranslation('obraAdmin.error.not_authenticated');
     }
 
     if (err.status === 403) {
-      return err.error?.error || this.translationService.getTranslation('No tienes permiso para realizar esta acción');
+      return err.error?.error || this.translationService.getTranslation('common.error.no_permission');
     }
 
     return err.error?.error || fallback;

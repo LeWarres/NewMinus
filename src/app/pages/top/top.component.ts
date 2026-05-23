@@ -85,7 +85,7 @@ export class TopComponent implements OnInit, OnDestroy {
           if (!res.success) {
             this.errorHistorico =
               res.error ||
-              this.translationService.getTranslation('No se pudo cargar el top histórico');
+              this.translationService.getTranslation('top.error.load_historical_failed');
             return;
           }
 
@@ -95,7 +95,7 @@ export class TopComponent implements OnInit, OnDestroy {
           this.cargandoHistorico = false;
           this.errorHistorico =
             err.error?.error ||
-            this.translationService.getTranslation('Error al cargar el top histórico');
+            this.translationService.getTranslation('top.error.load_historical_error');
 
           console.error(err);
         }
@@ -121,7 +121,7 @@ export class TopComponent implements OnInit, OnDestroy {
           if (!res.success) {
             this.error7Dias =
               res.error ||
-              this.translationService.getTranslation('No se pudo cargar el top de 7 días');
+              this.translationService.getTranslation('top.error.load_weekly_failed');
             return;
           }
 
@@ -131,7 +131,7 @@ export class TopComponent implements OnInit, OnDestroy {
           this.cargando7Dias = false;
           this.error7Dias =
             err.error?.error ||
-            this.translationService.getTranslation('Error al cargar el top de 7 días');
+            this.translationService.getTranslation('top.error.load_weekly_error');
 
           console.error(err);
         }
@@ -157,7 +157,7 @@ export class TopComponent implements OnInit, OnDestroy {
           if (!res.success) {
             this.error30Dias =
               res.error ||
-              this.translationService.getTranslation('No se pudo cargar el top de 30 días');
+              this.translationService.getTranslation('top.error.load_monthly_failed');
             return;
           }
 
@@ -167,7 +167,7 @@ export class TopComponent implements OnInit, OnDestroy {
           this.cargando30Dias = false;
           this.error30Dias =
             err.error?.error ||
-            this.translationService.getTranslation('Error al cargar el top de 30 días');
+            this.translationService.getTranslation('top.error.load_monthly_error');
 
           console.error(err);
         }

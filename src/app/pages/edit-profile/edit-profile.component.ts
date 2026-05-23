@@ -40,6 +40,11 @@ interface EditProfileResponse {
   user?: EditProfileUser;
 }
 
+interface CountryOption {
+  name: string;
+  labelKey: string;
+}
+
 interface ReadingLanguageOption {
   value: string;
   labelKey: string;
@@ -57,15 +62,14 @@ interface ReadingLanguageOption {
   styleUrl: './edit-profile.component.css'
 })
 export class EditProfileComponent implements OnInit, OnDestroy {
-    // trackBy para países
-    trackByCountryName(index: number, country: { name: string }): string {
-      return country.name;
-    }
+  trackByCountryName(index: number, country: CountryOption): string {
+    return country.name;
+  }
 
-    // trackBy para idiomas de lectura
-    trackByLanguageValue(index: number, language: ReadingLanguageOption): string {
-      return language.value;
-    }
+  trackByLanguageValue(index: number, language: ReadingLanguageOption): string {
+    return language.value;
+  }
+
   apiPerfilUrl = 'https://minuscreators.com/api/perfil.php';
   apiEditarUrl = 'https://minuscreators.com/api/editar_perfil.php';
   siteUrl = 'https://minuscreators.com';
@@ -101,36 +105,36 @@ export class EditProfileComponent implements OnInit, OnDestroy {
   maxProfileFileSize = 3 * 1024 * 1024;
   maxBannerFileSize = 5 * 1024 * 1024;
 
-  countries = [
-    { name: 'México' },
-    { name: 'Argentina' },
-    { name: 'Colombia' },
-    { name: 'Chile' },
-    { name: 'Perú' },
-    { name: 'España' },
-    { name: 'Estados Unidos' },
-    { name: 'Otro' }
+  countries: CountryOption[] = [
+    { name: 'México', labelKey: 'common.countries.mexico' },
+    { name: 'Argentina', labelKey: 'common.countries.argentina' },
+    { name: 'Colombia', labelKey: 'common.countries.colombia' },
+    { name: 'Chile', labelKey: 'common.countries.chile' },
+    { name: 'Perú', labelKey: 'common.countries.peru' },
+    { name: 'España', labelKey: 'common.countries.spain' },
+    { name: 'Estados Unidos', labelKey: 'common.countries.united_states' },
+    { name: 'Otro', labelKey: 'common.countries.other' }
   ];
 
   readingLanguages: ReadingLanguageOption[] = [
-    { value: 'ES', labelKey: 'idioma_es', nativeLabel: 'Español' },
-    { value: 'EN', labelKey: 'idioma_en', nativeLabel: 'English' },
-    { value: 'JA', labelKey: 'idioma_ja', nativeLabel: '日本語' },
-    { value: 'KO', labelKey: 'idioma_ko', nativeLabel: '한국어' },
-    { value: 'ZH', labelKey: 'idioma_zh', nativeLabel: '中文' },
-    { value: 'FR', labelKey: 'idioma_fr', nativeLabel: 'Français' },
-    { value: 'DE', labelKey: 'idioma_de', nativeLabel: 'Deutsch' },
-    { value: 'PT', labelKey: 'idioma_pt', nativeLabel: 'Português' },
-    { value: 'IT', labelKey: 'idioma_it', nativeLabel: 'Italiano' },
-    { value: 'RU', labelKey: 'idioma_ru', nativeLabel: 'Русский' },
-    { value: 'AR', labelKey: 'idioma_ar', nativeLabel: 'العربية' },
-    { value: 'HI', labelKey: 'idioma_hi', nativeLabel: 'हिन्दी' },
-    { value: 'ID', labelKey: 'idioma_id', nativeLabel: 'Bahasa Indonesia' },
-    { value: 'VI', labelKey: 'idioma_vi', nativeLabel: 'Tiếng Việt' },
-    { value: 'TH', labelKey: 'idioma_th', nativeLabel: 'ไทย' },
-    { value: 'TR', labelKey: 'idioma_tr', nativeLabel: 'Türkçe' },
-    { value: 'PL', labelKey: 'idioma_pl', nativeLabel: 'Polski' },
-    { value: 'NL', labelKey: 'idioma_nl', nativeLabel: 'Nederlands' }
+    { value: 'ES', labelKey: 'common.languages.es', nativeLabel: 'Español' },
+    { value: 'EN', labelKey: 'common.languages.en', nativeLabel: 'English' },
+    { value: 'JA', labelKey: 'common.languages.ja', nativeLabel: '日本語' },
+    { value: 'KO', labelKey: 'common.languages.ko', nativeLabel: '한국어' },
+    { value: 'ZH', labelKey: 'common.languages.zh', nativeLabel: '中文' },
+    { value: 'FR', labelKey: 'common.languages.fr', nativeLabel: 'Français' },
+    { value: 'DE', labelKey: 'common.languages.de', nativeLabel: 'Deutsch' },
+    { value: 'PT', labelKey: 'common.languages.pt', nativeLabel: 'Português' },
+    { value: 'IT', labelKey: 'common.languages.it', nativeLabel: 'Italiano' },
+    { value: 'RU', labelKey: 'common.languages.ru', nativeLabel: 'Русский' },
+    { value: 'AR', labelKey: 'common.languages.ar', nativeLabel: 'العربية' },
+    { value: 'HI', labelKey: 'common.languages.hi', nativeLabel: 'हिन्दी' },
+    { value: 'ID', labelKey: 'common.languages.id', nativeLabel: 'Bahasa Indonesia' },
+    { value: 'VI', labelKey: 'common.languages.vi', nativeLabel: 'Tiếng Việt' },
+    { value: 'TH', labelKey: 'common.languages.th', nativeLabel: 'ไทย' },
+    { value: 'TR', labelKey: 'common.languages.tr', nativeLabel: 'Türkçe' },
+    { value: 'PL', labelKey: 'common.languages.pl', nativeLabel: 'Polski' },
+    { value: 'NL', labelKey: 'common.languages.nl', nativeLabel: 'Nederlands' }
   ];
 
   constructor(
@@ -185,7 +189,7 @@ export class EditProfileComponent implements OnInit, OnDestroy {
         if (!res.success || !res.user) {
           this.error =
             res.error ||
-            this.translationService.getTranslation('No se pudo cargar el perfil');
+            this.translationService.getTranslation('common.error.load_profile_failed');
           return;
         }
 
@@ -199,7 +203,7 @@ export class EditProfileComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.error =
           err.error?.error ||
-          this.translationService.getTranslation('Error al cargar perfil');
+          this.translationService.getTranslation('editProfile.error.load_profile_error');
 
         console.error(err);
       }
@@ -217,7 +221,7 @@ export class EditProfileComponent implements OnInit, OnDestroy {
 
     if (!this.esImagenValida(file, this.maxProfileFileSize)) {
       this.error =
-        this.translationService.getTranslation('La imagen de perfil debe ser JPG, PNG o WEBP y pesar máximo') +
+        this.translationService.getTranslation('editProfile.error.profile_image_invalid_max') +
         ` ${this.formatSize(this.maxProfileFileSize)}`;
       input.value = '';
       return;
@@ -245,7 +249,7 @@ export class EditProfileComponent implements OnInit, OnDestroy {
 
     if (!this.esImagenValida(file, this.maxBannerFileSize)) {
       this.error =
-        this.translationService.getTranslation('El banner debe ser JPG, PNG o WEBP y pesar máximo') +
+        this.translationService.getTranslation('editProfile.error.banner_image_invalid_max') +
         ` ${this.formatSize(this.maxBannerFileSize)}`;
       input.value = '';
       return;
@@ -284,6 +288,16 @@ export class EditProfileComponent implements OnInit, OnDestroy {
     this.error = '';
   }
 
+  getCountryLabel(country: CountryOption): string {
+    const translated = this.translationService.getTranslation(country.labelKey);
+
+    if (!translated || translated === country.labelKey) {
+      return country.name;
+    }
+
+    return translated;
+  }
+
   getReadingLanguageLabel(language: ReadingLanguageOption): string {
     const translated = this.translationService.getTranslation(language.labelKey);
 
@@ -307,30 +321,30 @@ export class EditProfileComponent implements OnInit, OnDestroy {
     const idiomasLectura = this.getSelectedReadingLanguages();
 
     if (!username || !email) {
-      this.error = this.translationService.getTranslation('Usuario y email son obligatorios');
+      this.error = this.translationService.getTranslation('editProfile.error.username_email_required');
       return;
     }
 
     if (!/^[A-Za-z0-9_]{3,30}$/.test(username)) {
-      this.error = this.translationService.getTranslation('Usuario inválido');
+      this.error = this.translationService.getTranslation('common.validation.invalid_username');
       return;
     }
 
     if (idiomasLectura.length === 0) {
-      this.error = this.translationService.getTranslation('Selecciona al menos un idioma de lectura');
+      this.error = this.translationService.getTranslation('common.validation.select_reading_language');
       return;
     }
 
     if (this.selectedProfileImage && !this.esImagenValida(this.selectedProfileImage, this.maxProfileFileSize)) {
       this.error =
-        this.translationService.getTranslation('La imagen de perfil debe ser JPG, PNG o WEBP y pesar máximo') +
+        this.translationService.getTranslation('editProfile.error.profile_image_invalid_max') +
         ` ${this.formatSize(this.maxProfileFileSize)}`;
       return;
     }
 
     if (this.selectedBannerImage && !this.esImagenValida(this.selectedBannerImage, this.maxBannerFileSize)) {
       this.error =
-        this.translationService.getTranslation('El banner debe ser JPG, PNG o WEBP y pesar máximo') +
+        this.translationService.getTranslation('editProfile.error.banner_image_invalid_max') +
         ` ${this.formatSize(this.maxBannerFileSize)}`;
       return;
     }
@@ -371,13 +385,13 @@ export class EditProfileComponent implements OnInit, OnDestroy {
           if (!res.success) {
             this.error =
               res.error ||
-              this.translationService.getTranslation('No se pudo actualizar el perfil');
+              this.translationService.getTranslation('editProfile.error.update_failed');
             return;
           }
 
           this.mensaje =
             res.mensaje ||
-            this.translationService.getTranslation('Perfil actualizado');
+            this.translationService.getTranslation('editProfile.success.updated');
 
           if (res.user) {
             this.authService.saveSession(res.user);
@@ -403,27 +417,27 @@ export class EditProfileComponent implements OnInit, OnDestroy {
           if (err.status === 403) {
             this.error =
               err.error?.error ||
-              this.translationService.getTranslation('No tienes permiso para realizar esta acción');
+              this.translationService.getTranslation('common.error.no_permission');
             return;
           }
 
           if (err.status === 409) {
             this.error =
               err.error?.error ||
-              this.translationService.getTranslation('El email o usuario ya está en uso');
+              this.translationService.getTranslation('editProfile.error.email_or_username_in_use');
             return;
           }
 
           this.error =
             err.error?.error ||
-            this.translationService.getTranslation('Error al actualizar perfil');
+            this.translationService.getTranslation('editProfile.error.update_error');
 
           console.error(err);
         }
       });
     }, () => {
       this.cargando = false;
-      this.error = this.translationService.getTranslation('No se pudo preparar la acción');
+      this.error = this.translationService.getTranslation('common.error.prepare_action_failed');
     });
   }
 

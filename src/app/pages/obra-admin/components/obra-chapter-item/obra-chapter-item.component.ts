@@ -66,7 +66,30 @@ export class ObraChapterItemComponent implements OnChanges, OnDestroy {
   }
 
   getIdiomaLabel(idioma: string): string {
-    return String(idioma || 'GLOBAL').trim().toUpperCase();
+    const normalized = String(idioma || 'GLOBAL').trim().toUpperCase();
+    const labels: Record<string, string> = {
+      GLOBAL: 'common.languages.global',
+      ES: 'common.languages.es',
+      EN: 'common.languages.en',
+      JA: 'common.languages.ja',
+      KO: 'common.languages.ko',
+      ZH: 'common.languages.zh',
+      FR: 'common.languages.fr',
+      DE: 'common.languages.de',
+      PT: 'common.languages.pt',
+      IT: 'common.languages.it',
+      RU: 'common.languages.ru',
+      AR: 'common.languages.ar',
+      HI: 'common.languages.hi',
+      ID: 'common.languages.id',
+      VI: 'common.languages.vi',
+      TH: 'common.languages.th',
+      TR: 'common.languages.tr',
+      PL: 'common.languages.pl',
+      NL: 'common.languages.nl'
+    };
+
+    return this.translationService.getTranslation(labels[normalized] || 'common.languages.global');
   }
 
   onVersionChange(): void {

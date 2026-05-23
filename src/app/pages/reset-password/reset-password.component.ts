@@ -41,7 +41,7 @@ export class ResetPasswordComponent implements OnInit {
     this.token = this.route.snapshot.queryParamMap.get('token') || '';
 
     if (!this.token) {
-      this.error = this.translationService.getTranslation('El enlace no es válido o ya expiró');
+      this.error = this.translationService.getTranslation('resetPassword.error.invalid_or_expired_link');
     }
   }
 
@@ -58,17 +58,17 @@ export class ResetPasswordComponent implements OnInit {
     this.mensaje = '';
 
     if (!this.token) {
-      this.error = this.translationService.getTranslation('El enlace no es válido o ya expiró');
+      this.error = this.translationService.getTranslation('resetPassword.error.invalid_or_expired_link');
       return;
     }
 
     if (this.password.length < 8) {
-      this.error = this.translationService.getTranslation('La contraseña debe tener mínimo 8 caracteres');
+      this.error = this.translationService.getTranslation('common.validation.password_min_length');
       return;
     }
 
     if (this.password !== this.confirmPassword) {
-      this.error = this.translationService.getTranslation('Las contraseñas no coinciden');
+      this.error = this.translationService.getTranslation('common.validation.passwords_mismatch');
       return;
     }
 
@@ -78,7 +78,7 @@ export class ResetPasswordComponent implements OnInit {
       next: (csrfRes) => {
         if (!csrfRes.success || !csrfRes.csrfToken) {
           this.cargando = false;
-          this.error = this.translationService.getTranslation('No se pudo preparar la acción');
+          this.error = this.translationService.getTranslation('common.error.prepare_action_failed');
           return;
         }
 
@@ -89,23 +89,23 @@ export class ResetPasswordComponent implements OnInit {
             this.cargando = false;
 
             if (!res.success) {
-              this.error = res.error || this.translationService.getTranslation('No se pudo cambiar la contraseña');
+              this.error = res.error || this.translationService.getTranslation('resetPassword.error.reset_failed');
               return;
             }
 
             this.completado = true;
-            this.mensaje = res.mensaje || this.translationService.getTranslation('Contraseña actualizada correctamente. Ya puedes iniciar sesión.');
+            this.mensaje = res.mensaje || this.translationService.getTranslation('resetPassword.success.password_updated');
           },
           error: (err) => {
             this.cargando = false;
-            this.error = err.error?.error || this.translationService.getTranslation('No se pudo cambiar la contraseña');
+            this.error = err.error?.error || this.translationService.getTranslation('resetPassword.error.reset_failed');
             console.error(err);
           }
         });
       },
       error: (err) => {
         this.cargando = false;
-        this.error = this.translationService.getTranslation('No se pudo preparar la acción');
+        this.error = this.translationService.getTranslation('common.error.prepare_action_failed');
         console.error(err);
       }
     });

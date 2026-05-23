@@ -130,7 +130,7 @@ export class MangaPreviewComponent implements OnInit {
       const id = params.get('id');
 
       if (!id) {
-        this.error = this.translationService.getTranslation('No se encontró la obra');
+        this.error = this.translationService.getTranslation('common.error.work_not_found');
         return;
       }
 
@@ -177,7 +177,7 @@ export class MangaPreviewComponent implements OnInit {
           if (!res.success || !res.obra) {
             this.error =
               res.error ||
-              this.translationService.getTranslation('No se pudo cargar la obra');
+              this.translationService.getTranslation('common.error.load_work_failed');
             return;
           }
 
@@ -200,7 +200,7 @@ export class MangaPreviewComponent implements OnInit {
           this.cargando = false;
           this.error =
             err.error?.error ||
-            this.translationService.getTranslation('Error al cargar la obra');
+            this.translationService.getTranslation('common.error.load_work_error');
 
           console.error(err);
         }
@@ -443,14 +443,14 @@ export class MangaPreviewComponent implements OnInit {
     const normalized = String(value || '').trim().toLowerCase();
 
     const labels: Record<string, string> = {
-      comic: 'Comic',
-      manga: 'Manga',
-      libro: 'Libro',
-      novela: 'Novela',
-      artwork: 'Artwork'
+      comic: 'common.work_type.comic',
+      manga: 'common.work_type.manga',
+      libro: 'common.work_type.book',
+      novela: 'common.work_type.novel',
+      artwork: 'common.work_type.artwork'
     };
 
-    return this.translationService.getTranslation(labels[normalized] || 'Manga');
+    return this.translationService.getTranslation(labels[normalized] || 'common.work_type.manga');
   }
 
   getCapituloTitulo(capitulo: Capitulo): string {
@@ -458,14 +458,14 @@ export class MangaPreviewComponent implements OnInit {
       return capitulo.titulo;
     }
 
-    return `${this.translationService.getTranslation('Capítulo')} ${capitulo.numeroCapitulo}`;
+    return `${this.translationService.getTranslation('common.labels.chapter')} ${capitulo.numeroCapitulo}`;
   }
 
   getCapituloDescripcion(capitulo: Capitulo): string {
     return (
       capitulo.descripcion ||
       this.obra?.descripcion ||
-      this.translationService.getTranslation('Sin descripción')
+      this.translationService.getTranslation('mangaPreview.chapter.no_description')
     );
   }
 
@@ -507,7 +507,7 @@ export class MangaPreviewComponent implements OnInit {
   getObraDescripcion(): string {
     return (
       this.obra?.descripcion ||
-      this.translationService.getTranslation('Esta obra todavía no tiene descripción.')
+      this.translationService.getTranslation('mangaPreview.work.no_description')
     );
   }
 

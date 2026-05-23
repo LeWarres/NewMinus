@@ -1,20 +1,20 @@
 <div class="uploader-page">
   <section class="uploader-hero">
     <div>
-      <span class="eyebrow">Minus Creators</span>
+      <span class="eyebrow">{{ translationService.getTranslation('common.brand.minus_creators') }}</span>
 
       <h1>
-        {{ translationService.getTranslation('Registrar obra') }}
+        {{ translationService.getTranslation('uploader.hero.title') }}
       </h1>
 
       <p>
-        {{ translationService.getTranslation('Sube una obra nueva con su portada y el capítulo inicial') }}
+        {{ translationService.getTranslation('uploader.hero.description') }}
       </p>
     </div>
 
     <div class="hero-badge">
       <strong>{{ totalVersiones }}</strong>
-      <span>{{ translationService.getTranslation('Idiomas') }}</span>
+      <span>{{ translationService.getTranslation('common.labels.languages') }}</span>
     </div>
   </section>
 
@@ -26,49 +26,49 @@
     <div class="form-header">
       <div>
         <span class="section-kicker">
-          {{ translationService.getTranslation('Obra') }}
+          {{ translationService.getTranslation('common.labels.work') }}
         </span>
 
         <h2>
-          {{ translationService.getTranslation('Información de la obra') }}
+          {{ translationService.getTranslation('common.work.info_title') }}
         </h2>
       </div>
 
       <span class="required-note">
-        {{ translationService.getTranslation('Campos requeridos') }}
+        {{ translationService.getTranslation('uploader.work.required_fields') }}
       </span>
     </div>
 
     <div class="form-grid">
       <label class="full">
         <span>
-          {{ translationService.getTranslation('Título') }}
+          {{ translationService.getTranslation('common.labels.title') }}
           <strong>*</strong>
         </span>
 
         <input
           type="text"
           formControlName="titulo"
-          [placeholder]="translationService.getTranslation('Ejemplo titulo obra')"
+          [placeholder]="translationService.getTranslation('common.labels.title')"
         />
 
         <small
           class="field-error"
           *ngIf="formulario.get('titulo')?.invalid && formulario.get('titulo')?.touched"
         >
-          {{ translationService.getTranslation('El título es obligatorio') }}
+          {{ translationService.getTranslation('common.validation.title_required') }}
         </small>
       </label>
 
       <label class="full">
         <span>
-          {{ translationService.getTranslation('Descripción') }}
+          {{ translationService.getTranslation('common.labels.description') }}
         </span>
 
         <textarea
           formControlName="descripcion"
           rows="5"
-          [placeholder]="translationService.getTranslation('Describe tu obra aquí')"
+          [placeholder]="translationService.getTranslation('common.labels.description')"
         ></textarea>
       </label>
 
@@ -76,11 +76,11 @@
         <div class="category-header">
           <div>
             <span class="panel-label">
-              {{ translationService.getTranslation('Categorías') }}
+              {{ translationService.getTranslation('common.labels.categories') }}
             </span>
 
             <p>
-              {{ translationService.getTranslation('Selecciona hasta 3 categorías') }}
+                {{ translationService.getTranslation('common.categories.select_up_to') }}
             </p>
           </div>
 
@@ -98,7 +98,7 @@
             [disabled]="!isCategorySelected(categoria.value) && selectedCategories.length >= maxCategories"
             (click)="toggleCategory(categoria.value)"
           >
-            {{ categoria.label }}
+            {{ getCategoryLabel(categoria.value) }}
           </button>
         </div>
 
@@ -117,7 +117,7 @@
 
       <div class="radio-panel full">
         <span class="panel-label">
-          {{ translationService.getTranslation('Tipo de obra') }}
+          {{ translationService.getTranslation('common.labels.work_type') }}
         </span>
 
         <div class="radio-options">
@@ -132,7 +132,7 @@
             />
 
             <span>
-              {{ translationService.getTranslation(tipo.label) }}
+              {{ getSelectOptionLabel(tipo) }}
             </span>
           </label>
         </div>
@@ -143,17 +143,19 @@
       <div class="upload-title">
         <div>
           <span class="section-kicker">
-            {{ translationService.getTranslation('Portada') }}
+            {{ translationService.getTranslation('uploader.cover.kicker') }}
           </span>
 
           <h2>
-            {{ translationService.getTranslation('Agregar portada') }}
+            {{ translationService.getTranslation('uploader.cover.title') }}
           </h2>
         </div>
 
         <p>
-          JPG, PNG, WEBP · Max {{ formatSize(maxCoverFileSize) }} ·
-          {{ translationService.getTranslation('Se optimizará a WEBP') }}
+          {{ translationService.getTranslation('common.file.formats') }} ·
+          {{ translationService.getTranslation('common.file.max') }}
+          {{ formatSize(maxCoverFileSize) }} ·
+          {{ translationService.getTranslation('common.file.optimized_webp') }}
         </p>
       </div>
 
@@ -169,11 +171,11 @@
           <div class="upload-icon">🖼️</div>
 
           <h3>
-            {{ translationService.getTranslation('Arrastra la portada aquí') }}
+            {{ translationService.getTranslation('uploader.cover.drop_here') }}
           </h3>
 
           <p>
-            {{ translationService.getTranslation('Haz clic para seleccionar archivo') }}
+            {{ translationService.getTranslation('uploader.cover.select_file') }}
           </p>
 
           <input
@@ -193,7 +195,7 @@
 
           <div>
             <h3>
-              {{ translationService.getTranslation('Portada seleccionada') }}
+              {{ translationService.getTranslation('uploader.cover.selected') }}
             </h3>
 
             <p class="file-name">
@@ -210,7 +212,7 @@
             class="remove-btn"
             (click)="removeFile($event)"
           >
-            {{ translationService.getTranslation('Eliminar') }}
+            {{ translationService.getTranslation('common.actions.delete') }}
           </button>
         </div>
 
@@ -220,11 +222,11 @@
 
             <div>
               <h3>
-                {{ translationService.getTranslation('Sin portada seleccionada') }}
+                {{ translationService.getTranslation('uploader.cover.none_selected') }}
               </h3>
 
               <p>
-                {{ translationService.getTranslation('La portada aparecerá aquí') }}
+                {{ translationService.getTranslation('uploader.cover.preview_placeholder') }}
               </p>
             </div>
           </div>
@@ -236,11 +238,11 @@
       <div class="upload-title language-title">
         <div>
           <span class="section-kicker">
-            {{ translationService.getTranslation('Versiones por idioma') }}
+            {{ translationService.getTranslation('uploader.versions.kicker') }}
           </span>
 
           <h2>
-            {{ translationService.getTranslation('Capitulo') }} 1
+            {{ translationService.getTranslation('common.labels.chapter_plain') }} 1
           </h2>
         </div>
 
@@ -250,13 +252,12 @@
           (click)="agregarVersionIdioma()"
           [disabled]="!canAddLanguageVersion"
         >
-          <span>＋</span>
-          {{ translationService.getTranslation('Agregar idioma') }}
+          {{ translationService.getTranslation('common.actions.add_language') }}
         </button>
       </div>
 
       <p class="language-helper">
-        {{ translationService.getTranslation('Agrega una versión por cada idioma y sube las páginas correspondientes.') }}
+        {{ translationService.getTranslation('uploader.versions.helper') }}
       </p>
 
       <div class="language-version-list">
@@ -267,7 +268,7 @@
           <div class="language-version-header">
             <div>
               <span class="version-count">
-                {{ translationService.getTranslation('Versión') }} {{ versionIndex + 1 }}
+                {{ translationService.getTranslation('uploader.versions.version') }} {{ versionIndex + 1 }}
               </span>
 
               <h3>
@@ -281,13 +282,13 @@
               *ngIf="versionesIdioma.length > 1"
               (click)="eliminarVersionIdioma(version.id)"
             >
-              {{ translationService.getTranslation('Eliminar idioma') }}
+              {{ translationService.getTranslation('uploader.versions.remove_language') }}
             </button>
           </div>
 
           <label class="language-select-label">
             <span>
-              {{ translationService.getTranslation('Idioma de esta versión') }}
+              {{ translationService.getTranslation('uploader.versions.language_of_version') }}
             </span>
 
             <select
@@ -298,7 +299,7 @@
                 *ngFor="let idioma of getAvailableLanguageOptions(version); trackBy: trackByIdiomaValue"
                 [value]="idioma.value"
               >
-                {{ idioma.label }}
+                {{ getSelectOptionLabel(idioma) }}
               </option>
             </select>
           </label>
@@ -314,11 +315,11 @@
             <div class="upload-icon">🖼️</div>
 
             <h3>
-              {{ translationService.getTranslation('Agrega las imágenes aquí') }}
+              {{ translationService.getTranslation('uploader.pages.add_images_here') }}
             </h3>
 
             <p>
-              {{ translationService.getTranslation('Haz clic para seleccionar varias imágenes') }} ·
+              {{ translationService.getTranslation('common.upload.select_multiple_images') }} ·
               {{ getIdiomaLabel(version.idioma) }}
             </p>
 
@@ -338,7 +339,7 @@
           >
             <div class="files-header">
               <h3>
-                {{ translationService.getTranslation('Páginas seleccionadas') }}
+                {{ translationService.getTranslation('common.pages.selected') }}
               </h3>
 
               <span>
@@ -347,7 +348,7 @@
             </div>
 
             <p class="file-size">
-              {{ translationService.getTranslation('Peso total seleccionado') }}:
+              {{ translationService.getTranslation('common.stats.total_selected_size') }}:
               {{ formatSize(getVersionPagesTotalSize(version)) }}
             </p>
 
@@ -384,7 +385,7 @@
       </div>
 
       <p class="file-size language-total-size" *ngIf="selectedPagesTotalSize > 0">
-        {{ translationService.getTranslation('Peso total seleccionado') }}:
+        {{ translationService.getTranslation('common.stats.total_selected_size') }}:
         {{ formatSize(selectedPagesTotalSize) }}
       </p>
     </section>
@@ -400,11 +401,11 @@
       <div class="authorship-inner">
         <div class="authorship-header">
           <span class="authorship-title">
-            {{ translationService.getTranslation('Aviso de autoria') }}
+            {{ translationService.getTranslation('uploader.authorship.title') }}
           </span>
 
           <p>
-            {{ translationService.getTranslation('Aviso de autoria detalle') }}
+            {{ translationService.getTranslation('uploader.authorship.description') }}
           </p>
         </div>
 
@@ -415,17 +416,17 @@
             <div class="example-body">
               <div class="example-text">
                 <strong>
-                  {{ translationService.getTranslation('Ejemplo permitido') }}
+                  {{ translationService.getTranslation('uploader.authorship.allowed_title') }}
                 </strong>
 
                 <p>
-                  {{ translationService.getTranslation('Imagen de ejemplo permitida') }}
+                  {{ translationService.getTranslation('uploader.authorship.allowed_description') }}
                 </p>
               </div>
 
               <img
                 src="/obras/paleta/af.webp"
-                [alt]="translationService.getTranslation('Ejemplo permitido')"
+                [alt]="translationService.getTranslation('uploader.authorship.allowed_title')"
                 loading="lazy"
                 decoding="async"
               />
@@ -438,17 +439,17 @@
             <div class="example-body">
               <div class="example-text">
                 <strong>
-                  {{ translationService.getTranslation('Ejemplo no permitido') }}
+                  {{ translationService.getTranslation('uploader.authorship.not_allowed_title') }}
                 </strong>
 
                 <p>
-                  {{ translationService.getTranslation('Imagen de ejemplo no permitida') }}
+                  {{ translationService.getTranslation('uploader.authorship.not_allowed_description') }}
                 </p>
               </div>
 
               <img
                 src="/obras/paleta/portada.webp"
-                [alt]="translationService.getTranslation('Ejemplo no permitido')"
+                [alt]="translationService.getTranslation('uploader.authorship.not_allowed_title')"
                 loading="lazy"
                 decoding="async"
               />
@@ -463,7 +464,7 @@
           />
 
           <span>
-            {{ translationService.getTranslation('Acepto que el contenido que subo es de mi autoría') }}
+            {{ translationService.getTranslation('uploader.authorship.accept') }}
           </span>
         </label>
       </div>
@@ -476,8 +477,8 @@
     >
       {{
         cargando
-          ? translationService.getTranslation('Enviando')
-          : translationService.getTranslation('Enviar')
+          ? translationService.getTranslation('uploader.submit.loading')
+          : translationService.getTranslation('uploader.submit.default')
       }}
     </button>
   </form>

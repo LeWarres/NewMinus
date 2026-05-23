@@ -2,14 +2,14 @@
   <div class="uploader-card">
     <header class="chapter-header">
       <div>
-        <span class="eyebrow">Minus Creators</span>
+        <span class="eyebrow">{{ translationService.getTranslation('common.brand.minus_creators') }}</span>
 
         <h1>
-          {{ translationService.getTranslation('Subir nuevo capítulo') }}
+          {{ translationService.getTranslation('common.actions.upload_new_chapter') }}
         </h1>
 
         <p>
-          {{ translationService.getTranslation('Agrega una o más versiones por idioma para este capítulo.') }}
+          {{ translationService.getTranslation('chapterUploader.hero.description') }}
         </p>
       </div>
 
@@ -20,17 +20,17 @@
         [disabled]="cargando"
       >
         <span>＋</span>
-        {{ translationService.getTranslation('Agregar idioma') }}
+        {{ translationService.getTranslation('common.actions.add_language') }}
       </button>
     </header>
 
     <div class="auto-number-note">
       <strong>
-        {{ translationService.getTranslation('Numeración automática por idioma') }}
+        {{ translationService.getTranslation('chapterUploader.auto_number.title') }}
       </strong>
 
       <p>
-        {{ translationService.getTranslation('El número del capítulo se asignará según el siguiente capítulo disponible para cada idioma.') }}
+        {{ translationService.getTranslation('chapterUploader.auto_number.description') }}
       </p>
     </div>
 
@@ -42,7 +42,7 @@
         <div class="version-header">
           <div>
             <span class="version-kicker">
-              {{ translationService.getTranslation('Versión de idioma') }}
+              {{ translationService.getTranslation('chapterUploader.version.title') }}
             </span>
 
             <h2>
@@ -56,14 +56,14 @@
             (click)="eliminarVersionIdioma(version)"
             [disabled]="versiones.length <= 1 || cargando"
           >
-            {{ translationService.getTranslation('Eliminar') }}
+            {{ translationService.getTranslation('common.actions.delete') }}
           </button>
         </div>
 
         <div class="version-grid">
           <label>
             <span>
-              {{ translationService.getTranslation('Idioma') }}
+              {{ translationService.getTranslation('common.labels.language') }}
             </span>
 
             <select
@@ -76,32 +76,32 @@
                 [value]="idioma.value"
                 [disabled]="isIdiomaUsadoPorOtraVersion(idioma.value, version)"
               >
-                {{ idioma.label }}
+                {{ getIdiomaOptionLabel(idioma) }}
               </option>
             </select>
           </label>
 
           <label>
             <span>
-              {{ translationService.getTranslation('Título del capítulo') }}
+              {{ translationService.getTranslation('common.labels.chapter_title') }}
             </span>
 
             <input
               type="text"
               [(ngModel)]="version.titulo"
-              [placeholder]="translationService.getTranslation('Ejemplo titulo capitulo')"
+              [placeholder]="translationService.getTranslation('chapterUploader.fields.chapter_title_placeholder')"
               [disabled]="cargando"
             />
           </label>
 
           <label class="full">
             <span>
-              {{ translationService.getTranslation('Descripción') }}
+              {{ translationService.getTranslation('common.labels.description') }}
             </span>
 
             <textarea
               [(ngModel)]="version.descripcion"
-              [placeholder]="translationService.getTranslation('Descripción opcional')"
+              [placeholder]="translationService.getTranslation('chapterUploader.fields.description_placeholder')"
               [disabled]="cargando"
             ></textarea>
           </label>
@@ -118,15 +118,18 @@
             <span class="file-icon">🖼️</span>
 
             <strong>
-              {{ translationService.getTranslation('Agregar páginas') }}
+              {{ translationService.getTranslation('chapterUploader.pages.add') }}
             </strong>
 
             <small>
-              JPG, PNG, WEBP · Max {{ formatSize(maxPageFileSize) }} c/u
+              {{ translationService.getTranslation('common.file.formats') }} ·
+              {{ translationService.getTranslation('common.file.max') }}
+              {{ formatSize(maxPageFileSize) }}
+              {{ translationService.getTranslation('chapterUploader.pages.each') }}
             </small>
 
             <small>
-              {{ translationService.getTranslation('Haz clic para seleccionar varias imágenes') }}
+              {{ translationService.getTranslation('common.upload.select_multiple_images') }}
             </small>
           </div>
 
@@ -145,7 +148,7 @@
         >
           <div class="files-header">
             <h3>
-              {{ translationService.getTranslation('Páginas seleccionadas') }}
+              {{ translationService.getTranslation('common.pages.selected') }}
             </h3>
 
             <span>
@@ -158,7 +161,7 @@
             class="file-item"
           >
             <span>
-              {{ translationService.getTranslation('Página') }} {{ index + 1 }} - {{ file.name }}
+              {{ translationService.getTranslation('common.labels.page') }} {{ index + 1 }} - {{ file.name }}
             </span>
 
             <span>
@@ -170,7 +173,7 @@
               (click)="removePage(version, index)"
               [disabled]="cargando"
             >
-              {{ translationService.getTranslation('Quitar') }}
+              {{ translationService.getTranslation('chapterUploader.actions.remove_page') }}
             </button>
           </div>
         </div>
@@ -179,15 +182,15 @@
 
     <div class="upload-summary" *ngIf="versiones.length > 0">
       <span>
-        {{ translationService.getTranslation('Idiomas') }}: {{ versiones.length }}
+        {{ translationService.getTranslation('common.labels.languages') }}: {{ versiones.length }}
       </span>
 
       <span>
-        {{ translationService.getTranslation('Páginas') }}: {{ totalPagesCount }}
+        {{ translationService.getTranslation('chapterUploader.summary.pages') }}: {{ totalPagesCount }}
       </span>
 
       <span>
-        {{ translationService.getTranslation('Peso total seleccionado') }}: {{ formatSize(totalPagesSize) }}
+        {{ translationService.getTranslation('common.stats.total_selected_size') }}: {{ formatSize(totalPagesSize) }}
       </span>
     </div>
 
@@ -203,8 +206,8 @@
     >
       {{
         cargando
-          ? translationService.getTranslation('Subiendo') + '...'
-          : translationService.getTranslation('Subir capítulo')
+          ? translationService.getTranslation('chapterUploader.submit.loading') + '...'
+          : translationService.getTranslation('common.actions.upload_chapter')
       }}
     </button>
   </div>

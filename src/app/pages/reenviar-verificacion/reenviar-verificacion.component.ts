@@ -51,12 +51,12 @@ export class ReenviarVerificacionComponent implements OnInit {
     const email = this.email.trim().toLowerCase();
 
     if (!email) {
-      this.error = this.translationService.getTranslation('El correo es obligatorio');
+      this.error = this.translationService.getTranslation('common.validation.email_required');
       return;
     }
 
     if (!this.turnstileToken) {
-      this.error = this.translationService.getTranslation('Completa la verificación anti-bot');
+      this.error = this.translationService.getTranslation('common.validation.turnstile_required');
       return;
     }
 
@@ -66,7 +66,7 @@ export class ReenviarVerificacionComponent implements OnInit {
       next: (csrfRes) => {
         if (!csrfRes.success || !csrfRes.csrfToken) {
           this.cargando = false;
-          this.error = this.translationService.getTranslation('No se pudo preparar la acción');
+          this.error = this.translationService.getTranslation('common.error.prepare_action_failed');
           this.resetTurnstile();
           return;
         }
@@ -78,17 +78,17 @@ export class ReenviarVerificacionComponent implements OnInit {
             this.cargando = false;
 
             if (!res.success) {
-              this.error = res.error || this.translationService.getTranslation('No se pudo reenviar la verificación');
+              this.error = res.error || this.translationService.getTranslation('reenviarVerificacion.error.resend_failed');
               this.resetTurnstile();
               return;
             }
 
-            this.mensaje = res.mensaje || this.translationService.getTranslation('Te enviamos un nuevo correo de verificación.');
+            this.mensaje = res.mensaje || this.translationService.getTranslation('reenviarVerificacion.success.sent');
             this.resetTurnstile();
           },
           error: (err) => {
             this.cargando = false;
-            this.error = err.error?.error || this.translationService.getTranslation('No se pudo reenviar la verificación');
+            this.error = err.error?.error || this.translationService.getTranslation('reenviarVerificacion.error.resend_failed');
             this.resetTurnstile();
             console.error(err);
           }
@@ -96,7 +96,7 @@ export class ReenviarVerificacionComponent implements OnInit {
       },
       error: (err) => {
         this.cargando = false;
-        this.error = this.translationService.getTranslation('No se pudo preparar la acción');
+        this.error = this.translationService.getTranslation('common.error.prepare_action_failed');
         this.resetTurnstile();
         console.error(err);
       }

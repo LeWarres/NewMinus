@@ -2,11 +2,11 @@
   <div class="rating-header">
     <div>
       <span class="section-kicker">
-        {{ translationService.getTranslation('Calificación') }}
+        {{ translationService.getTranslation('common.labels.rating') }}
       </span>
 
       <h2>
-        {{ translationService.getTranslation('Calificación') }}
+        {{ translationService.getTranslation('common.labels.rating') }}
       </h2>
     </div>
 
@@ -27,31 +27,31 @@
       <small>
         {{
           hasRatings
-            ? totalCalificaciones + ' ' + translationService.getTranslation('Calificaciones')
-            : translationService.getTranslation('Sin calificaciones todavía')
+            ? totalCalificaciones + ' ' + translationService.getTranslation('ratingStars.ratings')
+            : translationService.getTranslation('ratingStars.no_ratings_yet')
         }}
       </small>
     </div>
   </div>
 
   <p class="loading-text" *ngIf="cargando">
-    {{ translationService.getTranslation('Cargando') }}...
+    {{ translationService.getTranslation('common.state.loading') }}...
   </p>
 
   <div class="login-required" *ngIf="!currentUser && !cargando">
     <p>
-      {{ translationService.getTranslation('Para calificar debes iniciar sesión.') }}
+      {{ translationService.getTranslation('ratingStars.login_required') }}
     </p>
 
     <a routerLink="/login">
-      {{ translationService.getTranslation('login') }}
+      {{ translationService.getTranslation('common.actions.login_lower') }}
     </a>
   </div>
 
   <div class="user-rating" *ngIf="currentUser && !cargando">
     <div class="user-rating-text">
       <strong>
-        {{ translationService.getTranslation('Tu calificación') }}
+        {{ translationService.getTranslation('ratingStars.your_rating') }}
       </strong>
 
       <span *ngIf="miCalificacion > 0">
@@ -59,7 +59,7 @@
       </span>
 
       <span *ngIf="miCalificacion === 0">
-        {{ translationService.getTranslation('Sé el primero en calificar') }}
+        {{ translationService.getTranslation('ratingStars.be_first_to_rate') }}
       </span>
     </div>
 
@@ -74,7 +74,7 @@
         [disabled]="guardando || isOwner"
         (mouseenter)="onStarEnter(star)"
         (click)="guardarCalificacion(star)"
-        [attr.aria-label]="translationService.getTranslation('Calificación') + ' ' + star"
+        [attr.aria-label]="translationService.getTranslation('common.labels.rating') + ' ' + star"
       >
         ★
       </button>
@@ -82,7 +82,7 @@
   </div>
 
   <p class="rating-message" *ngIf="currentUser && isOwner && !cargando">
-    {{ translationService.getTranslation('No puedes calificar tu propia obra.') }}
+    {{ translationService.getTranslation('ratingStars.cannot_rate_own_work') }}
   </p>
 
   <p class="rating-message success" *ngIf="mensaje">

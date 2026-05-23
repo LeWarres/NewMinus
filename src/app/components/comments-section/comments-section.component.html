@@ -2,11 +2,11 @@
   <div class="comments-header">
     <div>
       <span class="section-kicker">
-        {{ translationService.getTranslation('Comentarios') }}
+        {{ translationService.getTranslation('commentsSection.title') }}
       </span>
 
       <h2>
-        {{ translationService.getTranslation('Comentarios') }}
+        {{ translationService.getTranslation('commentsSection.title') }}
       </h2>
 
       <p>
@@ -18,12 +18,12 @@
       <div class="reaction-counts">
         <span class="likes-count">
           👍 {{ totalLikes }}
-          {{ translationService.getTranslation('Likes') }}
+          {{ translationService.getTranslation('commentsSection.reactions.likes') }}
         </span>
 
         <span class="dislikes-count">
           👎 {{ totalDislikes }}
-          {{ translationService.getTranslation('Dislikes') }}
+          {{ translationService.getTranslation('commentsSection.reactions.dislikes') }}
         </span>
       </div>
 
@@ -47,7 +47,7 @@
           [disabled]="guardandoReaccion || !currentUser"
           (click)="reaccionar(1)"
         >
-          👍 {{ translationService.getTranslation('Like') }}
+          👍 {{ translationService.getTranslation('commentsSection.reactions.like') }}
         </button>
 
         <button
@@ -57,7 +57,7 @@
           [disabled]="guardandoReaccion || !currentUser"
           (click)="reaccionar(-1)"
         >
-          👎 {{ translationService.getTranslation('Dislike') }}
+          👎 {{ translationService.getTranslation('commentsSection.reactions.dislike') }}
         </button>
       </div>
 
@@ -71,13 +71,13 @@
     <p>
       {{
         reactionsEnabled
-          ? translationService.getTranslation('Para comentar o dejar un like debes iniciar sesión.')
-          : translationService.getTranslation('Para comentar debes iniciar sesión.')
+          ? translationService.getTranslation('commentsSection.auth.login_required_with_reaction')
+          : translationService.getTranslation('commentsSection.auth.login_required_comment')
       }}
     </p>
 
     <a routerLink="/login">
-      {{ translationService.getTranslation('login') }}
+      {{ translationService.getTranslation('common.actions.login_lower') }}
     </a>
   </div>
 
@@ -87,13 +87,13 @@
     (ngSubmit)="guardarComentario()"
   >
     <label>
-      {{ translationService.getTranslation('Comentario') }}
+      {{ translationService.getTranslation('commentsSection.form.comment_label') }}
 
       <textarea
         [(ngModel)]="comentarioTexto"
         name="comentarioTexto"
         [attr.maxlength]="maxLength"
-        [placeholder]="translationService.getTranslation('Escribe tu comentario')"
+        [placeholder]="translationService.getTranslation('commentsSection.form.comment_placeholder')"
       ></textarea>
     </label>
 
@@ -110,7 +110,7 @@
           [disabled]="guardandoComentario"
           (click)="eliminarComentario()"
         >
-          {{ translationService.getTranslation('Eliminar comentario') }}
+          {{ translationService.getTranslation('commentsSection.actions.delete_comment') }}
         </button>
 
         <button
@@ -120,8 +120,8 @@
         >
           {{
             miComentario
-              ? translationService.getTranslation('Actualizar comentario')
-              : translationService.getTranslation('Publicar comentario')
+              ? translationService.getTranslation('commentsSection.actions.update_comment')
+              : translationService.getTranslation('commentsSection.actions.publish_comment')
           }}
         </button>
       </div>
@@ -137,7 +137,7 @@
   </p>
 
   <p class="comments-loading" *ngIf="cargandoComentarios">
-    {{ translationService.getTranslation('Cargando') }}...
+    {{ translationService.getTranslation('commentsSection.state.loading') }}...
   </p>
 
   <div
@@ -145,7 +145,7 @@
     *ngIf="!cargandoComentarios && comentarios.length === 0"
   >
     <h3>
-      {{ translationService.getTranslation('Sé el primero en comentar') }}
+      {{ translationService.getTranslation('commentsSection.empty.title') }}
     </h3>
 
     <p>

@@ -11,44 +11,13 @@ export interface ObraCardItem {
   descripcion?: string;
   genero?: string;
   categorias?: string[];
-
-  /*
-    Idioma recomendado para mostrar en la card.
-    El backend debe mandar aquí el idioma más relevante para el usuario:
-    - preferido del usuario logueado
-    - idioma de interfaz para visitante
-    - idioma principal si no hay coincidencia
-  */
   idioma?: string;
-
-  /*
-    Todos los idiomas disponibles para esta obra.
-    Ejemplo: ['ES', 'EN', 'RU'].
-  */
   idiomasDisponibles?: string[];
-
-  /*
-    Cantidad de idiomas extra además del idioma mostrado.
-    Si no viene desde el backend, el componente lo calcula usando idiomasDisponibles.
-  */
   idiomasExtraCount?: number;
-
   portada?: string;
-
-  /*
-    Tipo de obra:
-    comic, manga, libro, novela, artwork.
-  */
   tipoEntrega?: string;
-
   numVisitas: number;
   autor: string;
-
-  /*
-    Promedio de calificación de la obra.
-    Viene desde los PHP como promedioCalificacion.
-    Ejemplo: 4.3
-  */
   promedioCalificacion?: number;
 }
 
@@ -170,11 +139,11 @@ export class ObraCardComponent {
       .toLowerCase();
 
     const labels: Record<string, string> = {
-      comic: 'Comic',
-      manga: 'Manga',
-      libro: 'Libro',
-      novela: 'Novela',
-      artwork: 'Artwork'
+      comic: 'common.work_type.comic',
+      manga: 'common.work_type.manga',
+      libro: 'common.work_type.book',
+      novela: 'common.work_type.novel',
+      artwork: 'common.work_type.artwork'
     };
 
     const label = labels[normalized];

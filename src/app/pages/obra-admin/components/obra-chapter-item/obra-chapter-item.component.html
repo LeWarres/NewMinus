@@ -1,7 +1,7 @@
 <article class="chapter-item">
   <div class="chapter-number">
     <span>
-      {{ translationService.getTranslation('Capitulo') }}
+      {{ translationService.getTranslation('common.labels.chapter') }}
     </span>
 
     <strong>
@@ -11,7 +11,7 @@
 
   <div class="chapter-form">
     <label *ngIf="versiones.length > 1">
-      {{ translationService.getTranslation('Idioma del capítulo') }}
+      {{ translationService.getTranslation('obraAdmin.chapter.chapter_language') }}
 
       <select [(ngModel)]="activeVersionKey" (ngModelChange)="onVersionChange()">
         <option
@@ -24,27 +24,27 @@
     </label>
 
     <label>
-      {{ translationService.getTranslation('Título del capítulo') }}
+      {{ translationService.getTranslation('common.labels.chapter_title') }}
 
       <input
         type="text"
         [(ngModel)]="activeVersion.titulo"
-        [placeholder]="translationService.getTranslation('Título del capítulo')"
+        [placeholder]="translationService.getTranslation('common.labels.chapter_title')"
       />
     </label>
 
     <label>
-      {{ translationService.getTranslation('Descripción del capítulo') }}
+      {{ translationService.getTranslation('obraAdmin.chapter.description') }}
 
       <textarea
         [(ngModel)]="activeVersion.descripcion"
-        [placeholder]="translationService.getTranslation('Descripción del capítulo')"
+        [placeholder]="translationService.getTranslation('obraAdmin.chapter.description')"
       ></textarea>
     </label>
 
     <div class="chapter-pages-manager">
       <h3>
-        {{ translationService.getTranslation('Páginas del capítulo') }}
+        {{ translationService.getTranslation('obraAdmin.pages.title') }}
       </h3>
 
       <div
@@ -57,12 +57,12 @@
         >
           <img
             [src]="imageUrl(pagina.imagen)"
-            [alt]="translationService.getTranslation('Página') + ' ' + pagina.numeroPagina"
+            [alt]="translationService.getTranslation('common.labels.page') + ' ' + pagina.numeroPagina"
             loading="lazy"
           />
 
           <span>
-            {{ translationService.getTranslation('Página') }}
+            {{ translationService.getTranslation('common.labels.page') }}
             {{ pagina.numeroPagina }}
           </span>
 
@@ -71,7 +71,7 @@
             class="delete-page-btn"
             (click)="onEliminarPagina(pagina)"
           >
-            {{ translationService.getTranslation('Eliminar') }}
+            {{ translationService.getTranslation('common.actions.delete') }}
           </button>
         </div>
 
@@ -81,12 +81,12 @@
         >
           <img
             [src]="selectedFilePreviews[i]"
-            [alt]="translationService.getTranslation('Nueva página') + ' ' + file.name"
+            [alt]="translationService.getTranslation('obraAdmin.pages.new_page') + ' ' + file.name"
             loading="lazy"
           />
 
           <span>
-            {{ translationService.getTranslation('Nueva') }} · {{ file.name }}
+            {{ translationService.getTranslation('obraAdmin.pages.new') }} · {{ file.name }}
           </span>
 
           <button
@@ -94,20 +94,20 @@
             class="delete-page-btn"
             (click)="onRemoveSelectedFile(i)"
           >
-            {{ translationService.getTranslation('Eliminar') }}
+            {{ translationService.getTranslation('common.actions.delete') }}
           </button>
         </div>
       </div>
 
       <ng-template #noPages>
         <p class="empty-pages">
-          {{ translationService.getTranslation('Este capítulo no tiene páginas') }}
+          {{ translationService.getTranslation('obraAdmin.pages.empty') }}
         </p>
       </ng-template>
 
       <div class="add-pages-box">
         <label class="file-action">
-          + {{ translationService.getTranslation('Agregar imágenes') }}
+          + {{ translationService.getTranslation('obraAdmin.pages.add_images') }}
 
           <input
             type="file"
@@ -118,21 +118,21 @@
         </label>
 
         <p class="selected-file">
-          {{ translationService.getTranslation('JPG, PNG, WEBP') }} ·
-          {{ translationService.getTranslation('Max') }} {{ formatSize(maxPageFileSize) }} ·
-          {{ translationService.getTranslation('Se optimizará a WEBP') }}
+          {{ translationService.getTranslation('common.file.formats') }} ·
+          {{ translationService.getTranslation('common.file.max') }} {{ formatSize(maxPageFileSize) }} ·
+          {{ translationService.getTranslation('common.file.optimized_webp') }}
         </p>
 
         <p
           class="selected-file"
           *ngIf="selectedFiles.length"
         >
-          {{ translationService.getTranslation('Peso total seleccionado') }}:
+          {{ translationService.getTranslation('common.stats.total_selected_size') }}:
           {{ formatSize(selectedTotalSize) }}
         </p>
 
         <p class="pending-save-hint" *ngIf="selectedFiles.length">
-          {{ translationService.getTranslation('Las imágenes se subirán al presionar Guardar todo') }}
+          {{ translationService.getTranslation('obraAdmin.pages.images_uploaded_on_save_all') }}
         </p>
 
         <p
@@ -145,7 +145,7 @@
     </div>
 
     <p class="chapter-date">
-      {{ translationService.getTranslation('Fecha de creación') }}:
+      {{ translationService.getTranslation('obraAdmin.chapter.creation_date') }}:
       {{ activeVersion.creadoEn }}
     </p>
 
@@ -163,7 +163,7 @@
       class="secondary-action"
       (click)="leerCapitulo.emit()"
     >
-      {{ translationService.getTranslation('Leer') }}
+      {{ translationService.getTranslation('obraAdmin.actions.read') }}
     </button>
 
     <button
@@ -172,7 +172,7 @@
       (click)="onEliminarCapituloIdioma()"
       [disabled]="!canDeleteActiveVersion"
     >
-      {{ translationService.getTranslation('Eliminar capítulo en este idioma') }}
+      {{ translationService.getTranslation('obraAdmin.actions.delete_chapter_in_language') }}
     </button>
   </div>
 </article>

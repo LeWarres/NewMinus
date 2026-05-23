@@ -30,7 +30,7 @@
         <span
           class="extra-badge"
           *ngIf="extraCategoryCount > 0"
-          [attr.title]="extraCategoryCount + ' categorías extra'"
+          [attr.title]="extraCategoryCount + ' ' + translationService.getTranslation('cards.common.extra_categories')"
         >
           +{{ extraCategoryCount }}
         </span>
@@ -57,7 +57,7 @@
 
   <div class="card-body">
     <span class="type-label">
-      {{ translationService.getTranslation('Capitulo') }} {{ item.numeroCapitulo }}
+      {{ translationService.getTranslation('common.labels.chapter') }} {{ item.numeroCapitulo }}
     </span>
 
     <h3>
@@ -80,14 +80,14 @@
       class="author-link"
       (click)="onOpenAutor($event)"
     >
-      {{ translationService.getTranslation('Por') }} {{ item.autor }}
+      {{ translationService.getTranslation('cards.common.by') }} {{ item.autor }}
     </button>
 
     <div
       class="card-rating"
       [class.empty]="!hasRating"
       [attr.title]="ratingTitle"
-      [attr.aria-label]="translationService.getTranslation('Calificación') + ' ' + ratingTitle"
+      [attr.aria-label]="translationService.getTranslation('common.labels.rating') + ' ' + ratingTitle"
     >
       <span class="rating-stars rating-stars-base">
         ★★★★★
@@ -102,7 +102,7 @@
     </div>
 
     <p class="views">
-      {{ chapterViews }} {{ translationService.getTranslation('Vistas') }}
+      {{ chapterViews }} {{ translationService.getTranslation('common.stats.views') }}
     </p>
 
     <div class="card-actions" *ngIf="showActions">

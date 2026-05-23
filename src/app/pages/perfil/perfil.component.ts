@@ -140,7 +140,7 @@ export class PerfilComponent implements OnInit {
       const id = params.get('id');
 
       if (!id) {
-        this.error = this.translationService.getTranslation('No se encontró el usuario');
+        this.error = this.translationService.getTranslation('perfil.error.user_not_found');
         return;
       }
 
@@ -196,7 +196,7 @@ export class PerfilComponent implements OnInit {
           if (!res.success || !res.user) {
             this.error =
               res.error ||
-              this.translationService.getTranslation('No se pudo cargar el perfil');
+              this.translationService.getTranslation('common.error.load_profile_failed');
             return;
           }
 
@@ -212,7 +212,7 @@ export class PerfilComponent implements OnInit {
         error: (err) => {
           this.error =
             err.error?.error ||
-            this.translationService.getTranslation('Error al cargar el perfil');
+            this.translationService.getTranslation('perfil.error.load_profile_error');
 
           console.error(err);
         }

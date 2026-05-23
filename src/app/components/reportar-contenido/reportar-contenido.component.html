@@ -1,5 +1,5 @@
 <button type="button" class="btn-reportar" (click)="abrirModal()">
-  {{ textoBoton }}
+  {{ textoBotonTraducido }}
 </button>
 
 <div class="reporte-backdrop" *ngIf="modalAbierto">
@@ -7,16 +7,32 @@
 
     <div class="reporte-header">
       <div>
-        <span class="section-kicker">Reporte</span>
-        <h2>{{ enviado ? 'Reporte enviado' : 'Reportar contenido' }}</h2>
-        <p *ngIf="!enviado">Paso {{ pasoActual }} de 3</p>
+        <span class="section-kicker">
+          {{ translationService.getTranslation('reportarContenido.kicker') }}
+        </span>
+
+        <h2>
+          {{
+            enviado
+              ? translationService.getTranslation('reportarContenido.sent_title')
+              : translationService.getTranslation('reportarContenido.title')
+          }}
+        </h2>
+
+        <p *ngIf="!enviado">
+          {{ translationService.getTranslation('reportarContenido.step') }}
+          {{ pasoActual }}
+          {{ translationService.getTranslation('reportarContenido.of') }}
+          3
+        </p>
       </div>
 
       <button
         type="button"
         class="btn-cerrar"
         (click)="cerrarModal()"
-        [disabled]="enviando">
+        [disabled]="enviando"
+        [attr.aria-label]="translationService.getTranslation('common.actions.close')">
         ×
       </button>
     </div>
@@ -30,14 +46,14 @@
     <div *ngIf="enviado" class="paso enviado">
       <div class="icono-exito">✓</div>
 
-      <h3>Reporte enviado</h3>
+      <h3>{{ translationService.getTranslation('reportarContenido.sent_title') }}</h3>
 
       <p class="texto-ayuda">
-        Gracias por avisarnos. Revisaremos el contenido reportado.
+        {{ translationService.getTranslation('reportarContenido.sent_thanks') }}
       </p>
 
       <button type="button" class="btn-principal boton-completo" (click)="cerrarDespuesDeEnviar()">
-        Cerrar
+        {{ translationService.getTranslation('common.actions.close') }}
       </button>
     </div>
 
@@ -49,10 +65,10 @@
       </div>
 
       <div *ngIf="pasoActual === 1" class="paso">
-        <h3>¿Por qué quieres reportar esto?</h3>
+        <h3>{{ translationService.getTranslation('reportarContenido.why') }}</h3>
 
         <p class="texto-ayuda">
-          Selecciona la razón que mejor describa el problema.
+          {{ translationService.getTranslation('reportarContenido.why_help') }}
         </p>
 
         <div class="lista-razones">
@@ -69,8 +85,8 @@
               (change)="seleccionarRazon(razon.value)" />
 
             <div>
-              <strong>{{ razon.titulo }}</strong>
-              <span>{{ razon.descripcion }}</span>
+              <strong>{{ obtenerTituloRazon(razon.value) }}</strong>
+              <span>{{ obtenerDescripcionRazon(razon.value) }}</span>
             </div>
           </label>
         </div>
@@ -79,30 +95,30 @@
           {{ error }}
 
           <button
-            *ngIf="error.includes('sesión') || error.includes('Inicia sesión')"
+            *ngIf="mostrarBotonLogin"
             type="button"
             class="link-login"
             (click)="irALogin()">
-            Ir a login
+            {{ translationService.getTranslation('common.actions.go_to_login') }}
           </button>
         </div>
 
         <div class="acciones">
           <button type="button" class="btn-secundario" (click)="cerrarModal()">
-            Cancelar
+            {{ translationService.getTranslation('common.actions.cancel') }}
           </button>
 
           <button type="button" class="btn-principal" (click)="irAComentarios()">
-            Continuar
+            {{ translationService.getTranslation('common.actions.continue') }}
           </button>
         </div>
       </div>
 
       <div *ngIf="pasoActual === 2" class="paso">
-        <h3>Comentarios adicionales</h3>
+        <h3>{{ translationService.getTranslation('reportarContenido.additional_comments') }}</h3>
 
         <p class="texto-ayuda">
-          Esta parte es opcional. Agrega detalles que ayuden a revisar el reporte.
+          {{ translationService.getTranslation('reportarContenido.additional_comments_help') }}
         </p>
 
         <div class="razon-elegida">
@@ -114,7 +130,7 @@
           [(ngModel)]="comentario"
           maxlength="1000"
           rows="6"
-          placeholder="Escribe aquí cualquier comentario adicional...">
+          [placeholder]="translationService.getTranslation('reportarContenido.additional_comments_placeholder')">
         </textarea>
 
         <div class="contador">
@@ -127,24 +143,24 @@
 
         <div class="acciones">
           <button type="button" class="btn-secundario" (click)="volver()">
-            Atrás
+            {{ translationService.getTranslation('common.actions.back') }}
           </button>
 
           <button type="button" class="btn-principal" (click)="irAConfirmacion()">
-            Continuar
+            {{ translationService.getTranslation('common.actions.continue') }}
           </button>
         </div>
       </div>
 
       <div *ngIf="pasoActual === 3" class="paso confirmacion">
-        <h3>Confirmar reporte</h3>
+        <h3>{{ translationService.getTranslation('reportarContenido.confirm_title') }}</h3>
 
         <p class="texto-ayuda">
-          Revisa la información antes de enviar el reporte.
+          {{ translationService.getTranslation('reportarContenido.confirm_help') }}
         </p>
 
         <div class="resumen">
-          <h4>Contenido reportado</h4>
+          <h4>{{ translationService.getTranslation('reportarContenido.reported_content') }}</h4>
 
           <p *ngIf="tituloContenido">
             {{ tituloContenido }}
@@ -154,13 +170,13 @@
             {{ contextoContenido }}
           </p>
 
-          <h4>Razón seleccionada</h4>
+          <h4>{{ translationService.getTranslation('reportarContenido.selected_reason') }}</h4>
 
           <p>
             {{ obtenerTituloRazon(razonSeleccionadaValor) }}
           </p>
 
-          <h4>Comentario adicional</h4>
+          <h4>{{ translationService.getTranslation('reportarContenido.additional_comment') }}</h4>
 
           <p *ngIf="comentario.trim(); else sinComentario">
             {{ comentario }}
@@ -168,7 +184,7 @@
 
           <ng-template #sinComentario>
             <p class="sin-comentario">
-              Sin comentario adicional.
+              {{ translationService.getTranslation('reportarContenido.no_additional_comment') }}
             </p>
           </ng-template>
         </div>
@@ -177,11 +193,11 @@
           {{ error }}
 
           <button
-            *ngIf="error.includes('sesión') || error.includes('Inicia sesión')"
+            *ngIf="mostrarBotonLogin"
             type="button"
             class="link-login"
             (click)="irALogin()">
-            Ir a login
+            {{ translationService.getTranslation('common.actions.go_to_login') }}
           </button>
         </div>
 
@@ -191,7 +207,7 @@
             class="btn-secundario"
             (click)="volver()"
             [disabled]="enviando">
-            Atrás
+            {{ translationService.getTranslation('common.actions.back') }}
           </button>
 
           <button
@@ -199,7 +215,7 @@
             class="btn-cancelar"
             (click)="cerrarModal()"
             [disabled]="enviando">
-            Cancelar
+            {{ translationService.getTranslation('common.actions.cancel') }}
           </button>
 
           <button
@@ -207,7 +223,11 @@
             class="btn-danger"
             (click)="enviarReporte()"
             [disabled]="enviando">
-            {{ enviando ? 'Enviando...' : 'Enviar reporte' }}
+            {{
+              enviando
+                ? translationService.getTranslation('common.state.sending') + '...'
+                : translationService.getTranslation('reportarContenido.send_report')
+            }}
           </button>
         </div>
       </div>

@@ -3,25 +3,25 @@
 
   <main class="login-card">
     <section class="brand-panel">
-      <div class="brand-badge">MINUS</div>
+      <div class="brand-badge">{{ translationService.getTranslation('common.brand.minus') }}</div>
 
       <h1>
-        {{ translationService.getTranslation('Bienvenido a Minus Creators') }}
+        {{ translationService.getTranslation('login.hero.title') }}
       </h1>
 
       <p>
-        {{ translationService.getTranslation('Inicia sesión para subir obras, seguir creadores y continuar leyendo tus historias favoritas.') }}
+        {{ translationService.getTranslation('login.hero.description') }}
       </p>
     </section>
 
     <section class="form-panel">
       <div class="form-header">
         <h2>
-          {{ translationService.getTranslation('login') }}
+          {{ translationService.getTranslation('common.actions.login') }}
         </h2>
 
         <p>
-          {{ translationService.getTranslation('Accede con tu correo verificado') }}
+          {{ translationService.getTranslation('login.form.description') }}
         </p>
       </div>
 
@@ -38,13 +38,13 @@
           class="inline-action"
           (click)="goToResendVerification()"
         >
-          {{ translationService.getTranslation('Reenviar verificación') }}
+          {{ translationService.getTranslation('common.actions.resend_verification') }}
         </button>
       </div>
 
       <form (ngSubmit)="login()" class="login-form">
         <label for="email">
-          {{ translationService.getTranslation('mail') }}
+          {{ translationService.getTranslation('common.form.email_label') }}
         </label>
 
         <input
@@ -52,13 +52,13 @@
           type="email"
           name="email"
           [(ngModel)]="email"
-          placeholder="tuemail@gmail.com"
+          [placeholder]="translationService.getTranslation('common.form.email_placeholder')"
           autocomplete="email"
           required
         />
 
         <label for="password">
-          {{ translationService.getTranslation('Contrasena') }}
+          {{ translationService.getTranslation('common.form.password_label') }}
         </label>
 
         <div class="password-container">
@@ -67,7 +67,7 @@
             [type]="mostrarPassword ? 'text' : 'password'"
             name="password"
             [(ngModel)]="password"
-            placeholder="••••••••"
+            [placeholder]="translationService.getTranslation('login.form.password_placeholder')"
             autocomplete="current-password"
             required
           />
@@ -76,7 +76,9 @@
             type="button"
             class="toggle-password"
             (click)="togglePassword()"
-            [attr.aria-label]="mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            [attr.aria-label]="mostrarPassword
+              ? translationService.getTranslation('login.form.password_hide')
+              : translationService.getTranslation('login.form.password_show')"
           >
             {{ mostrarPassword ? '🙈' : '👁️' }}
           </button>
@@ -84,17 +86,17 @@
 
         <div class="login-links">
           <button type="button" (click)="goToForgotPassword()">
-            {{ translationService.getTranslation('Olvidé mi contraseña') }}
+            {{ translationService.getTranslation('common.actions.forgot_password') }}
           </button>
 
           <button type="button" (click)="goToResendVerification()">
-            {{ translationService.getTranslation('Reenviar verificación') }}
+            {{ translationService.getTranslation('common.actions.resend_verification') }}
           </button>
         </div>
 
         <button type="submit" class="submit-button" [disabled]="cargando">
           <span *ngIf="!cargando">
-            {{ translationService.getTranslation('login') }}
+            {{ translationService.getTranslation('common.actions.login') }}
           </span>
 
           <span *ngIf="cargando" class="loader"></span>
@@ -103,11 +105,11 @@
 
       <div class="register-box">
         <span>
-          {{ translationService.getTranslation('No tienes cuenta') }}
+          {{ translationService.getTranslation('login.register.prompt') }}
         </span>
 
         <a routerLink="/signup">
-          {{ translationService.getTranslation('registro') }}
+          {{ translationService.getTranslation('login.register.action') }}
         </a>
       </div>
     </section>

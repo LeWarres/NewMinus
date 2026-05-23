@@ -11,6 +11,7 @@ type TranslationDictionary = Record<string, string>;
 export class TranslationService {
   private readonly i18nBasePath = '/i18n';
   private readonly fallbackLanguage = 'en';
+  private readonly translationCache = new Map<string, string>();
 
   private readonly supportedLanguages = [
     'es',
@@ -59,13 +60,28 @@ export class TranslationService {
   }
 
   getTranslation(key: string): string {
-    const currentLanguage = this.normalizeLanguage(this.languageSubject.value);
+    const normalizedKey = String(key || '').trim();
 
-    return (
-      this.translations[currentLanguage]?.[key] ||
-      this.translations[this.fallbackLanguage]?.[key] ||
-      key
-    );
+    if (!normalizedKey) {
+      return '';
+    }
+
+    const currentLanguage = this.normalizeLanguage(this.languageSubject.value);
+    const cacheKey = `${currentLanguage}::${normalizedKey}`;
+    const cachedTranslation = this.translationCache.get(cacheKey);
+
+    if (cachedTranslation !== undefined) {
+      return cachedTranslation;
+    }
+
+    const translated =
+      this.translations[currentLanguage]?.[normalizedKey] ||
+      this.translations[this.fallbackLanguage]?.[normalizedKey] ||
+      normalizedKey;
+
+    this.translationCache.set(cacheKey, translated);
+
+    return translated;
   }
 
   setLanguage(language: string): void {
@@ -73,6 +89,7 @@ export class TranslationService {
 
     localStorage.setItem('language', normalizedLanguage);
     localStorage.setItem('contentLanguage', normalizedLanguage.toUpperCase());
+    this.translationCache.clear();
 
     if (this.translations[normalizedLanguage]) {
       this.languageSubject.next(normalizedLanguage);
@@ -115,6 +132,7 @@ export class TranslationService {
         tap((dictionary) => {
           this.translations[normalizedLanguage] = dictionary || {};
           this.loadingLanguages.delete(normalizedLanguage);
+          this.translationCache.clear();
         }),
         map((dictionary) => {
           return dictionary || {};

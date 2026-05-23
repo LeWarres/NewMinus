@@ -1,14 +1,14 @@
 <div class="register-container">
   <div class="edit-profile-container">
     <div class="edit-profile-hero">
-      <span class="eyebrow">Minus Creators</span>
+      <span class="eyebrow">{{ translationService.getTranslation('common.brand.minus_creators') }}</span>
 
       <h2>
-        {{ translationService.getTranslation('Editar Perfil') }}
+        {{ translationService.getTranslation('common.actions.edit_profile') }}
       </h2>
 
       <p>
-        {{ translationService.getTranslation('Actualiza tu información pública, avatar y banner') }}
+        {{ translationService.getTranslation('editProfile.hero.description') }}
       </p>
     </div>
 
@@ -25,26 +25,26 @@
         <div class="section-title">
           <div>
             <span class="section-kicker">
-              {{ translationService.getTranslation('Banner') }}
+              {{ translationService.getTranslation('common.labels.banner') }}
             </span>
 
             <p>
-              {{ translationService.getTranslation('Imagen de portada de tu perfil') }}
+              {{ translationService.getTranslation('editProfile.banner.description') }}
             </p>
           </div>
 
           <small class="helper-text">
-            {{ translationService.getTranslation('JPG, PNG, WEBP') }} ·
-            {{ translationService.getTranslation('Max') }}
+            {{ translationService.getTranslation('common.file.formats') }} ·
+            {{ translationService.getTranslation('common.file.max') }}
             {{ formatSize(maxBannerFileSize) }} ·
-            {{ translationService.getTranslation('Se optimizará a WEBP') }}
+            {{ translationService.getTranslation('common.file.optimized_webp') }}
           </small>
         </div>
 
         <div class="banner-container">
           <img
             [src]="bannerPreviewUrl || imageUrl(profile.imgBanner, '/obras/paleta/portada.png')"
-            alt="Banner"
+            [alt]="translationService.getTranslation('common.labels.banner')"
           />
 
           <label for="fileInputBanner" class="edit-icon banner-edit-icon">
@@ -61,7 +61,7 @@
         </div>
 
         <p *ngIf="selectedBannerImage" class="helper-text">
-          {{ translationService.getTranslation('Banner seleccionado') }}:
+          {{ translationService.getTranslation('editProfile.banner.selected') }}:
           {{ selectedBannerImage.name }} · {{ formatSize(selectedBannerImage.size) }}
         </p>
       </section>
@@ -70,7 +70,7 @@
         <div class="profile-photo-section">
           <img
             [src]="profilePreviewUrl || imageUrl(profile.imgPerfil, '/obras/paleta/tres.png')"
-            alt="Foto de perfil"
+            [alt]="translationService.getTranslation('editProfile.profile.avatar_alt')"
           />
 
           <label for="fileInputProfile" class="edit-icon">
@@ -88,31 +88,31 @@
 
         <div class="username-section">
           <label>
-            {{ translationService.getTranslation('NombredeUsuario') }}
+            {{ translationService.getTranslation('common.form.username_label') }}
 
             <input
               type="text"
               [(ngModel)]="profile.username"
               name="username"
-              [placeholder]="translationService.getTranslation('Nombre de usuario')"
+              [placeholder]="translationService.getTranslation('common.form.username_label')"
               required
             />
           </label>
 
           <p class="helper-text">
-            {{ translationService.getTranslation('Este nombre será visible para otros usuarios') }}
+            {{ translationService.getTranslation('editProfile.profile.username_help') }}
           </p>
 
           <p class="helper-text">
-            {{ translationService.getTranslation('Imagen de perfil') }}:
-            {{ translationService.getTranslation('JPG, PNG, WEBP') }} ·
-            {{ translationService.getTranslation('Max') }}
+            {{ translationService.getTranslation('editProfile.profile.avatar_label') }}:
+            {{ translationService.getTranslation('common.file.formats') }} ·
+            {{ translationService.getTranslation('common.file.max') }}
             {{ formatSize(maxProfileFileSize) }} ·
-            {{ translationService.getTranslation('Se optimizará a WEBP') }}
+            {{ translationService.getTranslation('common.file.optimized_webp') }}
           </p>
 
           <p *ngIf="selectedProfileImage" class="helper-text">
-            {{ translationService.getTranslation('Imagen de perfil seleccionada') }}:
+            {{ translationService.getTranslation('editProfile.profile.avatar_selected') }}:
             {{ selectedProfileImage.name }} · {{ formatSize(selectedProfileImage.size) }}
           </p>
         </div>
@@ -122,30 +122,30 @@
         <div class="section-title">
           <div>
             <span class="section-kicker">
-              {{ translationService.getTranslation('Información') }}
+              {{ translationService.getTranslation('editProfile.info.title') }}
             </span>
 
             <p>
-              {{ translationService.getTranslation('Datos básicos de tu cuenta') }}
+              {{ translationService.getTranslation('editProfile.info.description') }}
             </p>
           </div>
         </div>
 
         <div class="form-grid">
           <label>
-            {{ translationService.getTranslation('mail') }}
+            {{ translationService.getTranslation('common.form.email_label') }}
 
             <input
               type="email"
               [(ngModel)]="profile.email"
               name="email"
-              [placeholder]="translationService.getTranslation('Correo electrónico')"
+              [placeholder]="translationService.getTranslation('editProfile.info.email_placeholder')"
               required
             />
           </label>
 
           <label>
-            {{ translationService.getTranslation('Nacionalidad') }}
+            {{ translationService.getTranslation('common.form.nationality_label') }}
 
             <select
               id="nacionalidad"
@@ -154,14 +154,14 @@
               required
             >
               <option value="">
-                {{ translationService.getTranslation('Selecciona un país') }}
+                {{ translationService.getTranslation('common.form.select_country_placeholder') }}
               </option>
 
               <option
                 *ngFor="let country of countries; trackBy: trackByCountryName"
                 [value]="country.name"
               >
-                {{ country.name }}
+                {{ getCountryLabel(country) }}
               </option>
             </select>
           </label>
@@ -172,11 +172,11 @@
         <div class="section-title">
           <div>
             <span class="section-kicker">
-              {{ translationService.getTranslation('Idiomas de lectura') }}
+              {{ translationService.getTranslation('common.labels.reading_languages') }}
             </span>
 
             <p>
-              {{ translationService.getTranslation('Elige los idiomas en los que quieres leer obras') }}
+              {{ translationService.getTranslation('common.reading.description') }}
             </p>
           </div>
 
@@ -198,7 +198,7 @@
         </div>
 
         <p class="helper-text">
-          {{ translationService.getTranslation('Estas preferencias se usarán para recomendarte obras en el Home.') }}
+          {{ translationService.getTranslation('editProfile.reading.help') }}
         </p>
       </section>
 
@@ -206,11 +206,11 @@
         <div class="section-title">
           <div>
             <span class="section-kicker">
-              {{ translationService.getTranslation('Preferencias de contenido') }}
+              {{ translationService.getTranslation('common.labels.content_preferences') }}
             </span>
 
             <p>
-              {{ translationService.getTranslation('El contenido NSFW estará oculto por defecto. Puedes cambiarlo después desde tu perfil.') }}
+              {{ translationService.getTranslation('common.content.nsfw_default_hidden_description') }}
             </p>
           </div>
         </div>
@@ -226,11 +226,11 @@
 
           <span class="toggle-copy">
             <strong>
-              {{ translationService.getTranslation('Mostrar contenido NSFW en el Home') }}
+              {{ translationService.getTranslation('common.content.show_nsfw_home') }}
             </strong>
 
             <small>
-              {{ translationService.getTranslation('Esto no afecta las actualizaciones de creadores que sigues.') }}
+              {{ translationService.getTranslation('common.content.toggle_following_help') }}
             </small>
           </span>
         </label>
@@ -240,64 +240,64 @@
         <div class="section-title">
           <div>
             <span class="section-kicker">
-              {{ translationService.getTranslation('Redes sociales') }}
+              {{ translationService.getTranslation('editProfile.social.title') }}
             </span>
 
             <p>
-              {{ translationService.getTranslation('Agrega enlaces para que tus lectores te encuentren') }}
+              {{ translationService.getTranslation('editProfile.social.description') }}
             </p>
           </div>
         </div>
 
         <div class="form-grid">
           <label>
-            Facebook
+            {{ translationService.getTranslation('common.social.facebook') }}
 
             <input
               type="text"
               [(ngModel)]="profile.facebook"
               name="facebook"
-              placeholder="https://facebook.com/tuusuario"
+              [placeholder]="translationService.getTranslation('editProfile.social.facebook_placeholder')"
               pattern="https?://.+"
               #facebook="ngModel"
             />
 
             <div *ngIf="facebook.invalid && facebook.touched" class="field-error">
-              {{ translationService.getTranslation('Debe ser una URL válida') }}
+              {{ translationService.getTranslation('editProfile.validation.valid_url') }}
             </div>
           </label>
 
           <label>
-            Twitter / X
+            {{ translationService.getTranslation('common.social.twitter_x') }}
 
             <input
               type="text"
               [(ngModel)]="profile.twitter"
               name="twitter"
-              placeholder="https://twitter.com/tuusuario"
+              [placeholder]="translationService.getTranslation('editProfile.social.twitter_placeholder')"
               pattern="https?://.+"
               #twitter="ngModel"
             />
 
             <div *ngIf="twitter.invalid && twitter.touched" class="field-error">
-              {{ translationService.getTranslation('Debe ser una URL válida') }}
+              {{ translationService.getTranslation('editProfile.validation.valid_url') }}
             </div>
           </label>
 
           <label class="full-width">
-            Instagram
+            {{ translationService.getTranslation('common.social.instagram') }}
 
             <input
               type="text"
               [(ngModel)]="profile.instagram"
               name="instagram"
-              placeholder="https://instagram.com/tuusuario"
+              [placeholder]="translationService.getTranslation('editProfile.social.instagram_placeholder')"
               pattern="https?://.+"
               #instagram="ngModel"
             />
 
             <div *ngIf="instagram.invalid && instagram.touched" class="field-error">
-              {{ translationService.getTranslation('Debe ser una URL válida') }}
+              {{ translationService.getTranslation('editProfile.validation.valid_url') }}
             </div>
           </label>
         </div>
@@ -310,8 +310,8 @@
       >
         {{
           cargando
-            ? translationService.getTranslation('Guardando')
-            : translationService.getTranslation('Guardar cambios')
+            ? translationService.getTranslation('common.state.saving')
+            : translationService.getTranslation('editProfile.submit.default')
         }}
       </button>
     </form>

@@ -11,19 +11,19 @@
     <span *ngIf="!loading">
       {{
         localSubscribed
-          ? translationService.getTranslation('Desuscribirse')
-          : translationService.getTranslation('Suscribirse')
+          ? translationService.getTranslation('common.actions.unsubscribe')
+          : translationService.getTranslation('common.actions.subscribe')
       }}
     </span>
 
     <span *ngIf="loading">
-      {{ translationService.getTranslation('Cargando') }}...
+      {{ translationService.getTranslation('common.state.loading') }}...
     </span>
   </button>
 
   <span class="subscriber-count" *ngIf="showCount">
     {{ localTotalSubscribers }}
-    {{ translationService.getTranslation('Suscriptores') }}
+    {{ translationService.getTranslation('common.stats.subscribers') }}
   </span>
 
   <p class="subscribe-message" *ngIf="message">

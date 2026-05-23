@@ -2,21 +2,21 @@
   <section class="categorias-hero">
     <div>
       <span class="eyebrow">
-        {{ translationService.getTranslation('Minus Creators') }}
+        {{ translationService.getTranslation('common.brand.minus_creators') }}
       </span>
 
       <h1>
-        {{ translationService.getTranslation('Géneros') }}
+        {{ translationService.getTranslation('common.labels.genres') }}
       </h1>
 
       <p>
-        {{ translationService.getTranslation('Explora obras por categoría, idioma, popularidad y nombre.') }}
+        {{ translationService.getTranslation('categorias.hero.description') }}
       </p>
     </div>
 
     <div class="hero-count">
       <strong>{{ obras.length }}</strong>
-      <span>{{ translationService.getTranslation('obras') }}</span>
+      <span>{{ translationService.getTranslation('categorias.hero.count_obras') }}</span>
     </div>
   </section>
 
@@ -29,18 +29,18 @@
           type="text"
           [(ngModel)]="busqueda"
           (keyup.enter)="buscarDesdeInput()"
-          [placeholder]="translationService.getTranslation('Buscar por título, descripción o autor')"
+          [placeholder]="translationService.getTranslation('categorias.search.placeholder')"
         />
       </div>
 
       <button type="button" class="search-action" (click)="buscarDesdeInput()">
-        {{ translationService.getTranslation('Buscar') }}
+        {{ translationService.getTranslation('categorias.search.button') }}
       </button>
     </div>
 
     <div class="filters-grid">
       <label>
-        {{ translationService.getTranslation('Categoría') }}
+        {{ translationService.getTranslation('categorias.filters.categoria') }}
 
         <select
           [(ngModel)]="categoriaSeleccionada"
@@ -56,7 +56,7 @@
       </label>
 
       <label>
-        {{ translationService.getTranslation('Idioma de obra') }}
+        {{ translationService.getTranslation('categorias.filters.idioma_obra') }}
 
         <select
           [(ngModel)]="idiomaObraSeleccionado"
@@ -72,7 +72,7 @@
       </label>
 
       <label>
-        {{ translationService.getTranslation('Tipo de obra') }}
+        {{ translationService.getTranslation('common.labels.work_type') }}
 
         <select
           [(ngModel)]="tipoObraSeleccionado"
@@ -88,45 +88,45 @@
       </label>
 
       <label>
-        {{ translationService.getTranslation('Contenido NSFW') }}
+        {{ translationService.getTranslation('common.labels.nsfw_content') }}
 
         <select
           [(ngModel)]="filtroNsfw"
           (change)="cambiarFiltros()"
         >
           <option value="incluir">
-            {{ translationService.getTranslation('Con contenido NSFW') }}
+            {{ translationService.getTranslation('common.labels.nsfw_content') }}
           </option>
 
           <option value="ocultar">
-            {{ translationService.getTranslation('Sin contenido NSFW') }}
+            {{ translationService.getTranslation('common.labels.nsfw_content') }}
           </option>
 
           <option value="solo">
-            {{ translationService.getTranslation('Solo contenido NSFW') }}
+            {{ translationService.getTranslation('common.labels.nsfw_content') }}
           </option>
         </select>
       </label>
 
       <label>
-        {{ translationService.getTranslation('Ordenar por') }}
+        {{ translationService.getTranslation('categorias.filters.ordenar_por') }}
 
         <select
           [(ngModel)]="ordenSeleccionado"
           (change)="cambiarFiltros()"
         >
           <option value="recientes">
-            {{ translationService.getTranslation('Más recientes') }}
+            {{ translationService.getTranslation('categorias.filters.orden_recientes') }}
           </option>
 
           <option value="populares">
-            {{ translationService.getTranslation('Más populares') }}
+            {{ translationService.getTranslation('categorias.filters.orden_populares') }}
           </option>
         </select>
       </label>
 
       <button type="button" class="clear-btn" (click)="limpiarFiltros()">
-        {{ translationService.getTranslation('Limpiar filtros') }}
+        {{ translationService.getTranslation('categorias.filters.limpiar') }}
       </button>
     </div>
   </section>
@@ -147,28 +147,28 @@
       <h2>{{ getCategoriaActual() }}</h2>
 
       <p>
-        {{ translationService.getTranslation('Idioma') }}:
+        {{ translationService.getTranslation('common.labels.language') }}:
         {{ getIdiomaLabel(idiomaObraSeleccionado) }}
       </p>
 
       <p>
-        {{ translationService.getTranslation('Tipo de obra') }}:
+        {{ translationService.getTranslation('common.labels.work_type') }}:
         {{ getTipoObraLabel(tipoObraSeleccionado) }}
       </p>
 
       <p>
-        {{ translationService.getTranslation('Contenido NSFW') }}:
+        {{ translationService.getTranslation('common.labels.nsfw_content') }}:
         {{ getFiltroNsfwLabel() }}
       </p>
 
       <p *ngIf="hasActiveFilters()">
-        {{ translationService.getTranslation('Filtros aplicados') }}
+        {{ translationService.getTranslation('categorias.summary.filtros_aplicados') }}
       </p>
     </div>
   </div>
 
   <p *ngIf="cargando" class="estado">
-    {{ translationService.getTranslation('Cargando obras') }}...
+    {{ translationService.getTranslation('common.state.loading_works') }}...
   </p>
 
   <p *ngIf="error" class="estado error">
@@ -177,7 +177,7 @@
 
   <section class="usuarios-resultados" *ngIf="usuarios.length > 0">
     <h2>
-      {{ translationService.getTranslation('Usuarios') }}
+      {{ translationService.getTranslation('categorias.usuarios.titulo') }}
     </h2>
 
     <article
@@ -204,10 +204,10 @@
 
         <p>
           {{ usuario.totalSuscriptores }}
-          {{ translationService.getTranslation('Suscriptores') }}
+          {{ translationService.getTranslation('common.stats.subscribers') }}
           ·
           {{ usuario.totalObras }}
-          {{ translationService.getTranslation('Obras') }}
+          {{ translationService.getTranslation('common.stats.works') }}
         </p>
       </div>
     </article>
@@ -226,15 +226,15 @@
   <ng-template #sinObras>
     <div class="empty-state" *ngIf="!cargando && !error">
       <h3>
-        {{ translationService.getTranslation('No hay obras con estos filtros') }}
+        {{ translationService.getTranslation('categorias.empty.title') }}
       </h3>
 
       <p>
-        {{ translationService.getTranslation('Prueba otra categoría, idioma, tipo de obra o búsqueda.') }}
+        {{ translationService.getTranslation('categorias.empty.description') }}
       </p>
 
       <button type="button" (click)="limpiarFiltros()">
-        {{ translationService.getTranslation('Ver todas las obras') }}
+        {{ translationService.getTranslation('categorias.empty.button') }}
       </button>
     </div>
   </ng-template>

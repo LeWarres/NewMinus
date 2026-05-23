@@ -21,7 +21,8 @@ interface UploadResponse {
 
 interface SelectOption {
   value: string;
-  label: string;
+  labelKey: string;
+  nativeLabel?: string;
 }
 
 interface IdiomaVersionUpload {
@@ -68,12 +69,6 @@ export class UploaderComponent {
 
   maxCoverFileSize = 5 * 1024 * 1024;
   maxPageFileSize = 8 * 1024 * 1024;
-
-  /*
-    No hay límite por cantidad de páginas.
-    Este límite solo controla el peso total seleccionado antes de optimizar,
-    sumando todas las versiones de idioma.
-  */
   maxTotalPagesSize = 300 * 1024 * 1024;
 
   selectedCategories: string[] = [];
@@ -82,74 +77,74 @@ export class UploaderComponent {
   private versionPrincipalId = '';
 
   idiomas: SelectOption[] = [
-    { value: 'GLOBAL', label: 'Global' },
-    { value: 'ES', label: 'Español / Spanish' },
-    { value: 'EN', label: 'English' },
-    { value: 'JA', label: '日本語 / Japanese' },
-    { value: 'KO', label: '한국어 / Korean' },
-    { value: 'ZH', label: '中文 / Chinese' },
-    { value: 'FR', label: 'Français / French' },
-    { value: 'DE', label: 'Deutsch / German' },
-    { value: 'PT', label: 'Português / Portuguese' },
-    { value: 'IT', label: 'Italiano / Italian' },
-    { value: 'RU', label: 'Русский / Russian' },
-    { value: 'AR', label: 'العربية / Arabic' },
-    { value: 'HI', label: 'हिन्दी / Hindi' },
-    { value: 'ID', label: 'Bahasa Indonesia' },
-    { value: 'VI', label: 'Tiếng Việt / Vietnamese' },
-    { value: 'TH', label: 'ไทย / Thai' },
-    { value: 'TR', label: 'Türkçe / Turkish' },
-    { value: 'PL', label: 'Polski / Polish' },
-    { value: 'NL', label: 'Nederlands / Dutch' }
+    { value: 'GLOBAL', labelKey: 'common.languages.global', nativeLabel: 'Global' },
+    { value: 'ES', labelKey: 'common.languages.es', nativeLabel: 'Español' },
+    { value: 'EN', labelKey: 'common.languages.en', nativeLabel: 'English' },
+    { value: 'JA', labelKey: 'common.languages.ja', nativeLabel: '日本語' },
+    { value: 'KO', labelKey: 'common.languages.ko', nativeLabel: '한국어' },
+    { value: 'ZH', labelKey: 'common.languages.zh', nativeLabel: '中文' },
+    { value: 'FR', labelKey: 'common.languages.fr', nativeLabel: 'Français' },
+    { value: 'DE', labelKey: 'common.languages.de', nativeLabel: 'Deutsch' },
+    { value: 'PT', labelKey: 'common.languages.pt', nativeLabel: 'Português' },
+    { value: 'IT', labelKey: 'common.languages.it', nativeLabel: 'Italiano' },
+    { value: 'RU', labelKey: 'common.languages.ru', nativeLabel: 'Русский' },
+    { value: 'AR', labelKey: 'common.languages.ar', nativeLabel: 'العربية' },
+    { value: 'HI', labelKey: 'common.languages.hi', nativeLabel: 'हिन्दी' },
+    { value: 'ID', labelKey: 'common.languages.id', nativeLabel: 'Bahasa Indonesia' },
+    { value: 'VI', labelKey: 'common.languages.vi', nativeLabel: 'Tiếng Việt' },
+    { value: 'TH', labelKey: 'common.languages.th', nativeLabel: 'ไทย' },
+    { value: 'TR', labelKey: 'common.languages.tr', nativeLabel: 'Türkçe' },
+    { value: 'PL', labelKey: 'common.languages.pl', nativeLabel: 'Polski' },
+    { value: 'NL', labelKey: 'common.languages.nl', nativeLabel: 'Nederlands' }
   ];
 
   tipoObraOptions: SelectOption[] = [
-    { value: 'comic', label: 'Comic' },
-    { value: 'manga', label: 'Manga' },
-    { value: 'libro', label: 'Libro' },
-    { value: 'novela', label: 'Novela' },
-    { value: 'artwork', label: 'Artwork' }
+    { value: 'comic', labelKey: 'common.work_type.comic', nativeLabel: 'Comic' },
+    { value: 'manga', labelKey: 'common.work_type.manga', nativeLabel: 'Manga' },
+    { value: 'libro', labelKey: 'common.work_type.book', nativeLabel: 'Libro' },
+    { value: 'novela', labelKey: 'common.work_type.novel', nativeLabel: 'Novela' },
+    { value: 'artwork', labelKey: 'common.work_type.artwork', nativeLabel: 'Artwork' }
   ];
 
   categorias: SelectOption[] = [
-    { value: 'accion', label: 'Acción' },
-    { value: 'aventura', label: 'Aventura' },
-    { value: 'comedia', label: 'Comedia' },
-    { value: 'drama', label: 'Drama' },
-    { value: 'fantasia', label: 'Fantasía' },
-    { value: 'romance', label: 'Romance' },
-    { value: 'terror', label: 'Terror' },
-    { value: 'ciencia-ficcion', label: 'Ciencia ficción' },
-    { value: 'misterio', label: 'Misterio' },
-    { value: 'suspenso', label: 'Suspenso' },
-    { value: 'sobrenatural', label: 'Sobrenatural' },
-    { value: 'psicologico', label: 'Psicológico' },
-    { value: 'slice-of-life', label: 'Slice of life' },
-    { value: 'vida-escolar', label: 'Vida escolar' },
-    { value: 'deportes', label: 'Deportes' },
-    { value: 'artes-marciales', label: 'Artes marciales' },
-    { value: 'mecha', label: 'Mecha' },
-    { value: 'isekai', label: 'Isekai' },
-    { value: 'historico', label: 'Histórico' },
-    { value: 'musica', label: 'Música' },
-    { value: 'cocina', label: 'Cocina' },
-    { value: 'magia', label: 'Magia' },
-    { value: 'superheroes', label: 'Superhéroes' },
-    { value: 'crimen', label: 'Crimen' },
-    { value: 'post-apocaliptico', label: 'Post-apocalíptico' },
-    { value: 'cyberpunk', label: 'Cyberpunk' },
-    { value: 'steampunk', label: 'Steampunk' },
-    { value: 'guerra', label: 'Guerra' },
-    { value: 'parodia', label: 'Parodia' },
-    { value: 'tragedia', label: 'Tragedia' },
-    { value: 'shonen', label: 'Shonen' },
-    { value: 'shojo', label: 'Shojo' },
-    { value: 'seinen', label: 'Seinen' },
-    { value: 'josei', label: 'Josei' },
-    { value: 'kodomo', label: 'Kodomo' },
-    { value: 'boys-love', label: 'Boys Love' },
-    { value: 'girls-love', label: 'Girls Love' },
-    { value: 'nsfw', label: 'NSFW' }
+    { value: 'accion', labelKey: 'common.categories.accion', nativeLabel: 'Acción' },
+    { value: 'aventura', labelKey: 'common.categories.aventura', nativeLabel: 'Aventura' },
+    { value: 'comedia', labelKey: 'common.categories.comedia', nativeLabel: 'Comedia' },
+    { value: 'drama', labelKey: 'common.categories.drama', nativeLabel: 'Drama' },
+    { value: 'fantasia', labelKey: 'common.categories.fantasia', nativeLabel: 'Fantasía' },
+    { value: 'romance', labelKey: 'common.categories.romance', nativeLabel: 'Romance' },
+    { value: 'terror', labelKey: 'common.categories.terror', nativeLabel: 'Terror' },
+    { value: 'ciencia-ficcion', labelKey: 'common.categories.ciencia_ficcion', nativeLabel: 'Ciencia ficción' },
+    { value: 'misterio', labelKey: 'common.categories.misterio', nativeLabel: 'Misterio' },
+    { value: 'suspenso', labelKey: 'common.categories.suspenso', nativeLabel: 'Suspenso' },
+    { value: 'sobrenatural', labelKey: 'common.categories.sobrenatural', nativeLabel: 'Sobrenatural' },
+    { value: 'psicologico', labelKey: 'common.categories.psicologico', nativeLabel: 'Psicológico' },
+    { value: 'slice-of-life', labelKey: 'common.categories.slice_of_life', nativeLabel: 'Slice of life' },
+    { value: 'vida-escolar', labelKey: 'common.categories.vida_escolar', nativeLabel: 'Vida escolar' },
+    { value: 'deportes', labelKey: 'common.categories.deportes', nativeLabel: 'Deportes' },
+    { value: 'artes-marciales', labelKey: 'common.categories.artes_marciales', nativeLabel: 'Artes marciales' },
+    { value: 'mecha', labelKey: 'common.categories.mecha', nativeLabel: 'Mecha' },
+    { value: 'isekai', labelKey: 'common.categories.isekai', nativeLabel: 'Isekai' },
+    { value: 'historico', labelKey: 'common.categories.historico', nativeLabel: 'Histórico' },
+    { value: 'musica', labelKey: 'common.categories.musica', nativeLabel: 'Música' },
+    { value: 'cocina', labelKey: 'common.categories.cocina', nativeLabel: 'Cocina' },
+    { value: 'magia', labelKey: 'common.categories.magia', nativeLabel: 'Magia' },
+    { value: 'superheroes', labelKey: 'common.categories.superheroes', nativeLabel: 'Superhéroes' },
+    { value: 'crimen', labelKey: 'common.categories.crimen', nativeLabel: 'Crimen' },
+    { value: 'post-apocaliptico', labelKey: 'common.categories.post_apocaliptico', nativeLabel: 'Post-apocalíptico' },
+    { value: 'cyberpunk', labelKey: 'common.categories.cyberpunk', nativeLabel: 'Cyberpunk' },
+    { value: 'steampunk', labelKey: 'common.categories.steampunk', nativeLabel: 'Steampunk' },
+    { value: 'guerra', labelKey: 'common.categories.guerra', nativeLabel: 'Guerra' },
+    { value: 'parodia', labelKey: 'common.categories.parodia', nativeLabel: 'Parodia' },
+    { value: 'tragedia', labelKey: 'common.categories.tragedia', nativeLabel: 'Tragedia' },
+    { value: 'shonen', labelKey: 'common.categories.shonen', nativeLabel: 'Shonen' },
+    { value: 'shojo', labelKey: 'common.categories.shojo', nativeLabel: 'Shojo' },
+    { value: 'seinen', labelKey: 'common.categories.seinen', nativeLabel: 'Seinen' },
+    { value: 'josei', labelKey: 'common.categories.josei', nativeLabel: 'Josei' },
+    { value: 'kodomo', labelKey: 'common.categories.kodomo', nativeLabel: 'Kodomo' },
+    { value: 'boys-love', labelKey: 'common.categories.boys_love', nativeLabel: 'Boys Love' },
+    { value: 'girls-love', labelKey: 'common.categories.girls_love', nativeLabel: 'Girls Love' },
+    { value: 'nsfw', labelKey: 'common.categories.nsfw', nativeLabel: 'NSFW' }
   ];
 
   formulario!: FormGroup;
@@ -229,7 +224,7 @@ export class UploaderComponent {
 
     if (this.selectedCategories.length >= this.maxCategories) {
       this.respuesta = this.translationService.getTranslation(
-        'Solo puedes seleccionar hasta 3 categorías'
+        'common.error.max_categories'
       );
       return;
     }
@@ -242,12 +237,62 @@ export class UploaderComponent {
     this.respuesta = '';
   }
 
-  getCategoryLabel(value: string): string {
-    return this.categorias.find(categoria => categoria.value === value)?.label || value;
+  getOptionLabel(option?: SelectOption): string {
+    if (!option) {
+      return '';
+    }
+
+    
+
+    const translated = this.translationService.getTranslation(option.labelKey);
+
+    if (!translated || translated === option.labelKey) {
+      return option.nativeLabel || option.value;
+    }
+
+    if (option.nativeLabel && translated === option.nativeLabel) {
+      return translated;
+    }
+
+    if (option.nativeLabel && option.nativeLabel !== translated) {
+      return `${translated} / ${option.nativeLabel}`;
+    }
+
+    return translated;
   }
 
+  getCategoryLabel(value: string): string {
+    const option = this.categorias.find(categoria => categoria.value === value);
+
+    if (!option) {
+      return value;
+    }
+
+    return this.getOptionLabel(option);
+  }
+
+  getSelectOptionLabel(option?: SelectOption): string {
+  return this.getOptionLabel(option);
+}
+
   getIdiomaLabel(value: string): string {
-    return this.idiomas.find(idioma => idioma.value === value)?.label || value;
+    const option = this.idiomas.find(idioma => idioma.value === value);
+
+    if (!option) {
+      return value;
+    }
+
+    return this.getOptionLabel(option);
+  }
+
+  getTipoObraLabel(value: string): string {
+    const option = this.tipoObraOptions.find(tipo => tipo.value === value);
+
+    if (!option) {
+      return value;
+    }
+
+    return this.getOptionLabel(option);
   }
 
   getAvailableLanguageOptions(version: IdiomaVersionUpload): SelectOption[] {
@@ -262,14 +307,14 @@ export class UploaderComponent {
 
   agregarVersionIdioma(idiomaPreferido?: string): void {
     if (!this.canAddLanguageVersion && this.versionesIdioma.length > 0) {
-      this.respuesta = this.translationService.getTranslation('Ya agregaste todos los idiomas disponibles');
+      this.respuesta = this.translationService.getTranslation('common.error.all_languages_added');
       return;
     }
 
     const idioma = this.getPrimerIdiomaDisponible(idiomaPreferido);
 
     if (!idioma) {
-      this.respuesta = this.translationService.getTranslation('Ya agregaste todos los idiomas disponibles');
+      this.respuesta = this.translationService.getTranslation('common.error.all_languages_added');
       return;
     }
 
@@ -296,7 +341,7 @@ export class UploaderComponent {
 
   eliminarVersionIdioma(versionId: string): void {
     if (this.versionesIdioma.length <= 1) {
-      this.respuesta = this.translationService.getTranslation('Debe existir al menos una versión de idioma');
+      this.respuesta = this.translationService.getTranslation('uploader.error.min_one_language_version');
       return;
     }
 
@@ -325,7 +370,7 @@ export class UploaderComponent {
       version.idioma = idiomaDisponible;
     }
 
-    this.respuesta = this.translationService.getTranslation('No puedes tener dos versiones del mismo idioma');
+    this.respuesta = this.translationService.getTranslation('uploader.error.duplicate_language_versions');
   }
 
   onFileSelected(event: Event): void {
@@ -339,7 +384,7 @@ export class UploaderComponent {
 
     if (!this.esImagenValida(file, this.maxCoverFileSize)) {
       this.respuesta =
-        this.translationService.getTranslation('La portada debe ser JPG, PNG o WEBP y pesar máximo') +
+        this.translationService.getTranslation('common.error.cover_invalid_max') +
         ` ${this.formatSize(this.maxCoverFileSize)}`;
 
       input.value = '';
@@ -383,7 +428,7 @@ export class UploaderComponent {
 
     if (!this.esImagenValida(file, this.maxCoverFileSize)) {
       this.respuesta =
-        this.translationService.getTranslation('La portada debe ser JPG, PNG o WEBP y pesar máximo') +
+        this.translationService.getTranslation('common.error.cover_invalid_max') +
         ` ${this.formatSize(this.maxCoverFileSize)}`;
 
       return;
@@ -443,7 +488,7 @@ export class UploaderComponent {
 
     if (omitidos > 0) {
       this.respuesta =
-        this.translationService.getTranslation('Algunas páginas no se agregaron por límite de tamaño');
+        this.translationService.getTranslation('common.error.pages_skipped_size_limit');
       return;
     }
 
@@ -490,36 +535,36 @@ export class UploaderComponent {
 
   enviarFormulario(): void {
     if (this.formulario.get('titulo')?.invalid) {
-      this.respuesta = this.translationService.getTranslation('El título es obligatorio');
+      this.respuesta = this.translationService.getTranslation('common.validation.title_required');
       this.formulario.markAllAsTouched();
       return;
     }
 
     if (!this.formulario.get('aceptaAutoria')?.value) {
-      this.respuesta = this.translationService.getTranslation('Debes aceptar la autoria antes de enviar');
+      this.respuesta = this.translationService.getTranslation('uploader.error.accept_authorship_required');
       this.formulario.markAllAsTouched();
       return;
     }
 
     if (this.selectedCategories.length > this.maxCategories) {
       this.respuesta = this.translationService.getTranslation(
-        'Solo puedes seleccionar hasta 3 categorías'
+        'common.error.max_categories'
       );
       return;
     }
 
     if (!this.selectedFile) {
-      this.respuesta = this.translationService.getTranslation('Debes seleccionar una portada');
+      this.respuesta = this.translationService.getTranslation('uploader.error.cover_required');
       return;
     }
 
     if (this.versionesIdioma.length === 0) {
-      this.respuesta = this.translationService.getTranslation('Debes agregar al menos una versión de idioma');
+      this.respuesta = this.translationService.getTranslation('uploader.error.add_at_least_one_language');
       return;
     }
 
     if (this.hasDuplicateLanguages()) {
-      this.respuesta = this.translationService.getTranslation('No puedes tener dos versiones del mismo idioma');
+      this.respuesta = this.translationService.getTranslation('uploader.error.duplicate_language_versions');
       return;
     }
 
@@ -527,14 +572,14 @@ export class UploaderComponent {
 
     if (versionSinPaginas) {
       this.respuesta =
-        this.translationService.getTranslation('Debes agregar al menos una página para') +
+        this.translationService.getTranslation('uploader.error.add_at_least_one_page_for') +
         ` ${this.getIdiomaLabel(versionSinPaginas.idioma)}`;
       return;
     }
 
     if (this.selectedPagesTotalSize > this.maxTotalPagesSize) {
       this.respuesta =
-        this.translationService.getTranslation('El peso total de las páginas es demasiado grande');
+        this.translationService.getTranslation('common.error.total_pages_size_too_large');
       return;
     }
 
@@ -572,7 +617,7 @@ export class UploaderComponent {
       titulo,
       descripcion,
       numeroCapitulo: 1,
-      tituloCapitulo: `${this.translationService.getTranslation('Capítulo')} 1`,
+      tituloCapitulo: `${this.translationService.getTranslation('common.labels.chapter')} 1`,
       descripcionCapitulo: ''
     }));
 
@@ -592,7 +637,7 @@ export class UploaderComponent {
         next: (csrfRes) => {
           if (!csrfRes.success || !csrfRes.csrfToken) {
             this.cargando = false;
-            this.respuesta = this.translationService.getTranslation('No se pudo preparar la subida');
+            this.respuesta = this.translationService.getTranslation('common.error.prepare_upload_failed');
             return;
           }
 
@@ -601,7 +646,7 @@ export class UploaderComponent {
         },
         error: (err) => {
           this.cargando = false;
-          this.respuesta = this.translationService.getTranslation('No se pudo preparar la subida');
+          this.respuesta = this.translationService.getTranslation('common.error.prepare_upload_failed');
           console.error(err);
         }
       });
@@ -627,13 +672,13 @@ export class UploaderComponent {
         if (!res.success) {
           this.respuesta =
             res.error ||
-            this.translationService.getTranslation('No se pudo guardar la obra');
+            this.translationService.getTranslation('uploader.error.save_work_failed');
           return;
         }
 
         this.respuesta =
           res.mensaje ||
-          this.translationService.getTranslation('Obra guardada correctamente');
+          this.translationService.getTranslation('uploader.success.work_saved');
 
         this.resetUploader();
 
@@ -653,13 +698,13 @@ export class UploaderComponent {
         if (err.status === 403) {
           this.respuesta =
             err.error?.error ||
-            this.translationService.getTranslation('No tienes permiso para realizar esta acción');
+            this.translationService.getTranslation('common.error.no_permission');
           return;
         }
 
         this.respuesta =
           err.error?.error ||
-          this.translationService.getTranslation('Error al guardar la obra');
+          this.translationService.getTranslation('uploader.error.save_work_error');
 
         console.error(err);
       }
@@ -697,7 +742,11 @@ export class UploaderComponent {
     const usados = this.versionesIdioma.map(version => version.idioma);
     const normalizado = String(preferido || '').trim().toUpperCase();
 
-    if (normalizado && !usados.includes(normalizado) && this.idiomas.some(idioma => idioma.value === normalizado)) {
+    if (
+      normalizado &&
+      !usados.includes(normalizado) &&
+      this.idiomas.some(idioma => idioma.value === normalizado)
+    ) {
       return normalizado;
     }
 
