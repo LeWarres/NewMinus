@@ -1,129 +1,139 @@
 <div class="perfil" *ngIf="user; else loading">
-  <div class="banner">
-    <img
-      class="banner-image"
-      [src]="bannerUrl"
-      [alt]="translationService.getTranslation('perfil.images.banner_alt')"
-      loading="eager"
-      fetchpriority="high"
-      decoding="async"
-    />
-  </div>
-
-  <div class="contenido">
-    <img
-      class="avatar"
-      [src]="avatarUrl"
-      [alt]="user.username || translationService.getTranslation('perfil.images.avatar_alt')"
-      loading="eager"
-      fetchpriority="high"
-      decoding="async"
-    />
-
-    <div class="info">
-      <span class="nombre">
-        {{ user.username || translationService.getTranslation('perfil.user.unknown') }}
-      </span>
-
-      <p class="usuario">
-        {{ user.username }} · {{ user.role || translationService.getTranslation('perfil.user.no_role') }}
-      </p>
-
-      <p class="descripcion">
-        {{ getNationalityLabel() }}
-      </p>
-
-      <div class="stats">
-        <div class="stat-card">
-          <span class="stat-number">
-            {{ user.totalSuscriptores || 0 }}
-          </span>
-
-          <span class="stat-label">
-            {{ translationService.getTranslation('common.stats.subscribers') }}
-          </span>
-        </div>
-
-        <div class="stat-card">
-          <span class="stat-number">
-            {{ obras.length }}
-          </span>
-
-          <span class="stat-label">
-            {{ translationService.getTranslation('common.stats.works') }}
-          </span>
-        </div>
-
-        <div class="stat-card">
-          <span class="stat-number">
-            {{ totalVisitas }}
-          </span>
-
-          <span class="stat-label">
-            {{ translationService.getTranslation('common.stats.views') }}
-          </span>
-        </div>
-      </div>
-
-      <div class="redes">
-        <a
-          *ngIf="user.twitter"
-          [href]="user.twitter"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="enlace"
-        >
-          Twitter
-        </a>
-
-        <a
-          *ngIf="user.facebook"
-          [href]="user.facebook"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="enlace"
-        >
-          Facebook
-        </a>
-
-        <a
-          *ngIf="user.instagram"
-          [href]="user.instagram"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="enlace"
-        >
-          Instagram
-        </a>
-      </div>
-
-      <div class="acciones">
-        <app-subscribe-button
-          class="profile-subscribe"
-          *ngIf="!isCurrentUser"
-          [targetUserId]="user.id"
-          [currentUserId]="currentUser?.id || null"
-          [isSubscribed]="estaSuscrito"
-          [totalSubscribers]="user.totalSuscriptores || 0"
-          [showCount]="false"
-          (subscriptionChange)="onSubscriptionChange($event)"
-        ></app-subscribe-button>
-
-        <button
-          class="botonEditar"
-          type="button"
-          *ngIf="isCurrentUser"
-          (click)="navigateToEditProfile()"
-        >
-          {{ translationService.getTranslation('common.actions.edit_profile') }}
-        </button>
-      </div>
-
-      <p *ngIf="mensaje" class="mensaje">
-        {{ mensaje }}
-      </p>
+  <section class="profile-channel">
+    <div class="banner">
+      <img
+        class="banner-image"
+        [src]="bannerUrl"
+        [alt]="translationService.getTranslation('perfil.images.banner_alt')"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
     </div>
-  </div>
+
+    <div class="channel-header">
+      <div class="avatar-frame">
+        <img
+          class="avatar"
+          [src]="avatarUrl"
+          [alt]="user.username || translationService.getTranslation('perfil.images.avatar_alt')"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </div>
+
+      <div class="channel-info">
+        <div class="channel-topline">
+          <div class="channel-name-block">
+            <div class="channel-title-row">
+              <h1 class="nombre">
+                {{ user.username || translationService.getTranslation('perfil.user.unknown') }}
+              </h1>
+
+              <div class="acciones profile-primary-actions">
+                <app-subscribe-button
+                  class="profile-subscribe"
+                  *ngIf="!isCurrentUser"
+                  [targetUserId]="user.id"
+                  [currentUserId]="currentUser?.id || null"
+                  [isSubscribed]="estaSuscrito"
+                  [totalSubscribers]="user.totalSuscriptores || 0"
+                  [showCount]="false"
+                  (subscriptionChange)="onSubscriptionChange($event)"
+                ></app-subscribe-button>
+
+                <button
+                  class="botonEditar"
+                  type="button"
+                  *ngIf="isCurrentUser"
+                  (click)="navigateToEditProfile()"
+                >
+                  {{ translationService.getTranslation('common.actions.edit_profile') }}
+                </button>
+              </div>
+            </div>
+
+            <p class="usuario">
+              <span>&#64;{{ user.username || translationService.getTranslation('perfil.user.unknown') }}</span>
+              <span class="dot">•</span>
+              <span>{{ user.role || translationService.getTranslation('perfil.user.no_role') }}</span>
+              <span class="dot">•</span>
+              <span>{{ getNationalityLabel() }}</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat-card">
+            <span class="stat-number">
+              {{ user.totalSuscriptores || 0 }}
+            </span>
+
+            <span class="stat-label">
+              {{ translationService.getTranslation('common.stats.subscribers') }}
+            </span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-number">
+              {{ obras.length }}
+            </span>
+
+            <span class="stat-label">
+              {{ translationService.getTranslation('common.stats.works') }}
+            </span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-number">
+              {{ totalVisitas }}
+            </span>
+
+            <span class="stat-label">
+              {{ translationService.getTranslation('common.stats.views') }}
+            </span>
+          </div>
+        </div>
+
+        <div class="redes" *ngIf="user.twitter || user.facebook || user.instagram">
+          <a
+            *ngIf="user.twitter"
+            [href]="user.twitter"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="enlace"
+          >
+            Twitter
+          </a>
+
+          <a
+            *ngIf="user.facebook"
+            [href]="user.facebook"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="enlace"
+          >
+            Facebook
+          </a>
+
+          <a
+            *ngIf="user.instagram"
+            [href]="user.instagram"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="enlace"
+          >
+            Instagram
+          </a>
+        </div>
+
+        <p *ngIf="mensaje" class="mensaje">
+          {{ mensaje }}
+        </p>
+      </div>
+    </div>
+  </section>
 
   <nav class="profile-tabs">
     <button

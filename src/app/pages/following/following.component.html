@@ -1,7 +1,9 @@
 <div class="following-page">
   <section class="following-hero">
-    <div>
-      <span class="eyebrow">{{ translationService.getTranslation('common.brand.minus_creators') }}</span>
+    <div class="hero-copy">
+      <span class="eyebrow">
+        {{ translationService.getTranslation('common.brand.minus_creators') }}
+      </span>
 
       <h1>
         {{ translationService.getTranslation('following.hero.title') }}
@@ -10,15 +12,90 @@
       <p>
         {{ translationService.getTranslation('following.hero.description') }}
       </p>
+
+      <div class="hero-actions">
+        <button
+          type="button"
+          class="primary-action"
+          (click)="cargarFollowing()"
+          [disabled]="cargando"
+        >
+          {{
+            cargando
+              ? translationService.getTranslation('following.state.loading_updates')
+              : translationService.getTranslation('following.actions.refresh')
+          }}
+        </button>
+
+        <button
+          type="button"
+          class="secondary-action"
+          (click)="irACategorias()"
+        >
+          {{ translationService.getTranslation('following.empty.button') }}
+        </button>
+      </div>
     </div>
 
-    <div class="hero-count">
-      <strong>{{ items.length }}</strong>
+    <div
+      class="hero-preview"
+      *ngIf="featuredItems.length > 0"
+    >
+      <span class="preview-kicker">
+        {{ translationService.getTranslation('following.preview.title') }}
+      </span>
 
+      <div class="preview-stack">
+        <button
+          type="button"
+          class="preview-card"
+          *ngFor="let item of featuredItems; let index = index; trackBy: trackByCapitulo"
+          [class.preview-card-main]="index === 0"
+          (click)="abrirItem(item)"
+        >
+          <img
+            [src]="getCoverUrl(item.portada)"
+            [alt]="item.tituloObra"
+            loading="lazy"
+            decoding="async"
+          />
+
+          <span class="preview-overlay">
+            <strong>
+              {{ item.tituloObra }}
+            </strong>
+
+            <small>
+              {{ translationService.getTranslation('common.labels.chapter') }}
+              {{ item.numeroCapitulo }}
+            </small>
+          </span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="following-stats" *ngIf="!cargando || items.length > 0">
+    <article class="following-stat">
+      <strong>{{ items.length }}</strong>
       <span>
         {{ translationService.getTranslation('following.hero.count_updates') }}
       </span>
-    </div>
+    </article>
+
+    <article class="following-stat">
+      <strong>{{ totalCreators }}</strong>
+      <span>
+        {{ translationService.getTranslation('following.hero.creators') }}
+      </span>
+    </article>
+
+    <article class="following-stat">
+      <strong>{{ latestUpdateText }}</strong>
+      <span>
+        {{ translationService.getTranslation('following.hero.latest_update') }}
+      </span>
+    </article>
   </section>
 
   <p *ngIf="cargando" class="estado">
@@ -30,19 +107,43 @@
   </p>
 
   <section
-    class="updates-grid"
+    class="feed-panel"
     *ngIf="!cargando && items.length > 0; else sinItems"
   >
-    <app-capitulo-card
-      *ngFor="let item of items; trackBy: trackByCapitulo"
-      [item]="item"
-      (openCapitulo)="abrirItem($event)"
-      (openAutor)="abrirPerfil($event)"
-    ></app-capitulo-card>
+    <div class="feed-header">
+      <div>
+        <span class="section-kicker">
+          {{ translationService.getTranslation('following.feed.kicker') }}
+        </span>
+
+        <h2>
+          {{ translationService.getTranslation('following.feed.title') }}
+        </h2>
+
+        <p>
+          {{ translationService.getTranslation('following.feed.subtitle') }}
+        </p>
+      </div>
+
+      <span class="feed-count">
+        {{ items.length }}
+      </span>
+    </div>
+
+    <div class="updates-grid">
+      <app-capitulo-card
+        *ngFor="let item of items; trackBy: trackByCapitulo"
+        [item]="item"
+        (openCapitulo)="abrirItem($event)"
+        (openAutor)="abrirPerfil($event)"
+      ></app-capitulo-card>
+    </div>
   </section>
 
   <ng-template #sinItems>
     <div class="empty-state" *ngIf="!cargando && !error">
+      <div class="empty-icon">✦</div>
+
       <h2>
         {{ translationService.getTranslation('following.empty.title') }}
       </h2>
@@ -51,7 +152,7 @@
         {{ translationService.getTranslation('following.empty.description') }}
       </p>
 
-      <button type="button" routerLink="/categorias">
+      <button type="button" (click)="irACategorias()">
         {{ translationService.getTranslation('following.empty.button') }}
       </button>
     </div>

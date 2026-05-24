@@ -164,7 +164,7 @@ export class PerfilComponent implements OnInit {
     if (this.activeTab === 'popular') {
       return [...this.obras]
         .sort((a, b) => (b.numVisitas || 0) - (a.numVisitas || 0))
-        .slice(0, 3);
+        .slice(0, 12);
     }
 
     return this.obras;

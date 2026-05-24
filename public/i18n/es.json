@@ -574,5 +574,25 @@
   "obraAdmin.cover.saved_on_save_all": "La portada se guardará al presionar Guardar todo",
   "obraAdmin.chapter.chapter_language": "Idioma del capítulo",
   "obraAdmin.chapter.description": "Descripción del capítulo",
-  "obraAdmin.chapter.creation_date": "Fecha de creación"
+  "obraAdmin.chapter.creation_date": "Fecha de creación",
+
+
+
+
+
+
+
+
+
+
+
+
+  "following.actions.refresh": "Actualizar",
+  "following.preview.title": "Actividad reciente",
+  "following.hero.creators": "Creadores",
+  "following.hero.latest_update": "Última actualización",
+  "following.hero.no_updates": "Sin actualizaciones",
+  "following.feed.kicker": "Feed",
+  "following.feed.title": "Últimas actualizaciones",
+  "following.feed.subtitle": "Capítulos nuevos de los creadores que sigues."
 }

@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 
 import { TranslationService } from '../../services/translation.service';
 import { AuthService, CurrentUser } from '../../services/auth.service';
+import { ContentMetadataService } from '../../services/content-metadata.service';
 
 import {
   CapituloCardComponent,
@@ -42,6 +43,7 @@ export class FollowingComponent implements OnInit {
     private http: HttpClient,
     private router: Router,
     private authService: AuthService,
+    private metadataService: ContentMetadataService,
     public translationService: TranslationService
   ) {}
 
@@ -54,6 +56,35 @@ export class FollowingComponent implements OnInit {
     }
 
     this.cargarFollowing();
+  }
+
+  get totalCreators(): number {
+    const creators = this.items
+      .map((item) => Number(item.usuarioId || 0))
+      .filter((id) => id > 0);
+
+    return new Set(creators).size;
+  }
+
+  get featuredItems(): CapituloCardItem[] {
+    return this.items.slice(0, 3);
+  }
+
+  get latestUpdateText(): string {
+    const latestDate = this.items
+      .map((item) => new Date(item.fechaCreacion || '').getTime())
+      .filter((time) => !Number.isNaN(time))
+      .sort((a, b) => b - a)[0];
+
+    if (!latestDate) {
+      return this.translationService.getTranslation('following.hero.no_updates');
+    }
+
+    return new Intl.DateTimeFormat(this.getCurrentLocale(), {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(new Date(latestDate));
   }
 
   cargarFollowing(): void {
@@ -120,6 +151,14 @@ export class FollowingComponent implements OnInit {
     this.router.navigate(['/perfil', item.usuarioId]);
   }
 
+  irACategorias(): void {
+    this.router.navigate(['/categorias']);
+  }
+
+  getCoverUrl(path?: string | null): string {
+    return this.metadataService.imageUrl(path, '/obras/paleta/portada.png');
+  }
+
   trackByCapitulo(index: number, item: CapituloCardItem): number | string {
     return item.capituloVersionId || item.capituloId || `${item.obraId}-${item.numeroCapitulo}-${item.idioma || 'GLOBAL'}-${index}`;
   }
@@ -128,5 +167,34 @@ export class FollowingComponent implements OnInit {
     return item.idioma
       ? { idioma: item.idioma }
       : {};
+  }
+
+  private getCurrentLocale(): string {
+    const currentLanguage = String(this.translationService.getCurrentLanguage() || 'en')
+      .trim()
+      .toLowerCase();
+
+    const localeMap: Record<string, string> = {
+      es: 'es',
+      en: 'en',
+      ja: 'ja',
+      ko: 'ko',
+      zh: 'zh',
+      fr: 'fr',
+      de: 'de',
+      pt: 'pt',
+      it: 'it',
+      ru: 'ru',
+      ar: 'ar',
+      hi: 'hi',
+      id: 'id',
+      vi: 'vi',
+      th: 'th',
+      tr: 'tr',
+      pl: 'pl',
+      nl: 'nl'
+    };
+
+    return localeMap[currentLanguage] || 'en';
   }
 }
