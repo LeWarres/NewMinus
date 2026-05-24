@@ -2,7 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 import { TranslationService } from '../../../../services/translation.service';
-import { SelectOption } from '../../obra-admin.models';
+import { getWorkCategoryLabel } from '../../../../shared/options/profile-options';
+
+interface CategorySelectorOption {
+  value: string;
+  label?: string;
+  labelKey?: string;
+  nativeLabel?: string;
+}
 
 @Component({
   selector: 'app-obra-category-selector',
@@ -12,7 +19,7 @@ import { SelectOption } from '../../obra-admin.models';
   styleUrl: './obra-category-selector.component.css'
 })
 export class ObraCategorySelectorComponent {
-  @Input() categorias: SelectOption[] = [];
+  @Input() categorias: CategorySelectorOption[] = [];
   @Input() selectedCategories: string[] = [];
   @Input() maxCategories = 3;
 
@@ -25,6 +32,32 @@ export class ObraCategorySelectorComponent {
   }
 
   getCategoryLabel(value: string): string {
-    return this.categorias.find(categoria => categoria.value === value)?.label || value;
+    return getWorkCategoryLabel(
+      value,
+      (key) => this.translationService.getTranslation(key),
+      this.translationService.getTranslation('common.labels.no_category')
+    );
+  }
+
+  getCategoryOptionLabel(categoria: CategorySelectorOption): string {
+    const labelKey = categoria.labelKey || categoria.label;
+
+    if (labelKey) {
+      const translated = this.translationService.getTranslation(labelKey);
+
+      if (translated && translated !== labelKey) {
+        return translated;
+      }
+    }
+
+    if (categoria.nativeLabel) {
+      return categoria.nativeLabel;
+    }
+
+    return this.getCategoryLabel(categoria.value);
+  }
+
+  trackByCategoryValue(index: number, categoria: CategorySelectorOption): string {
+    return categoria.value;
   }
 }

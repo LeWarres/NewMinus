@@ -6,6 +6,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TranslationService } from '../../services/translation.service';
 import { AuthService, CurrentUser } from '../../services/auth.service';
 import { ContentMetadataService } from '../../services/content-metadata.service';
+import { COUNTRY_OPTIONS, CountryOption } from '../../shared/options/profile-options';
 
 import {
   ObraCardComponent,
@@ -109,6 +110,7 @@ type PerfilTab = 'news' | 'obras' | 'popular';
 })
 export class PerfilComponent implements OnInit {
   private apiUrl = 'https://minuscreators.com/api/perfil.php';
+  private readonly countries: CountryOption[] = COUNTRY_OPTIONS;
 
   user: User | null = null;
   currentUser: CurrentUser | null = null;
@@ -174,6 +176,44 @@ export class PerfilComponent implements OnInit {
 
   get avatarUrl(): string {
     return this.imageUrl(this.user?.imgPerfil, '/obras/paleta/tres.png');
+  }
+
+  getNationalityLabel(): string {
+    const nacionalidad = String(this.user?.nacionalidad || '').trim();
+
+    if (!nacionalidad) {
+      return this.translationService.getTranslation('perfil.user.no_nationality');
+    }
+
+    const country = this.findCountryByStoredValue(nacionalidad);
+
+    if (!country) {
+      return nacionalidad;
+    }
+
+    const locale = this.getCurrentLocale();
+
+    try {
+      const displayNames = new Intl.DisplayNames([locale], {
+        type: 'region'
+      });
+
+      const localizedName = displayNames.of(country.code);
+
+      if (localizedName) {
+        return localizedName;
+      }
+    } catch {
+      // Fallback para navegadores antiguos.
+    }
+
+    const translated = this.translationService.getTranslation(country.labelKey);
+
+    if (!translated || translated === country.labelKey) {
+      return country.name;
+    }
+
+    return translated;
   }
 
   setActiveTab(tab: PerfilTab): void {
@@ -298,6 +338,97 @@ export class PerfilComponent implements OnInit {
 
   trackByCapitulo(index: number, capitulo: PerfilCapitulo): number {
     return capitulo.capituloVersionId || capitulo.capituloId || index;
+  }
+
+  private findCountryByStoredValue(value: string): CountryOption | null {
+    const raw = String(value || '').trim();
+
+    if (!raw) {
+      return null;
+    }
+
+    const upper = raw.toUpperCase();
+
+    const codeMatch = this.countries.find(country => country.code === upper);
+
+    if (codeMatch) {
+      return codeMatch;
+    }
+
+    const normalized = this.normalizeCountryText(raw);
+
+    return this.countries.find((country) => {
+      if (this.normalizeCountryText(country.name) === normalized) {
+        return true;
+      }
+
+      const englishName = this.getIntlRegionName(country.code, 'en');
+
+      if (englishName && this.normalizeCountryText(englishName) === normalized) {
+        return true;
+      }
+
+      const spanishName = this.getIntlRegionName(country.code, 'es');
+
+      if (spanishName && this.normalizeCountryText(spanishName) === normalized) {
+        return true;
+      }
+
+      return false;
+    }) || null;
+  }
+
+  private getIntlRegionName(countryCode: string, locale: string): string {
+    if (!countryCode || countryCode === 'OT') {
+      return '';
+    }
+
+    try {
+      const displayNames = new Intl.DisplayNames([locale], {
+        type: 'region'
+      });
+
+      return displayNames.of(countryCode) || '';
+    } catch {
+      return '';
+    }
+  }
+
+  private getCurrentLocale(): string {
+    const currentLanguage = String(this.translationService.getCurrentLanguage() || 'en')
+      .trim()
+      .toLowerCase();
+
+    const localeMap: Record<string, string> = {
+      es: 'es',
+      en: 'en',
+      ja: 'ja',
+      ko: 'ko',
+      zh: 'zh',
+      fr: 'fr',
+      de: 'de',
+      pt: 'pt',
+      it: 'it',
+      ru: 'ru',
+      ar: 'ar',
+      hi: 'hi',
+      id: 'id',
+      vi: 'vi',
+      th: 'th',
+      tr: 'tr',
+      pl: 'pl',
+      nl: 'nl'
+    };
+
+    return localeMap[currentLanguage] || 'en';
+  }
+
+  private normalizeCountryText(value: string): string {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
   }
 
   private mapObra(obra: PerfilObraApi, user: User): PerfilObra {

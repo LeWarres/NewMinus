@@ -4,7 +4,7 @@ import { Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnIni
 import { Subscription } from 'rxjs';
 
 import { TranslationService } from '../../services/translation.service';
-import { ContentMetadataService } from '../../services/content-metadata.service';
+import { WORK_CATEGORY_OPTIONS, getWorkCategoryLabel } from '../../shared/options/profile-options';
 import {
   ObraCardComponent,
   ObraCardItem
@@ -32,6 +32,7 @@ interface RecommendedCategory {
 })
 export class RecommendedCarouselComponent implements OnInit, OnChanges, OnDestroy {
   private readonly recomendadasUrl = 'https://minuscreators.com/api/recomendadas_categoria.php';
+  private readonly storagePrefix = 'minus_recommended_categories_v3';
 
   @Input() context: 'home' | 'reader' = 'home';
   @Input() initialCategory = 'todos';
@@ -54,33 +55,23 @@ export class RecommendedCarouselComponent implements OnInit, OnChanges, OnDestro
   errorRecomendadas = '';
 
   categoriaRecomendadaSeleccionada = 'todos';
-
-  recommendedCategories: RecommendedCategory[] = [
-    { value: 'todos' },
-    { value: 'accion' },
-    { value: 'romance' },
-    { value: 'comedia' },
-    { value: 'drama' },
-    { value: 'fantasia' },
-    { value: 'aventura' },
-    { value: 'slice-of-life' },
-    { value: 'terror' },
-    { value: 'ciencia-ficcion' },
-    { value: 'boys-love' },
-    { value: 'girls-love' }
-  ];
+  recommendedCategories: RecommendedCategory[] = [];
 
   private rawRecomendadas: ObraCardItem[] = [];
   private languageSubscription?: Subscription;
 
   constructor(
     private http: HttpClient,
-    private metadataService: ContentMetadataService,
     public translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
+    this.buildRecommendedCategories(false);
     this.categoriaRecomendadaSeleccionada = this.normalizeCategory(this.initialCategory);
+
+    if (!this.recommendedCategories.some((category) => category.value === this.categoriaRecomendadaSeleccionada)) {
+      this.categoriaRecomendadaSeleccionada = 'todos';
+    }
 
     this.languageSubscription = this.translationService.currentLanguage$.subscribe(() => {
       this.cargarRecomendadasPorCategoria();
@@ -93,13 +84,25 @@ export class RecommendedCarouselComponent implements OnInit, OnChanges, OnDestro
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['resetKey'] && !changes['resetKey'].firstChange) {
+      this.buildRecommendedCategories(false);
       this.categoriaRecomendadaSeleccionada = this.normalizeCategory(this.initialCategory);
+
+      if (!this.recommendedCategories.some((category) => category.value === this.categoriaRecomendadaSeleccionada)) {
+        this.categoriaRecomendadaSeleccionada = 'todos';
+      }
+
       this.cargarRecomendadasPorCategoria();
       return;
     }
 
     if (changes['initialCategory'] && !changes['initialCategory'].firstChange) {
+      this.buildRecommendedCategories(false);
       this.categoriaRecomendadaSeleccionada = this.normalizeCategory(this.initialCategory);
+
+      if (!this.recommendedCategories.some((category) => category.value === this.categoriaRecomendadaSeleccionada)) {
+        this.categoriaRecomendadaSeleccionada = 'todos';
+      }
+
       this.cargarRecomendadasPorCategoria();
       return;
     }
@@ -163,6 +166,26 @@ export class RecommendedCarouselComponent implements OnInit, OnChanges, OnDestro
     }, 120);
   }
 
+  cambiarCategoriasAleatorias(): void {
+    this.buildRecommendedCategories(true);
+
+    if (!this.recommendedCategories.some((category) => category.value === this.categoriaRecomendadaSeleccionada)) {
+      const initial = this.normalizeCategory(this.initialCategory);
+      this.categoriaRecomendadaSeleccionada = this.recommendedCategories.some((category) => category.value === initial)
+        ? initial
+        : 'todos';
+    }
+
+    this.cargarRecomendadasPorCategoria();
+
+    setTimeout(() => {
+      this.carouselTrack?.nativeElement.scrollTo({
+        left: 0,
+        behavior: 'smooth'
+      });
+    }, 120);
+  }
+
   onOpenObra(obra: ObraCardItem): void {
     this.openObra.emit(obra);
   }
@@ -196,7 +219,11 @@ export class RecommendedCarouselComponent implements OnInit, OnChanges, OnDestro
       return this.translationService.getTranslation('common.labels.all');
     }
 
-    return this.metadataService.getCategoryLabel(value);
+    return getWorkCategoryLabel(
+      value,
+      (key) => this.translationService.getTranslation(key),
+      this.translationService.getTranslation('common.labels.no_category')
+    );
   }
 
   get categoriaRecomendadaLabel(): string {
@@ -264,13 +291,125 @@ export class RecommendedCarouselComponent implements OnInit, OnChanges, OnDestro
       : 'EN';
   }
 
+  private buildRecommendedCategories(forceNew: boolean): void {
+    const initial = this.normalizeCategory(this.initialCategory);
+    const storageKey = this.getStorageKey(initial);
+    let selected = forceNew ? [] : this.readStoredCategories(storageKey);
+
+    if (selected.length === 0) {
+      selected = this.pickRandomCategories(this.categoryLimit, initial);
+      this.saveStoredCategories(storageKey, selected);
+    }
+
+    const values = this.uniqueValues([
+      'todos',
+      initial !== 'todos' ? initial : '',
+      ...selected
+    ]).filter(Boolean);
+
+    this.recommendedCategories = values.map((value) => ({ value }));
+  }
+
+  private get categoryLimit(): number {
+    return this.context === 'reader' ? 4 : 6;
+  }
+
+  private pickRandomCategories(limit: number, preferredCategory: string): string[] {
+    const pool = this.catalogCategoryValues.filter((category) => {
+      return category !== 'todos' && category !== 'nsfw' && category !== preferredCategory;
+    });
+
+    const extraSlots = preferredCategory !== 'todos'
+      ? Math.max(0, limit - 1)
+      : Math.max(0, limit);
+
+    const shuffled = this.shuffle(pool);
+    const selected = shuffled.slice(0, extraSlots);
+
+    if (preferredCategory !== 'todos') {
+      return this.uniqueValues([preferredCategory, ...selected]).slice(0, limit);
+    }
+
+    return selected;
+  }
+
+  private get catalogCategoryValues(): string[] {
+    return WORK_CATEGORY_OPTIONS
+      .map((category) => String(category.value || '').trim().toLowerCase())
+      .filter(Boolean);
+  }
+
   private normalizeCategory(value?: string): string {
     const normalized = String(value || 'todos').trim().toLowerCase();
 
-    if (this.recommendedCategories.some((category) => category.value === normalized)) {
-      return normalized;
+    if (normalized === 'todos') {
+      return 'todos';
     }
 
-    return 'todos';
+    return this.catalogCategoryValues.includes(normalized)
+      ? normalized
+      : 'todos';
+  }
+
+  private shuffle(values: string[]): string[] {
+    const result = [...values];
+
+    for (let index = result.length - 1; index > 0; index--) {
+      const randomIndex = Math.floor(Math.random() * (index + 1));
+      [result[index], result[randomIndex]] = [result[randomIndex], result[index]];
+    }
+
+    return result;
+  }
+
+  private uniqueValues(values: string[]): string[] {
+    const unique: string[] = [];
+
+    for (const value of values) {
+      const normalized = String(value || '').trim().toLowerCase();
+
+      if (!normalized || unique.includes(normalized)) {
+        continue;
+      }
+
+      unique.push(normalized);
+    }
+
+    return unique;
+  }
+
+  private getStorageKey(initialCategory: string): string {
+    return `${this.storagePrefix}_${this.context}_${initialCategory}`;
+  }
+
+  private readStoredCategories(storageKey: string): string[] {
+    try {
+      const raw = sessionStorage.getItem(storageKey);
+
+      if (!raw) {
+        return [];
+      }
+
+      const parsed = JSON.parse(raw);
+
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed
+        .map((category) => this.normalizeCategory(category))
+        .filter((category) => category !== 'todos')
+        .slice(0, this.categoryLimit);
+    } catch {
+      return [];
+    }
+  }
+
+  private saveStoredCategories(storageKey: string, values: string[]): void {
+    try {
+      sessionStorage.setItem(storageKey, JSON.stringify(values));
+    } catch {
+      // Si el navegador bloquea sessionStorage, el carrusel sigue funcionando sin persistencia.
+    }
   }
 }

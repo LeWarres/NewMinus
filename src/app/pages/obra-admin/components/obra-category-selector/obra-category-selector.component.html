@@ -18,13 +18,13 @@
   <div class="category-grid">
     <button
       type="button"
-      *ngFor="let categoria of categorias"
+      *ngFor="let categoria of categorias; trackBy: trackByCategoryValue"
       class="category-chip"
       [class.selected]="isCategorySelected(categoria.value)"
       [disabled]="!isCategorySelected(categoria.value) && selectedCategories.length >= maxCategories"
       (click)="toggleCategory.emit(categoria.value)"
     >
-      {{ translationService.getTranslation(categoria.label) }}
+      {{ getCategoryOptionLabel(categoria) }}
     </button>
   </div>
 
@@ -36,7 +36,7 @@
       *ngFor="let categoria of selectedCategories"
       class="selected-category"
     >
-      {{ translationService.getTranslation(getCategoryLabel(categoria)) }}
+      {{ getCategoryLabel(categoria) }}
     </span>
   </div>
 </div>

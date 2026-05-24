@@ -6,17 +6,12 @@ import { Router, RouterModule } from '@angular/router';
 import { TurnstileWidgetComponent } from '../../components/turnstile-widget/turnstile-widget.component';
 import { TranslationService } from '../../services/translation.service';
 import { AuthService } from '../../services/auth.service';
-
-interface CountryOption {
-  name: string;
-  labelKey: string;
-}
-
-interface ReadingLanguageOption {
-  value: string;
-  labelKey: string;
-  nativeLabel: string;
-}
+import {
+  COUNTRY_OPTIONS,
+  CountryOption,
+  READING_LANGUAGE_OPTIONS,
+  ReadingLanguageOption
+} from '../../shared/options/profile-options';
 
 @Component({
   selector: 'app-signup',
@@ -32,7 +27,7 @@ interface ReadingLanguageOption {
 })
 export class SignupComponent {
   trackByCountryName(index: number, country: CountryOption): string {
-    return country.name;
+    return country.code;
   }
 
   trackByLanguageValue(index: number, language: ReadingLanguageOption): string {
@@ -62,37 +57,9 @@ export class SignupComponent {
 
   selectedReadingLanguages: string[] = [];
 
-  countries: CountryOption[] = [
-    { name: 'México', labelKey: 'common.countries.mexico' },
-    { name: 'Argentina', labelKey: 'common.countries.argentina' },
-    { name: 'Colombia', labelKey: 'common.countries.colombia' },
-    { name: 'Chile', labelKey: 'common.countries.chile' },
-    { name: 'Perú', labelKey: 'common.countries.peru' },
-    { name: 'España', labelKey: 'common.countries.spain' },
-    { name: 'Estados Unidos', labelKey: 'common.countries.united_states' },
-    { name: 'Otro', labelKey: 'common.countries.other' }
-  ];
+  countries: CountryOption[] = COUNTRY_OPTIONS;
 
-  readingLanguages: ReadingLanguageOption[] = [
-    { value: 'ES', labelKey: 'common.languages.es', nativeLabel: 'Español' },
-    { value: 'EN', labelKey: 'common.languages.en', nativeLabel: 'English' },
-    { value: 'JA', labelKey: 'common.languages.ja', nativeLabel: '日本語' },
-    { value: 'KO', labelKey: 'common.languages.ko', nativeLabel: '한국어' },
-    { value: 'ZH', labelKey: 'common.languages.zh', nativeLabel: '中文' },
-    { value: 'FR', labelKey: 'common.languages.fr', nativeLabel: 'Français' },
-    { value: 'DE', labelKey: 'common.languages.de', nativeLabel: 'Deutsch' },
-    { value: 'PT', labelKey: 'common.languages.pt', nativeLabel: 'Português' },
-    { value: 'IT', labelKey: 'common.languages.it', nativeLabel: 'Italiano' },
-    { value: 'RU', labelKey: 'common.languages.ru', nativeLabel: 'Русский' },
-    { value: 'AR', labelKey: 'common.languages.ar', nativeLabel: 'العربية' },
-    { value: 'HI', labelKey: 'common.languages.hi', nativeLabel: 'हिन्दी' },
-    { value: 'ID', labelKey: 'common.languages.id', nativeLabel: 'Bahasa Indonesia' },
-    { value: 'VI', labelKey: 'common.languages.vi', nativeLabel: 'Tiếng Việt' },
-    { value: 'TH', labelKey: 'common.languages.th', nativeLabel: 'ไทย' },
-    { value: 'TR', labelKey: 'common.languages.tr', nativeLabel: 'Türkçe' },
-    { value: 'PL', labelKey: 'common.languages.pl', nativeLabel: 'Polski' },
-    { value: 'NL', labelKey: 'common.languages.nl', nativeLabel: 'Nederlands' }
-  ];
+  readingLanguages: ReadingLanguageOption[] = READING_LANGUAGE_OPTIONS;
 
   constructor(
     private router: Router,
@@ -148,6 +115,22 @@ export class SignupComponent {
   }
 
   getCountryLabel(country: CountryOption): string {
+    const locale = this.getCurrentLocale();
+
+    try {
+      const displayNames = new Intl.DisplayNames([locale], {
+        type: 'region'
+      });
+
+      const localizedName = displayNames.of(country.code);
+
+      if (localizedName) {
+        return localizedName;
+      }
+    } catch {
+      // Fallback para navegadores antiguos.
+    }
+
     const translated = this.translationService.getTranslation(country.labelKey);
 
     if (!translated || translated === country.labelKey) {
@@ -155,6 +138,35 @@ export class SignupComponent {
     }
 
     return translated;
+  }
+
+  private getCurrentLocale(): string {
+    const currentLanguage = String(this.translationService.getCurrentLanguage() || 'en')
+      .trim()
+      .toLowerCase();
+
+    const localeMap: Record<string, string> = {
+      es: 'es',
+      en: 'en',
+      ja: 'ja',
+      ko: 'ko',
+      zh: 'zh',
+      fr: 'fr',
+      de: 'de',
+      pt: 'pt',
+      it: 'it',
+      ru: 'ru',
+      ar: 'ar',
+      hi: 'hi',
+      id: 'id',
+      vi: 'vi',
+      th: 'th',
+      tr: 'tr',
+      pl: 'pl',
+      nl: 'nl'
+    };
+
+    return localeMap[currentLanguage] || 'en';
   }
 
   getReadingLanguageLabel(language: ReadingLanguageOption): string {

@@ -244,24 +244,50 @@
       </ng-template>
     </section>
 
-    <section class="save-all-bar">
-      <div>
+    <section
+      class="save-all-bar"
+      [class.status-saving]="saveBarStatus === 'saving'"
+      [class.status-success]="saveBarStatus === 'success'"
+      [class.status-error]="saveBarStatus === 'error'"
+    >
+      <div class="save-all-copy">
         <strong>{{ translationService.getTranslation(i18nKeys.saveAll) }}</strong>
-        <p>{{ translationService.getTranslation(i18nKeys.saveAllDescription) }}</p>
+
+        <p
+          class="save-all-message"
+          [class.message-saving]="saveBarStatus === 'saving'"
+          [class.message-success]="saveBarStatus === 'success'"
+          [class.message-error]="saveBarStatus === 'error'"
+        >
+          {{ saveBarText }}
+        </p>
       </div>
 
-      <button
-        type="button"
-        class="save-btn"
-        (click)="guardarTodo()"
-        [disabled]="guardandoTodo"
-      >
-        {{
-          guardandoTodo
-            ? translationService.getTranslation(i18nKeys.saving)
-            : translationService.getTranslation(i18nKeys.saveAll)
-        }}
-      </button>
+      <div class="save-all-actions">
+        <span
+          class="save-status-icon"
+          *ngIf="saveBarStatus !== 'idle'"
+          [class.icon-saving]="saveBarStatus === 'saving'"
+          [class.icon-success]="saveBarStatus === 'success'"
+          [class.icon-error]="saveBarStatus === 'error'"
+          aria-hidden="true"
+        >
+          {{ saveBarIcon }}
+        </span>
+
+        <button
+          type="button"
+          class="save-btn"
+          (click)="guardarTodo()"
+          [disabled]="guardandoTodo"
+        >
+          {{
+            guardandoTodo
+              ? translationService.getTranslation(i18nKeys.saving)
+              : translationService.getTranslation(i18nKeys.saveAll)
+          }}
+        </button>
+      </div>
     </section>
   </ng-container>
 </div>

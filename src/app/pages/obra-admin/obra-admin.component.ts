@@ -12,6 +12,7 @@ import { ObraCategorySelectorComponent } from './components/obra-category-select
 import { ObraChapterItemComponent } from './components/obra-chapter-item/obra-chapter-item.component';
 import { AdminCapitulo, AdminCapituloVersion, AdminPagina, AdminObra, SelectOption } from './obra-admin.models';
 import { buildObraImageUrl, formatFileSize } from './obra-admin-display.utils';
+import { WORK_CATEGORY_OPTIONS } from '../../shared/options/profile-options';
 
 interface ObraAdminResponse {
   success: boolean;
@@ -46,6 +47,8 @@ interface EliminarCapituloIdiomaResponse extends GenericResponse {
   capituloVersionId?: number;
   capituloEliminado?: boolean;
 }
+
+type SaveBarStatus = 'idle' | 'saving' | 'success' | 'error';
 
 @Component({
   selector: 'app-obra-admin',
@@ -89,6 +92,9 @@ export class ObraAdminComponent implements OnInit {
   error = '';
   mensajeObra = '';
 
+  saveBarStatus: SaveBarStatus = 'idle';
+  saveBarMessage = '';
+
   capituloMensajes: Record<string, string> = {};
 
   coverFile: File | null = null;
@@ -105,46 +111,10 @@ export class ObraAdminComponent implements OnInit {
   pageUploadMessages: Record<string, string> = {};
   paginasPendientesEliminar: Record<string, AdminPagina[]> = {};
 
-  categorias: SelectOption[] = [
-    { value: 'accion', label: 'common.categories.accion' },
-    { value: 'aventura', label: 'common.categories.aventura' },
-    { value: 'comedia', label: 'common.categories.comedia' },
-    { value: 'drama', label: 'common.categories.drama' },
-    { value: 'fantasia', label: 'common.categories.fantasia' },
-    { value: 'romance', label: 'common.categories.romance' },
-    { value: 'terror', label: 'common.categories.terror' },
-    { value: 'ciencia-ficcion', label: 'common.categories.ciencia_ficcion' },
-    { value: 'misterio', label: 'common.categories.misterio' },
-    { value: 'suspenso', label: 'common.categories.suspenso' },
-    { value: 'sobrenatural', label: 'common.categories.sobrenatural' },
-    { value: 'psicologico', label: 'common.categories.psicologico' },
-    { value: 'slice-of-life', label: 'common.categories.slice_of_life' },
-    { value: 'vida-escolar', label: 'common.categories.vida_escolar' },
-    { value: 'deportes', label: 'common.categories.deportes' },
-    { value: 'artes-marciales', label: 'common.categories.artes_marciales' },
-    { value: 'mecha', label: 'common.categories.mecha' },
-    { value: 'isekai', label: 'common.categories.isekai' },
-    { value: 'historico', label: 'common.categories.historico' },
-    { value: 'musica', label: 'common.categories.musica' },
-    { value: 'cocina', label: 'common.categories.cocina' },
-    { value: 'magia', label: 'common.categories.magia' },
-    { value: 'superheroes', label: 'common.categories.superheroes' },
-    { value: 'crimen', label: 'common.categories.crimen' },
-    { value: 'post-apocaliptico', label: 'common.categories.post_apocaliptico' },
-    { value: 'cyberpunk', label: 'common.categories.cyberpunk' },
-    { value: 'steampunk', label: 'common.categories.steampunk' },
-    { value: 'guerra', label: 'common.categories.guerra' },
-    { value: 'parodia', label: 'common.categories.parodia' },
-    { value: 'tragedia', label: 'common.categories.tragedia' },
-    { value: 'shonen', label: 'common.categories.shonen' },
-    { value: 'shojo', label: 'common.categories.shojo' },
-    { value: 'seinen', label: 'common.categories.seinen' },
-    { value: 'josei', label: 'common.categories.josei' },
-    { value: 'kodomo', label: 'common.categories.kodomo' },
-    { value: 'boys-love', label: 'common.categories.boys_love' },
-    { value: 'girls-love', label: 'common.categories.girls_love' },
-    { value: 'nsfw', label: 'common.categories.nsfw' }
-  ];
+  categorias: SelectOption[] = WORK_CATEGORY_OPTIONS.map((categoria) => ({
+    value: categoria.value,
+    label: categoria.labelKey
+  }));
 
   idiomas: SelectOption[] = [
     { value: 'GLOBAL', label: 'common.languages.global' },
@@ -206,6 +176,30 @@ export class ObraAdminComponent implements OnInit {
     return this.obra?.capitulos.length || 0;
   }
 
+  get saveBarText(): string {
+    if (this.saveBarMessage) {
+      return this.saveBarMessage;
+    }
+
+    return this.translationService.getTranslation(this.i18nKeys.saveAllDescription);
+  }
+
+  get saveBarIcon(): string {
+    if (this.saveBarStatus === 'saving') {
+      return '…';
+    }
+
+    if (this.saveBarStatus === 'success') {
+      return '✓';
+    }
+
+    if (this.saveBarStatus === 'error') {
+      return '!';
+    }
+
+    return '';
+  }
+
   cargarObraAdmin(obraId: number): void {
     this.cargando = true;
     this.error = '';
@@ -255,6 +249,8 @@ export class ObraAdminComponent implements OnInit {
   }
 
   toggleCategory(value: string): void {
+    this.resetSaveBarStatus();
+
     if (this.selectedCategories.includes(value)) {
       this.selectedCategories = this.selectedCategories.filter(
         categoria => categoria !== value
@@ -311,20 +307,29 @@ export class ObraAdminComponent implements OnInit {
       return;
     }
 
+    this.mensajeObra = '';
+
     if (!this.obra.titulo.trim()) {
-      this.mensajeObra = this.translationService.getTranslation('common.validation.title_required');
+      this.setSaveBarError(
+        this.translationService.getTranslation('common.validation.title_required')
+      );
       return;
     }
 
     if (this.selectedCategories.length > this.maxCategories) {
-      this.mensajeObra = this.translationService.getTranslation('common.error.max_categories');
+      this.setSaveBarError(
+        this.translationService.getTranslation('common.error.max_categories')
+      );
       return;
     }
 
     this.obra.tipoEntrega = this.normalizeTipoObra(this.obra.tipoEntrega);
 
     this.guardandoTodo = true;
-    this.mensajeObra = '';
+    this.setSaveBarStatus(
+      'saving',
+      this.translationService.getTranslation(this.i18nKeys.saving)
+    );
 
     const genero = this.selectedCategories.join(',');
 
@@ -342,7 +347,9 @@ export class ObraAdminComponent implements OnInit {
 
     if (!ready) {
       this.guardandoTodo = false;
-      this.mensajeObra = this.translationService.getTranslation('common.error.prepare_action_failed');
+      this.setSaveBarError(
+        this.translationService.getTranslation('common.error.prepare_action_failed')
+      );
       return;
     }
 
@@ -358,7 +365,9 @@ export class ObraAdminComponent implements OnInit {
 
       if (!res.success) {
         this.guardandoTodo = false;
-        this.mensajeObra = res.error || this.translationService.getTranslation('obraAdmin.error.update_work_failed');
+        this.setSaveBarError(
+          res.error || this.translationService.getTranslation('obraAdmin.error.update_work_failed')
+        );
         return;
       }
 
@@ -374,7 +383,9 @@ export class ObraAdminComponent implements OnInit {
 
         if (!coverRes.success) {
           this.guardandoTodo = false;
-          this.mensajeObra = coverRes.error || this.translationService.getTranslation('obraAdmin.error.update_cover_failed');
+          this.setSaveBarError(
+            coverRes.error || this.translationService.getTranslation('obraAdmin.error.update_cover_failed')
+          );
           return;
         }
 
@@ -409,7 +420,9 @@ export class ObraAdminComponent implements OnInit {
 
           if (!chapterRes.success) {
             this.guardandoTodo = false;
-            this.mensajeObra = chapterRes.error || this.translationService.getTranslation('obraAdmin.error.update_chapter_failed');
+            this.setSaveBarError(
+              chapterRes.error || this.translationService.getTranslation('obraAdmin.error.update_chapter_failed')
+            );
             return;
           }
 
@@ -428,7 +441,9 @@ export class ObraAdminComponent implements OnInit {
 
             if (!deleteRes.success) {
               this.guardandoTodo = false;
-              this.mensajeObra = deleteRes.error || this.translationService.getTranslation('obraAdmin.error.delete_page_failed');
+              this.setSaveBarError(
+                deleteRes.error || this.translationService.getTranslation('obraAdmin.error.delete_page_failed')
+              );
               return;
             }
           }
@@ -440,7 +455,9 @@ export class ObraAdminComponent implements OnInit {
 
             if (!uploadRes.success) {
               this.guardandoTodo = false;
-              this.mensajeObra = uploadRes.error || this.translationService.getTranslation('obraAdmin.error.add_pages_failed');
+              this.setSaveBarError(
+                uploadRes.error || this.translationService.getTranslation('obraAdmin.error.add_pages_failed')
+              );
               return;
             }
           }
@@ -453,11 +470,23 @@ export class ObraAdminComponent implements OnInit {
       this.paginasPendientesEliminar = {};
       this.selectedChapterFiles = {};
       this.guardandoTodo = false;
-      this.mensajeObra = this.translationService.getTranslation('obraAdmin.success.all_changes_saved');
+
+      this.setSaveBarStatus(
+        'success',
+        this.translationService.getTranslation('obraAdmin.success.all_changes_saved')
+      );
+
       this.cargarObraAdmin(this.obra.id);
     } catch (err: any) {
       this.guardandoTodo = false;
-      this.mensajeObra = this.getFriendlyError(err, this.translationService.getTranslation('obraAdmin.error.save_changes_error'));
+
+      this.setSaveBarError(
+        this.getFriendlyError(
+          err,
+          this.translationService.getTranslation('obraAdmin.error.save_changes_error')
+        )
+      );
+
       console.error(err);
     }
   }
@@ -518,6 +547,7 @@ export class ObraAdminComponent implements OnInit {
     this.coverFile = file;
     this.coverPreview = URL.createObjectURL(file);
     this.mensajeObra = '';
+    this.resetSaveBarStatus();
   }
 
   getSelectedChapterFilesTotalSize(versionKey: string): number {
@@ -526,6 +556,8 @@ export class ObraAdminComponent implements OnInit {
   }
 
   onChapterPagesSelected(event: { version: AdminCapituloVersion; files: File[] }, capitulo: AdminCapitulo): void {
+    this.resetSaveBarStatus();
+
     const version = event.version;
     const files = event.files;
 
@@ -569,6 +601,8 @@ export class ObraAdminComponent implements OnInit {
   }
 
   removeSelectedChapterFile(event: { version: AdminCapituloVersion; index: number }, capituloId: number): void {
+    this.resetSaveBarStatus();
+
     const versionKey = this.getVersionKey(capituloId, event.version);
     const files = this.selectedChapterFiles[versionKey] || [];
 
@@ -590,6 +624,8 @@ export class ObraAdminComponent implements OnInit {
     if (!confirmar) {
       return;
     }
+
+    this.resetSaveBarStatus();
 
     version.paginas = version.paginas.filter((item) => item.id !== pagina.id);
 
@@ -853,6 +889,26 @@ export class ObraAdminComponent implements OnInit {
         headers: this.authService.csrfHeaders()
       }
     ));
+  }
+
+  public resetSaveBarStatus(): void {
+    if (this.guardandoTodo) {
+      return;
+    }
+
+    this.setSaveBarStatus('idle');
+  }
+
+  private setSaveBarStatus(status: SaveBarStatus, message = ''): void {
+    this.saveBarStatus = status;
+    this.saveBarMessage = message;
+  }
+
+  private setSaveBarError(message: string): void {
+    this.setSaveBarStatus(
+      'error',
+      message || this.translationService.getTranslation('obraAdmin.error.save_changes_error')
+    );
   }
 
   private getFriendlyError(err: any, fallback: string): string {

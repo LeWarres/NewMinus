@@ -19,14 +19,26 @@
     </button>
   </div>
 
-  <div class="recommended-tabs">
+  <div class="recommended-tabs-row">
+    <div class="recommended-tabs">
+      <button
+        type="button"
+        *ngFor="let categoria of recommendedCategories; trackBy: trackByRecommendedCategory"
+        [class.active]="categoria.value === categoriaRecomendadaSeleccionada"
+        (click)="cambiarCategoriaRecomendada(categoria)"
+      >
+        {{ getCategoriaLabel(categoria.value) }}
+      </button>
+    </div>
+
     <button
       type="button"
-      *ngFor="let categoria of recommendedCategories; trackBy: trackByRecommendedCategory"
-      [class.active]="categoria.value === categoriaRecomendadaSeleccionada"
-      (click)="cambiarCategoriaRecomendada(categoria)"
+      class="shuffle-categories-btn"
+      [attr.aria-label]="translationService.getTranslation('recommendedCarousel.shuffle_categories')"
+      (click)="cambiarCategoriasAleatorias()"
     >
-      {{ getCategoriaLabel(categoria.value) }}
+      <span aria-hidden="true">↻</span>
+      {{ translationService.getTranslation('recommendedCarousel.shuffle_categories') }}
     </button>
   </div>
 

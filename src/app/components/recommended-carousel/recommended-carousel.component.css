@@ -7,11 +7,11 @@
 }
 
 .recommended-header {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .section-header {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 
   display: flex;
   justify-content: space-between;
@@ -51,46 +51,58 @@
   text-decoration: underline;
 }
 
-.recommended-tabs {
-  margin: 0 0 16px;
-  padding: 3px 2px 12px;
+/* Filtros compactos */
+.recommended-tabs-row {
+  margin: 0 0 18px;
 
   display: flex;
-  gap: 10px;
-  overflow-x: auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
 
-  scrollbar-width: thin;
+.recommended-tabs {
+  flex: 1 1 auto;
+  min-width: 0;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .recommended-tabs::-webkit-scrollbar {
-  height: 8px;
+  display: none;
 }
 
-.recommended-tabs::-webkit-scrollbar-thumb {
-  background: rgba(206, 190, 255, 0.25);
-  border-radius: 999px;
-}
-
-.recommended-tabs::-webkit-scrollbar-track {
-  background: rgba(13, 18, 36, 0.35);
-  border-radius: 999px;
-}
-
-.recommended-tabs button {
+.recommended-tabs button,
+.shuffle-categories-btn {
   flex: 0 0 auto;
-  padding: 10px 15px;
-
-  background:
-    linear-gradient(135deg, rgba(46, 49, 103, 0.92), rgba(37, 42, 84, 0.92));
+  max-width: 170px;
+  min-height: 40px;
+  padding: 9px 13px;
 
   border: 1px solid rgba(202, 210, 255, 0.14);
   border-radius: 999px;
 
+  background:
+    linear-gradient(135deg, rgba(46, 49, 103, 0.92), rgba(37, 42, 84, 0.92));
+
   color: #d8dcff;
   cursor: pointer;
-  font-weight: 900;
   font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
@@ -104,7 +116,8 @@
     box-shadow 0.16s ease;
 }
 
-.recommended-tabs button:hover {
+.recommended-tabs button:hover,
+.shuffle-categories-btn:hover {
   transform: translateY(-1px);
   border-color: rgba(199, 255, 22, 0.35);
   color: #c7ff16;
@@ -113,12 +126,40 @@
 .recommended-tabs button.active {
   background: linear-gradient(135deg, #c7ff16, #9ee600);
   border-color: rgba(199, 255, 22, 0.78);
-
   color: #14172b;
 
   box-shadow:
     0 10px 20px rgba(199, 255, 22, 0.20),
     inset 0 1px 0 rgba(255, 255, 255, 0.32);
+}
+
+.shuffle-categories-btn {
+  max-width: none;
+  padding-inline: 14px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  background: rgba(13, 18, 36, 0.64);
+  border-color: rgba(199, 255, 22, 0.28);
+  color: #c7ff16;
+}
+
+.shuffle-categories-btn:hover {
+  background: linear-gradient(135deg, #c7ff16, #9ee600);
+  border-color: rgba(199, 255, 22, 0.78);
+  color: #14172b;
+
+  box-shadow:
+    0 10px 20px rgba(199, 255, 22, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+}
+
+.shuffle-categories-btn span {
+  font-size: 15px;
+  line-height: 1;
 }
 
 .estado {
@@ -152,20 +193,17 @@
   scroll-behavior: smooth;
 
   padding: 4px 2px 18px;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .carousel-track::-webkit-scrollbar {
-  height: 8px;
+  display: none;
 }
 
-.carousel-track::-webkit-scrollbar-thumb {
-  background: rgba(206, 190, 255, 0.25);
-  border-radius: 999px;
-}
-
-.carousel-track::-webkit-scrollbar-track {
-  background: rgba(13, 18, 36, 0.35);
-  border-radius: 999px;
+.carousel-card {
+  flex: 0 0 auto;
 }
 
 .carousel-btn {
@@ -215,6 +253,7 @@
   right: -20px;
 }
 
+/* Variante para Reader */
 .reader-variant .section-header h2 {
   font-size: 25px;
 }
@@ -236,15 +275,17 @@
   color: #14172b;
 }
 
-.reader-variant .recommended-tabs {
-  margin-bottom: 14px;
-  padding: 0;
-  flex-wrap: wrap;
-  gap: 8px;
-  overflow-x: visible;
+.reader-variant .recommended-tabs-row {
+  gap: 10px;
 }
 
-.reader-variant .recommended-tabs button {
+.reader-variant .recommended-tabs {
+  gap: 8px;
+}
+
+.reader-variant .recommended-tabs button,
+.reader-variant .shuffle-categories-btn {
+  min-height: 36px;
   padding: 8px 12px;
   background: rgba(13, 18, 36, 0.55);
   border: 1px solid rgba(206, 190, 255, 0.22);
@@ -253,10 +294,16 @@
 }
 
 .reader-variant .recommended-tabs button:hover,
-.reader-variant .recommended-tabs button.active {
+.reader-variant .recommended-tabs button.active,
+.reader-variant .shuffle-categories-btn:hover {
   background: linear-gradient(135deg, #c7ff16, #9ee600);
   border-color: transparent;
   color: #14172b;
+}
+
+.reader-variant .shuffle-categories-btn {
+  border-color: rgba(199, 255, 22, 0.30);
+  color: #c7ff16;
 }
 
 .reader-variant .estado {
@@ -273,7 +320,6 @@
 }
 
 .reader-variant .carousel-card {
-  flex: 0 0 auto;
   width: min(240px, 72vw);
 }
 
@@ -291,7 +337,31 @@
 }
 
 @media (max-width: 900px) {
+  .section-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .section-link-btn {
+    align-self: flex-start;
+  }
+
+  .recommended-tabs-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .recommended-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .recommended-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .shuffle-categories-btn {
     align-self: flex-start;
   }
 
@@ -303,5 +373,13 @@
 @media (max-width: 560px) {
   .section-header h2 {
     font-size: 25px;
+  }
+
+  .recommended-tabs button {
+    max-width: 145px;
+  }
+
+  .shuffle-categories-btn {
+    width: 100%;
   }
 }

@@ -456,20 +456,110 @@ select option {
   position: sticky;
   bottom: 10px;
   z-index: 4;
+
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  backdrop-filter: blur(12px);
+  transition:
+    border-color .16s ease,
+    box-shadow .16s ease,
+    background .16s ease;
 }
 
-.save-all-bar strong {
+.save-all-bar.status-saving {
+  border-color: rgba(206, 190, 255, 0.36);
+}
+
+.save-all-bar.status-success {
+  border-color: rgba(199, 255, 22, 0.56);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.34),
+    0 0 28px rgba(199, 255, 22, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.save-all-bar.status-error {
+  border-color: rgba(255, 116, 130, 0.58);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.34),
+    0 0 28px rgba(255, 116, 130, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.save-all-copy {
+  min-width: 0;
+}
+
+.save-all-copy strong {
   display: block;
   color: #c7ff16;
   font-size: 16px;
   font-weight: 900;
 }
 
-.save-all-bar p {
+.save-all-bar p,
+.save-all-message {
   margin: 4px 0 0;
   color: #d8dcff;
   font-size: 13px;
   font-weight: 700;
+  line-height: 1.4;
+}
+
+.save-all-message.message-saving {
+  color: #f5f4ff;
+}
+
+.save-all-message.message-success {
+  color: #c7ff16;
+}
+
+.save-all-message.message-error {
+  color: #ff9aa3;
+}
+
+.save-all-actions {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.save-status-icon {
+  width: 34px;
+  height: 34px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: rgba(206, 190, 255, 0.10);
+  border: 1px solid rgba(206, 190, 255, 0.20);
+
+  color: #f5f4ff;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.save-status-icon.icon-saving {
+  color: #d8dcff;
+}
+
+.save-status-icon.icon-success {
+  background: rgba(199, 255, 22, 0.12);
+  border-color: rgba(199, 255, 22, 0.38);
+  color: #c7ff16;
+}
+
+.save-status-icon.icon-error {
+  background: rgba(255, 116, 130, 0.12);
+  border-color: rgba(255, 116, 130, 0.38);
+  color: #ff9aa3;
 }
 
 @media (max-width: 650px) {
@@ -518,7 +608,18 @@ select option {
     align-items: stretch;
   }
 
+  .save-all-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .save-status-icon,
   .save-all-bar .save-btn {
     width: 100%;
+  }
+
+  .save-status-icon {
+    border-radius: 999px;
   }
 }

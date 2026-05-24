@@ -3,6 +3,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 import { TranslationService } from '../../../services/translation.service';
 import { ContentMetadataService } from '../../../services/content-metadata.service';
+import { getWorkCategoryLabel } from '../../../shared/options/profile-options';
 
 export interface ObraCardItem {
   id: number;
@@ -55,17 +56,15 @@ export class ObraCardComponent {
   }
 
   get mainCategoryLabel(): string {
-    return this.metadataService.getMainCategoryLabel(
-      this.obra.genero,
-      this.obra.categorias
+    return getWorkCategoryLabel(
+      this.mainCategoryValue,
+      (key) => this.translationService.getTranslation(key),
+      this.translationService.getTranslation('common.labels.no_category')
     );
   }
 
   get extraCategoryCount(): number {
-    return this.metadataService.getExtraCategoryCount(
-      this.obra.genero,
-      this.obra.categorias
-    );
+    return Math.max(0, this.categoryValues.length - 1);
   }
 
   get displayLanguage(): string {
@@ -175,6 +174,36 @@ export class ObraCardComponent {
 
   get ratingTitle(): string {
     return `${this.ratingAverage.toFixed(1)} / 5`;
+  }
+
+  private get categoryValues(): string[] {
+    const valores: string[] = [];
+    const categoriasRaw = (this.obra as any).categorias;
+
+    if (Array.isArray(categoriasRaw)) {
+      categoriasRaw.forEach((categoria) => {
+        valores.push(...this.splitCategoryValue(categoria));
+      });
+    } else {
+      valores.push(...this.splitCategoryValue(categoriasRaw));
+    }
+
+    if (valores.length === 0) {
+      valores.push(...this.splitCategoryValue(this.obra.genero));
+    }
+
+    return Array.from(new Set(valores));
+  }
+
+  private get mainCategoryValue(): string {
+    return this.categoryValues[0] || '';
+  }
+
+  private splitCategoryValue(value?: unknown): string[] {
+    return String(value || '')
+      .split(',')
+      .map((categoria) => categoria.trim().toLowerCase())
+      .filter(Boolean);
   }
 
   private normalizarIdioma(value?: string | null): string {
