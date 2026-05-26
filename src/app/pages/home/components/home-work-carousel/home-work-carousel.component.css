@@ -1,0 +1,164 @@
+:host {
+  display: block;
+}
+
+.home-section {
+  max-width: 1280px;
+  margin: 0 auto 48px;
+}
+
+.section-header {
+  margin-bottom: 18px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+}
+
+.section-header h2 {
+  margin: 0;
+
+  color: #ffffff;
+  font-size: 30px;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.32);
+}
+
+.section-header p {
+  margin: 7px 0 0;
+  color: #c7c9ef;
+  font-weight: 600;
+}
+
+.section-header a {
+  color: #c7ff16;
+  font-weight: 900;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.section-header a:hover {
+  text-decoration: underline;
+}
+
+.estado {
+  padding: 26px;
+
+  color: #d8dcff;
+  text-align: center;
+
+  background: linear-gradient(135deg, rgba(72, 58, 145, 0.86), rgba(44, 43, 104, 0.9));
+  border: 1px solid rgba(206, 190, 255, 0.18);
+  border-radius: 18px;
+
+  box-shadow:
+    0 18px 38px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.estado.error {
+  color: #ff9aa3;
+}
+
+.carousel-container {
+  position: relative;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 22px;
+
+  overflow-x: auto;
+  scroll-behavior: smooth;
+
+  padding: 4px 2px 18px;
+}
+
+.carousel-track::-webkit-scrollbar {
+  height: 8px;
+}
+
+.carousel-track::-webkit-scrollbar-thumb {
+  background: rgba(206, 190, 255, 0.25);
+  border-radius: 999px;
+}
+
+.carousel-track::-webkit-scrollbar-track {
+  background: rgba(13, 18, 36, 0.35);
+  border-radius: 999px;
+}
+
+.carousel-btn {
+  position: absolute;
+  top: 42%;
+  z-index: 5;
+
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(199, 255, 22, 0.28);
+  border-radius: 50%;
+
+  background: linear-gradient(135deg, rgba(46, 49, 103, 0.94), rgba(37, 42, 84, 0.94));
+  color: #c7ff16;
+
+  font-size: 24px;
+  font-weight: 900;
+  cursor: pointer;
+
+  box-shadow:
+    0 12px 26px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.10);
+
+  transition:
+    transform 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease;
+}
+
+.carousel-btn:hover {
+  transform: translateY(-2px);
+
+  background: linear-gradient(135deg, #c7ff16, #9ee600);
+  color: #14172b;
+}
+
+.prev-btn {
+  left: -20px;
+}
+
+.next-btn {
+  right: -20px;
+}
+
+.trending-section .section-header h2::after {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 10px;
+  border-radius: 999px;
+  background: #c7ff16;
+  box-shadow: 0 0 14px rgba(199, 255, 22, 0.55);
+}
+
+@media (max-width: 900px) {
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .carousel-btn {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .section-header h2 {
+    font-size: 25px;
+  }
+}

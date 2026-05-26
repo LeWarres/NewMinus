@@ -15,6 +15,11 @@
         src="/obras/paleta/logo.png"
         [alt]="translationService.getTranslation('common.brand.logo_alt')"
         class="logo-image"
+        width="160"
+        height="54"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
       />
     </a>
   </div>
@@ -75,6 +80,10 @@
             class="language-flag"
             [src]="selectedLanguage.flagUrl"
             [alt]="selectedLanguage.nativeLabel"
+            width="26"
+            height="17"
+            loading="eager"
+            decoding="async"
           />
 
           <span class="language-trigger-text">
@@ -101,6 +110,10 @@
               class="language-option-flag"
               [src]="language.flagUrl"
               [alt]="language.nativeLabel"
+              width="26"
+              height="17"
+              loading="lazy"
+              decoding="async"
             />
 
             <span class="language-option-copy">
@@ -133,6 +146,10 @@
         class="avatar-img"
         [src]="imageUrl(currentUser.imgPerfil, '/obras/paleta/tres.png')"
         [alt]="currentUser.username"
+        width="48"
+        height="48"
+        loading="eager"
+        decoding="async"
       />
     </button>
 

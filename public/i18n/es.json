@@ -594,5 +594,13 @@
   "following.hero.no_updates": "Sin actualizaciones",
   "following.feed.kicker": "Feed",
   "following.feed.title": "Últimas actualizaciones",
-  "following.feed.subtitle": "Capítulos nuevos de los creadores que sigues."
+  "following.feed.subtitle": "Capítulos nuevos de los creadores que sigues.",
+ "uploader.artwork.cover_helper": "Para Artwork, sube una o varias imágenes. Se publicarán como una colección global visible en todos los idiomas.",
+  "uploader.artwork.select_files": "Selecciona una o varias imágenes para tu artwork",
+  "uploader.artwork.selected_images": "Imágenes seleccionadas",
+  "uploader.artwork.error.add_at_least_one_image": "Agrega al menos una imagen para publicar tu artwork.",
+  "uploader.artwork.global_only": "Artwork se publica como contenido global y no usa versiones por idioma.",
+  "uploader.artwork.kicker": "Artwork global",
+  "uploader.artwork.global_title": "Colección global para todos los idiomas",
+  "uploader.artwork.global_description": "Los artworks no necesitan versiones por idioma. Puedes subir una o varias imágenes, y todas se publicarán como contenido global para que cualquier usuario pueda verlas sin duplicar idiomas."
 }

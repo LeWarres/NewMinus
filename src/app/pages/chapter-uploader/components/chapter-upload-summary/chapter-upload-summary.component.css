@@ -1,0 +1,21 @@
+.upload-summary {
+  position: relative;
+  z-index: 1;
+  margin-top: 20px;
+  padding: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: rgba(13, 18, 36, 0.42);
+  border: 1px solid rgba(199, 255, 22, 0.14);
+  border-radius: 16px;
+}
+
+.upload-summary span {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(199, 255, 22, 0.10);
+  color: #fff1c8;
+  font-size: 12px;
+  font-weight: 900;
+}

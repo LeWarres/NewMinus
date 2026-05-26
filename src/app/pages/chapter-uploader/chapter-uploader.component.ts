@@ -1,84 +1,53 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { TranslationService } from '../../services/translation.service';
 import { AuthService } from '../../services/auth.service';
 
-interface UploadChapterResponse {
-  success: boolean;
-  mensaje?: string;
-  error?: string;
-  obra_id?: number;
-  capitulo_id?: number;
-  numero_capitulo?: number;
-  idioma?: string;
-  versiones_guardadas?: number;
-  paginas_guardadas?: number;
-}
-
-interface SelectOption {
-  value: string;
-  labelKey: string;
-  nativeLabel: string;
-}
-
-interface ChapterLanguageVersion {
-  uid: string;
-  idioma: string;
-  titulo: string;
-  descripcion: string;
-  pages: File[];
-  isDragging: boolean;
-}
+import { ChapterUploaderHeaderComponent } from './components/chapter-uploader-header/chapter-uploader-header.component';
+import { ChapterVersionCardComponent } from './components/chapter-version-card/chapter-version-card.component';
+import { ChapterUploadSummaryComponent } from './components/chapter-upload-summary/chapter-upload-summary.component';
+import { CHAPTER_LANGUAGE_OPTIONS, GLOBAL_LANGUAGE, isChapterLanguageCode } from './chapter-uploader.options';
+import {
+  ChapterLanguageOption,
+  ChapterLanguageVersion,
+  ObraPreviewResponse,
+  UploadChapterResponse,
+  VersionFilesEvent,
+  VersionPageRemoveEvent
+} from './chapter-uploader.models';
 
 @Component({
   selector: 'app-chapter-uploader',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule
+    ChapterUploaderHeaderComponent,
+    ChapterVersionCardComponent,
+    ChapterUploadSummaryComponent
   ],
   templateUrl: './chapter-uploader.component.html',
   styleUrl: './chapter-uploader.component.css'
 })
 export class ChapterUploaderComponent implements OnInit {
   apiUrl = 'https://minuscreators.com/api/subir_capitulo.php';
+  obraPreviewUrl = 'https://minuscreators.com/api/obra_preview.php';
 
   obraId = 0;
+  obraTipoEntrega = '';
 
   versiones: ChapterLanguageVersion[] = [];
 
   cargando = false;
+  loadingWorkType = false;
   respuesta = '';
 
-  maxPageFileSize = 8 * 1024 * 1024;
-
+  maxPageFileSize = 5 * 1024 * 1024;
   maxTotalPagesSize = 300 * 1024 * 1024;
 
-  idiomas: SelectOption[] = [
-    { value: 'GLOBAL', labelKey: 'common.languages.global', nativeLabel: 'Global' },
-    { value: 'ES', labelKey: 'common.languages.es', nativeLabel: 'Español' },
-    { value: 'EN', labelKey: 'common.languages.en', nativeLabel: 'English' },
-    { value: 'JA', labelKey: 'common.languages.ja', nativeLabel: '日本語' },
-    { value: 'KO', labelKey: 'common.languages.ko', nativeLabel: '한국어' },
-    { value: 'ZH', labelKey: 'common.languages.zh', nativeLabel: '中文' },
-    { value: 'FR', labelKey: 'common.languages.fr', nativeLabel: 'Français' },
-    { value: 'DE', labelKey: 'common.languages.de', nativeLabel: 'Deutsch' },
-    { value: 'PT', labelKey: 'common.languages.pt', nativeLabel: 'Português' },
-    { value: 'IT', labelKey: 'common.languages.it', nativeLabel: 'Italiano' },
-    { value: 'RU', labelKey: 'common.languages.ru', nativeLabel: 'Русский' },
-    { value: 'AR', labelKey: 'common.languages.ar', nativeLabel: 'العربية' },
-    { value: 'HI', labelKey: 'common.languages.hi', nativeLabel: 'हिन्दी' },
-    { value: 'ID', labelKey: 'common.languages.id', nativeLabel: 'Bahasa Indonesia' },
-    { value: 'VI', labelKey: 'common.languages.vi', nativeLabel: 'Tiếng Việt' },
-    { value: 'TH', labelKey: 'common.languages.th', nativeLabel: 'ไทย' },
-    { value: 'TR', labelKey: 'common.languages.tr', nativeLabel: 'Türkçe' },
-    { value: 'PL', labelKey: 'common.languages.pl', nativeLabel: 'Polski' },
-    { value: 'NL', labelKey: 'common.languages.nl', nativeLabel: 'Nederlands' }
-  ];
+  idiomas: ChapterLanguageOption[] = CHAPTER_LANGUAGE_OPTIONS;
 
   constructor(
     private route: ActivatedRoute,
@@ -103,7 +72,21 @@ export class ChapterUploaderComponent implements OnInit {
       return;
     }
 
-    this.agregarVersionIdioma();
+    this.aplicarTipoObra(this.obtenerTipoObraDesdeRuta());
+    this.inicializarVersiones();
+    this.cargarTipoObra();
+  }
+
+  get isArtworkWork(): boolean {
+    return this.obraTipoEntrega === 'artwork';
+  }
+
+  get canAddLanguageVersion(): boolean {
+    if (this.isArtworkWork) {
+      return false;
+    }
+
+    return this.versiones.length < this.idiomas.length;
   }
 
   get totalPagesSize(): number {
@@ -121,6 +104,12 @@ export class ChapterUploaderComponent implements OnInit {
   }
 
   agregarVersionIdioma(): void {
+    if (this.isArtworkWork) {
+      this.forzarVersionGlobalArtwork();
+      this.respuesta = this.translationService.getTranslation('uploader.artwork.global_only');
+      return;
+    }
+
     const idioma = this.getPrimerIdiomaDisponible();
 
     if (!idioma) {
@@ -128,14 +117,7 @@ export class ChapterUploaderComponent implements OnInit {
       return;
     }
 
-    const nuevaVersion: ChapterLanguageVersion = {
-      uid: this.crearUid(),
-      idioma,
-      titulo: '',
-      descripcion: '',
-      pages: [],
-      isDragging: false
-    };
+    const nuevaVersion = this.createLanguageVersion(idioma);
 
     this.versiones = [
       nuevaVersion,
@@ -146,6 +128,12 @@ export class ChapterUploaderComponent implements OnInit {
   }
 
   eliminarVersionIdioma(version: ChapterLanguageVersion): void {
+    if (this.isArtworkWork) {
+      this.forzarVersionGlobalArtwork();
+      this.respuesta = this.translationService.getTranslation('uploader.artwork.global_only');
+      return;
+    }
+
     if (this.versiones.length <= 1) {
       this.respuesta = this.translationService.getTranslation('chapterUploader.error.min_one_language_version');
       return;
@@ -156,10 +144,17 @@ export class ChapterUploaderComponent implements OnInit {
   }
 
   onIdiomaChange(version: ChapterLanguageVersion): void {
+    if (this.isArtworkWork) {
+      version.idioma = GLOBAL_LANGUAGE;
+      this.forzarVersionGlobalArtwork();
+      this.respuesta = '';
+      return;
+    }
+
     const idiomaNormalizado = String(version.idioma || '').trim().toUpperCase();
 
     if (!this.esIdiomaPermitido(idiomaNormalizado)) {
-      version.idioma = this.getPrimerIdiomaDisponible(version.uid) || 'GLOBAL';
+      version.idioma = this.getPrimerIdiomaDisponible(version.uid) || GLOBAL_LANGUAGE;
       return;
     }
 
@@ -169,7 +164,7 @@ export class ChapterUploaderComponent implements OnInit {
 
     if (duplicado) {
       this.respuesta = this.translationService.getTranslation('chapterUploader.error.duplicate_language');
-      version.idioma = this.getPrimerIdiomaDisponible(version.uid) || 'GLOBAL';
+      version.idioma = this.getPrimerIdiomaDisponible(version.uid) || GLOBAL_LANGUAGE;
       return;
     }
 
@@ -177,48 +172,19 @@ export class ChapterUploaderComponent implements OnInit {
     this.respuesta = '';
   }
 
-  isIdiomaUsadoPorOtraVersion(idioma: string, version: ChapterLanguageVersion): boolean {
-    return this.versiones.some(item => {
-      return item.uid !== version.uid && item.idioma === idioma;
-    });
+  onVersionFilesSelected(event: VersionFilesEvent): void {
+    this.agregarPaginas(event.version, event.files);
   }
 
-  onFilesSelectedVersion(event: Event, version: ChapterLanguageVersion): void {
-    const input = event.target as HTMLInputElement;
-
-    if (!input.files || input.files.length === 0) {
-      return;
-    }
-
-    const files = Array.from(input.files);
-    this.agregarPaginas(version, files);
-
-    input.value = '';
-  }
-
-  onDragOverVersion(event: DragEvent, version: ChapterLanguageVersion): void {
-    event.preventDefault();
-    version.isDragging = true;
-  }
-
-  onDragLeaveVersion(event: DragEvent, version: ChapterLanguageVersion): void {
-    event.preventDefault();
-    version.isDragging = false;
-  }
-
-  onDropVersion(event: DragEvent, version: ChapterLanguageVersion): void {
-    event.preventDefault();
-    version.isDragging = false;
-
-    if (!event.dataTransfer || event.dataTransfer.files.length === 0) {
-      return;
-    }
-
-    const files = Array.from(event.dataTransfer.files);
-    this.agregarPaginas(version, files);
+  onVersionPageRemove(event: VersionPageRemoveEvent): void {
+    this.removePage(event.version, event.index);
   }
 
   agregarPaginas(version: ChapterLanguageVersion, files: File[]): void {
+    if (this.isArtworkWork) {
+      version.idioma = GLOBAL_LANGUAGE;
+    }
+
     let totalActual = this.totalPagesSize;
     const paginasValidas: File[] = [];
     let omitidos = 0;
@@ -243,9 +209,10 @@ export class ChapterUploaderComponent implements OnInit {
       ...paginasValidas
     ];
 
+    this.versiones = [...this.versiones];
+
     if (omitidos > 0) {
-      this.respuesta =
-        this.translationService.getTranslation('common.error.pages_skipped_size_limit');
+      this.respuesta = this.translationService.getTranslation('common.error.pages_skipped_size_limit');
       return;
     }
 
@@ -253,51 +220,13 @@ export class ChapterUploaderComponent implements OnInit {
   }
 
   removePage(version: ChapterLanguageVersion, index: number): void {
-    version.pages.splice(index, 1);
-    version.pages = [...version.pages];
+    version.pages = version.pages.filter((_, itemIndex) => itemIndex !== index);
+    this.versiones = [...this.versiones];
+    this.respuesta = '';
   }
 
   getVersionPagesTotalSize(version: ChapterLanguageVersion): number {
     return version.pages.reduce((total, file) => total + file.size, 0);
-  }
-
-  getIdiomaOptionLabel(idioma: SelectOption): string {
-    const translated = this.translationService.getTranslation(idioma.labelKey);
-
-    if (!translated || translated === idioma.labelKey) {
-      return idioma.nativeLabel;
-    }
-
-    if (translated === idioma.nativeLabel) {
-      return translated;
-    }
-
-    return `${translated} / ${idioma.nativeLabel}`;
-  }
-
-  getIdiomaLabel(value?: string): string {
-    const idioma = this.idiomas.find(item => item.value === value);
-
-    if (!idioma) {
-      return value || '';
-    }
-
-    return this.getIdiomaOptionLabel(idioma);
-  }
-
-  formatSize(bytes: number): string {
-    if (bytes < 1024) {
-      return `${bytes} B`;
-    }
-
-    const kb = bytes / 1024;
-
-    if (kb < 1024) {
-      return `${kb.toFixed(2)} KB`;
-    }
-
-    const mb = kb / 1024;
-    return `${mb.toFixed(2)} MB`;
   }
 
   subirCapitulo(): void {
@@ -313,6 +242,10 @@ export class ChapterUploaderComponent implements OnInit {
       return;
     }
 
+    if (this.isArtworkWork) {
+      this.forzarVersionGlobalArtwork();
+    }
+
     if (this.versiones.length === 0) {
       this.respuesta = this.translationService.getTranslation('chapterUploader.error.add_at_least_one_language');
       return;
@@ -323,30 +256,37 @@ export class ChapterUploaderComponent implements OnInit {
     }
 
     if (this.totalPagesSize > this.maxTotalPagesSize) {
-      this.respuesta =
-        this.translationService.getTranslation('common.error.total_pages_size_too_large');
+      this.respuesta = this.translationService.getTranslation('common.error.total_pages_size_too_large');
       return;
     }
 
+    const versionesParaSubir = this.isArtworkWork
+      ? [this.getArtworkGlobalVersion()]
+      : this.versiones;
+
+    const primeraVersion = versionesParaSubir[0];
     const formData = new FormData();
 
     formData.append('obra_id', String(this.obraId));
-    const primeraVersion = this.versiones[0];
-
-    formData.append('idioma', primeraVersion.idioma || 'GLOBAL');
+    formData.append('idioma', primeraVersion.idioma || GLOBAL_LANGUAGE);
     formData.append('titulo', primeraVersion.titulo.trim() || '');
     formData.append('descripcion', primeraVersion.descripcion.trim() || '');
 
-    const versionesPayload = this.versiones.map(version => ({
+    if (this.isArtworkWork) {
+      formData.append('tipoEntrega', 'artwork');
+      formData.append('artworkGlobal', '1');
+    }
+
+    const versionesPayload = versionesParaSubir.map(version => ({
       uid: version.uid,
-      idioma: version.idioma,
+      idioma: this.isArtworkWork ? GLOBAL_LANGUAGE : version.idioma,
       titulo: version.titulo.trim(),
       descripcion: version.descripcion.trim()
     }));
 
     formData.append('idiomaVersiones', JSON.stringify(versionesPayload));
 
-    this.versiones.forEach(version => {
+    versionesParaSubir.forEach(version => {
       version.pages.forEach(file => {
         formData.append(`paginas_${version.uid}[]`, file);
       });
@@ -384,12 +324,99 @@ export class ChapterUploaderComponent implements OnInit {
     return version.uid || String(index);
   }
 
-  trackByFileName(index: number, file: File): string {
-    return `${file.name}-${file.size}-${index}`;
+  private cargarTipoObra(): void {
+    this.loadingWorkType = true;
+
+    this.http.get<ObraPreviewResponse>(
+      `${this.obraPreviewUrl}?id=${this.obraId}`,
+      { withCredentials: true }
+    ).subscribe({
+      next: (res) => {
+        this.loadingWorkType = false;
+
+        if (!res.success || !res.obra) {
+          return;
+        }
+
+        this.aplicarTipoObra(res.obra.tipoEntrega || '');
+      },
+      error: (err) => {
+        this.loadingWorkType = false;
+        console.error(err);
+      }
+    });
   }
 
-  trackByIdiomaValue(index: number, idioma: SelectOption): string {
-    return idioma.value;
+  private aplicarTipoObra(tipoEntrega?: string): void {
+    const tipoNormalizado = this.normalizarTipoObra(tipoEntrega);
+
+    if (!tipoNormalizado) {
+      return;
+    }
+
+    this.obraTipoEntrega = tipoNormalizado;
+
+    if (this.isArtworkWork) {
+      this.forzarVersionGlobalArtwork();
+      return;
+    }
+
+    if (this.versiones.length === 0) {
+      this.inicializarVersiones();
+    }
+  }
+
+  private inicializarVersiones(): void {
+    if (this.versiones.length > 0) {
+      return;
+    }
+
+    this.versiones = [
+      this.createLanguageVersion(this.isArtworkWork ? GLOBAL_LANGUAGE : 'ES')
+    ];
+  }
+
+  private forzarVersionGlobalArtwork(): void {
+    const versionesActuales = this.versiones;
+    const versionBase =
+      versionesActuales.find(version => version.pages.length > 0) ||
+      versionesActuales[0] ||
+      this.createLanguageVersion(GLOBAL_LANGUAGE);
+
+    const paginasGlobales = versionesActuales.flatMap(version => version.pages);
+    const tituloGlobal = versionBase.titulo || versionesActuales.find(version => version.titulo.trim())?.titulo || '';
+    const descripcionGlobal =
+      versionBase.descripcion ||
+      versionesActuales.find(version => version.descripcion.trim())?.descripcion ||
+      '';
+
+    this.versiones = [
+      {
+        ...versionBase,
+        idioma: GLOBAL_LANGUAGE,
+        titulo: tituloGlobal,
+        descripcion: descripcionGlobal,
+        pages: paginasGlobales.length > 0 ? paginasGlobales : versionBase.pages,
+        isDragging: false
+      }
+    ];
+  }
+
+  private getArtworkGlobalVersion(): ChapterLanguageVersion {
+    this.forzarVersionGlobalArtwork();
+    return this.versiones[0];
+  }
+
+  private obtenerTipoObraDesdeRuta(): string {
+    const queryParamType =
+      this.route.snapshot.queryParamMap.get('tipoEntrega') ||
+      this.route.snapshot.queryParamMap.get('tipoObra') ||
+      this.route.snapshot.queryParamMap.get('tipo') ||
+      '';
+
+    const dataType = String(this.route.snapshot.data?.['tipoEntrega'] || '');
+
+    return queryParamType || dataType;
   }
 
   private enviarCapitulo(formData: FormData, idiomaFallback: string): void {
@@ -424,7 +451,7 @@ export class ChapterUploaderComponent implements OnInit {
           ],
           {
             queryParams: {
-              idioma: res.idioma || idiomaFallback || 'GLOBAL'
+              idioma: this.isArtworkWork ? GLOBAL_LANGUAGE : (res.idioma || idiomaFallback || GLOBAL_LANGUAGE)
             }
           }
         );
@@ -464,8 +491,14 @@ export class ChapterUploaderComponent implements OnInit {
   private validarVersiones(): boolean {
     const idiomasUsados = new Set<string>();
 
+    if (this.isArtworkWork && this.versiones.length !== 1) {
+      this.forzarVersionGlobalArtwork();
+    }
+
     for (const version of this.versiones) {
-      const idioma = String(version.idioma || '').trim().toUpperCase();
+      const idioma = this.isArtworkWork
+        ? GLOBAL_LANGUAGE
+        : String(version.idioma || '').trim().toUpperCase();
 
       if (!this.esIdiomaPermitido(idioma)) {
         this.respuesta = this.translationService.getTranslation('chapterUploader.error.invalid_language');
@@ -500,6 +533,10 @@ export class ChapterUploaderComponent implements OnInit {
   }
 
   private getPrimerIdiomaDisponible(ignoreUid?: string): string {
+    if (this.isArtworkWork) {
+      return GLOBAL_LANGUAGE;
+    }
+
     const usados = new Set(
       this.versiones
         .filter(version => version.uid !== ignoreUid)
@@ -507,6 +544,17 @@ export class ChapterUploaderComponent implements OnInit {
     );
 
     return this.idiomas.find(idioma => !usados.has(idioma.value))?.value || '';
+  }
+
+  private createLanguageVersion(idioma: string): ChapterLanguageVersion {
+    return {
+      uid: this.crearUid(),
+      idioma,
+      titulo: '',
+      descripcion: '',
+      pages: [],
+      isDragging: false
+    };
   }
 
   private crearUid(): string {
@@ -518,7 +566,7 @@ export class ChapterUploaderComponent implements OnInit {
   }
 
   private esIdiomaPermitido(value: string): boolean {
-    return this.idiomas.some(idioma => idioma.value === value);
+    return isChapterLanguageCode(value);
   }
 
   private esImagenValida(file: File, maxSize: number): boolean {
@@ -529,5 +577,21 @@ export class ChapterUploaderComponent implements OnInit {
     ];
 
     return tiposPermitidos.includes(file.type) && file.size <= maxSize;
+  }
+
+  private normalizarTipoObra(tipoEntrega?: string): string {
+    const normalized = String(tipoEntrega || '').trim().toLowerCase();
+
+    const allowed = [
+      'comic',
+      'manga',
+      'libro',
+      'novela',
+      'artwork'
+    ];
+
+    return allowed.includes(normalized)
+      ? normalized
+      : '';
   }
 }

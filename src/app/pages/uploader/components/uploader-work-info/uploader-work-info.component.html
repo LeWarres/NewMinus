@@ -1,0 +1,118 @@
+<section class="work-info-section" [formGroup]="formulario">
+  <div class="form-header">
+    <div>
+      <span class="section-kicker">
+        {{ translationService.getTranslation('common.labels.work') }}
+      </span>
+
+      <h2>
+        {{ translationService.getTranslation('common.work.info_title') }}
+      </h2>
+    </div>
+
+    <span class="required-note">
+      {{ translationService.getTranslation('uploader.work.required_fields') }}
+    </span>
+  </div>
+
+  <div class="form-grid">
+    <label class="full">
+      <span>
+        {{ translationService.getTranslation('common.labels.title') }}
+        <strong>*</strong>
+      </span>
+
+      <input
+        type="text"
+        formControlName="titulo"
+        [placeholder]="translationService.getTranslation('common.labels.title')"
+      />
+
+      <small
+        class="field-error"
+        *ngIf="formulario.get('titulo')?.invalid && formulario.get('titulo')?.touched"
+      >
+        {{ translationService.getTranslation('common.validation.title_required') }}
+      </small>
+    </label>
+
+    <label class="full">
+      <span>
+        {{ translationService.getTranslation('common.labels.description') }}
+      </span>
+
+      <textarea
+        formControlName="descripcion"
+        rows="5"
+        [placeholder]="translationService.getTranslation('common.labels.description')"
+      ></textarea>
+    </label>
+
+    <div class="category-panel full">
+      <div class="category-header">
+        <div>
+          <span class="panel-label">
+            {{ translationService.getTranslation('common.labels.categories') }}
+          </span>
+
+          <p>
+            {{ translationService.getTranslation('common.categories.select_up_to') }}
+          </p>
+        </div>
+
+        <strong>
+          {{ selectedCategories.length }}/{{ maxCategories }}
+        </strong>
+      </div>
+
+      <div class="category-grid">
+        <button
+          type="button"
+          *ngFor="let categoria of categorias; trackBy: trackByCategoriaValue"
+          class="category-chip"
+          [class.selected]="isCategorySelected(categoria.value)"
+          [disabled]="!isCategorySelected(categoria.value) && selectedCategories.length >= maxCategories"
+          (click)="toggleCategory.emit(categoria.value)"
+        >
+          {{ getCategoryLabel(categoria.value) }}
+        </button>
+      </div>
+
+      <div
+        class="selected-categories"
+        *ngIf="selectedCategories.length > 0"
+      >
+        <span
+          *ngFor="let categoria of selectedCategories; trackBy: trackBySelectedCategoria"
+          class="selected-category"
+        >
+          {{ getCategoryLabel(categoria) }}
+        </span>
+      </div>
+    </div>
+
+    <div class="radio-panel full">
+      <span class="panel-label">
+        {{ translationService.getTranslation('common.labels.work_type') }}
+      </span>
+
+      <div class="radio-options">
+        <label
+          class="radio-option"
+          *ngFor="let tipo of tipoObraOptions; trackBy: trackByTipoObraValue"
+        >
+          <input
+            type="radio"
+            formControlName="tipoEntrega"
+            [value]="tipo.value"
+            (change)="tipoEntregaChange.emit(tipo.value)"
+          />
+
+          <span>
+            {{ getOptionLabel(tipo) }}
+          </span>
+        </label>
+      </div>
+    </div>
+  </div>
+</section>

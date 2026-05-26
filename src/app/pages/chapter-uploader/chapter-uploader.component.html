@@ -1,28 +1,13 @@
 <div class="chapter-uploader">
   <div class="uploader-card">
-    <header class="chapter-header">
-      <div>
-        <span class="eyebrow">{{ translationService.getTranslation('common.brand.minus_creators') }}</span>
-
-        <h1>
-          {{ translationService.getTranslation('common.actions.upload_new_chapter') }}
-        </h1>
-
-        <p>
-          {{ translationService.getTranslation('chapterUploader.hero.description') }}
-        </p>
-      </div>
-
-      <button
-        type="button"
-        class="add-language-btn"
-        (click)="agregarVersionIdioma()"
-        [disabled]="cargando"
-      >
-        <span>＋</span>
-        {{ translationService.getTranslation('common.actions.add_language') }}
-      </button>
-    </header>
+    <app-chapter-uploader-header
+      [cargando]="cargando"
+      [canAddLanguageVersion]="canAddLanguageVersion"
+      [isArtworkWork]="isArtworkWork"
+      [loadingWorkType]="loadingWorkType"
+      [totalVersiones]="versiones.length"
+      (addLanguageVersion)="agregarVersionIdioma()"
+    ></app-chapter-uploader-header>
 
     <div class="auto-number-note">
       <strong>
@@ -34,165 +19,40 @@
       </p>
     </div>
 
-    <section class="language-versions">
-      <article
-        class="language-version-card"
-        *ngFor="let version of versiones; let versionIndex = index; trackBy: trackByVersionUid"
-      >
-        <div class="version-header">
-          <div>
-            <span class="version-kicker">
-              {{ translationService.getTranslation('chapterUploader.version.title') }}
-            </span>
+    @defer (on viewport) {
+      <section class="language-versions">
+        <app-chapter-version-card
+          *ngFor="let version of versiones; let versionIndex = index; trackBy: trackByVersionUid"
+          [version]="version"
+          [versionIndex]="versionIndex"
+          [versiones]="versiones"
+          [idiomas]="idiomas"
+          [cargando]="cargando"
+          [maxPageFileSize]="maxPageFileSize"
+          [isArtworkWork]="isArtworkWork"
+          (removeVersion)="eliminarVersionIdioma($event)"
+          (idiomaChange)="onIdiomaChange($event)"
+          (filesSelected)="onVersionFilesSelected($event)"
+          (pageRemoved)="onVersionPageRemove($event)"
+        ></app-chapter-version-card>
+      </section>
+    } @placeholder {
+      <section class="language-versions-placeholder" aria-hidden="true">
+        <div class="placeholder-card"></div>
+      </section>
+    }
 
-            <h2>
-              {{ getIdiomaLabel(version.idioma) }}
-            </h2>
-          </div>
-
-          <button
-            type="button"
-            class="remove-version-btn"
-            (click)="eliminarVersionIdioma(version)"
-            [disabled]="versiones.length <= 1 || cargando"
-          >
-            {{ translationService.getTranslation('common.actions.delete') }}
-          </button>
-        </div>
-
-        <div class="version-grid">
-          <label>
-            <span>
-              {{ translationService.getTranslation('common.labels.language') }}
-            </span>
-
-            <select
-              [(ngModel)]="version.idioma"
-              (ngModelChange)="onIdiomaChange(version)"
-              [disabled]="cargando"
-            >
-              <option
-                *ngFor="let idioma of idiomas; trackBy: trackByIdiomaValue"
-                [value]="idioma.value"
-                [disabled]="isIdiomaUsadoPorOtraVersion(idioma.value, version)"
-              >
-                {{ getIdiomaOptionLabel(idioma) }}
-              </option>
-            </select>
-          </label>
-
-          <label>
-            <span>
-              {{ translationService.getTranslation('common.labels.chapter_title') }}
-            </span>
-
-            <input
-              type="text"
-              [(ngModel)]="version.titulo"
-              [placeholder]="translationService.getTranslation('chapterUploader.fields.chapter_title_placeholder')"
-              [disabled]="cargando"
-            />
-          </label>
-
-          <label class="full">
-            <span>
-              {{ translationService.getTranslation('common.labels.description') }}
-            </span>
-
-            <textarea
-              [(ngModel)]="version.descripcion"
-              [placeholder]="translationService.getTranslation('chapterUploader.fields.description_placeholder')"
-              [disabled]="cargando"
-            ></textarea>
-          </label>
-        </div>
-
-        <label
-          class="file-zone"
-          [class.dragover]="version.isDragging"
-          (dragover)="onDragOverVersion($event, version)"
-          (dragleave)="onDragLeaveVersion($event, version)"
-          (drop)="onDropVersion($event, version)"
-        >
-          <div class="file-zone-inner">
-            <span class="file-icon">🖼️</span>
-
-            <strong>
-              {{ translationService.getTranslation('chapterUploader.pages.add') }}
-            </strong>
-
-            <small>
-              {{ translationService.getTranslation('common.file.formats') }} ·
-              {{ translationService.getTranslation('common.file.max') }}
-              {{ formatSize(maxPageFileSize) }}
-              {{ translationService.getTranslation('chapterUploader.pages.each') }}
-            </small>
-
-            <small>
-              {{ translationService.getTranslation('common.upload.select_multiple_images') }}
-            </small>
-          </div>
-
-          <input
-            type="file"
-            multiple
-            accept="image/jpeg, image/png, image/webp"
-            (change)="onFilesSelectedVersion($event, version)"
-            [disabled]="cargando"
-          />
-        </label>
-
-        <div
-          *ngIf="version.pages.length > 0"
-          class="files-container"
-        >
-          <div class="files-header">
-            <h3>
-              {{ translationService.getTranslation('common.pages.selected') }}
-            </h3>
-
-            <span>
-              {{ version.pages.length }} · {{ formatSize(getVersionPagesTotalSize(version)) }}
-            </span>
-          </div>
-
-          <div
-            *ngFor="let file of version.pages; let index = index; trackBy: trackByFileName"
-            class="file-item"
-          >
-            <span>
-              {{ translationService.getTranslation('common.labels.page') }} {{ index + 1 }} - {{ file.name }}
-            </span>
-
-            <span>
-              {{ formatSize(file.size) }}
-            </span>
-
-            <button
-              type="button"
-              (click)="removePage(version, index)"
-              [disabled]="cargando"
-            >
-              {{ translationService.getTranslation('chapterUploader.actions.remove_page') }}
-            </button>
-          </div>
-        </div>
-      </article>
-    </section>
-
-    <div class="upload-summary" *ngIf="versiones.length > 0">
-      <span>
-        {{ translationService.getTranslation('common.labels.languages') }}: {{ versiones.length }}
-      </span>
-
-      <span>
-        {{ translationService.getTranslation('chapterUploader.summary.pages') }}: {{ totalPagesCount }}
-      </span>
-
-      <span>
-        {{ translationService.getTranslation('common.stats.total_selected_size') }}: {{ formatSize(totalPagesSize) }}
-      </span>
-    </div>
+    @defer (on viewport) {
+      <app-chapter-upload-summary
+        *ngIf="versiones.length > 0"
+        [totalVersiones]="versiones.length"
+        [totalPagesCount]="totalPagesCount"
+        [totalPagesSize]="totalPagesSize"
+        [isArtworkWork]="isArtworkWork"
+      ></app-chapter-upload-summary>
+    } @placeholder {
+      <div class="summary-placeholder" aria-hidden="true"></div>
+    }
 
     <p *ngIf="respuesta" class="respuesta">
       {{ respuesta }}

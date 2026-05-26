@@ -1,0 +1,146 @@
+.authorship-panel {
+  margin-top: 22px;
+  border: 1px solid rgba(206, 190, 255, 0.18);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(48, 51, 105, 0.84), rgba(33, 38, 78, 0.94));
+}
+
+.authorship-inner {
+  padding: 16px;
+}
+
+.authorship-header {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.authorship-title {
+  display: inline-block;
+  color: #c7ff16;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.authorship-header p,
+.auth-example p {
+  margin: 0;
+  color: #d8dcff;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.authorship-header p {
+  max-width: 680px;
+  color: #fff1c8;
+  font-weight: 700;
+}
+
+.authorship-examples {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.auth-example {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(13, 18, 36, 0.42);
+}
+
+.auth-example.allowed {
+  border: 1px solid rgba(199, 255, 22, 0.18);
+}
+
+.auth-example.not-allowed {
+  border: 1px solid rgba(229, 57, 57, 0.22);
+}
+
+.example-mark {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.allowed-mark {
+  color: #1f9d55;
+  background: rgba(28, 150, 87, 0.14);
+}
+
+.not-allowed-mark {
+  color: #e53939;
+  background: rgba(229, 57, 57, 0.12);
+}
+
+.example-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.example-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.auth-example strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #fff7ea;
+  font-size: 14px;
+}
+
+.auth-example img {
+  width: 84px;
+  height: 112px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(206, 190, 255, 0.16);
+}
+
+.authorship-checkbox {
+  margin-top: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff7ea;
+  font-size: 15px;
+  border: 1px solid rgba(206, 190, 255, 0.12);
+  border-radius: 16px;
+  background: rgba(13, 18, 36, 0.42);
+}
+
+.authorship-checkbox input {
+  width: auto;
+  accent-color: #c7ff16;
+}
+
+@media (max-width: 620px) {
+  .authorship-examples {
+    grid-template-columns: 1fr;
+  }
+
+  .authorship-header {
+    flex-direction: column;
+  }
+
+  .auth-example img {
+    width: 74px;
+    height: 98px;
+  }
+}

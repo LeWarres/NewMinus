@@ -1,0 +1,63 @@
+<section class="home-section" [ngClass]="sectionClass">
+  <div class="section-header">
+    <div>
+      <h2>
+        {{ translationService.getTranslation(titleKey) }}
+      </h2>
+
+      <p>
+        {{ translationService.getTranslation(descriptionKey) }}
+      </p>
+    </div>
+
+    <a [routerLink]="viewMoreRoute">
+      {{ translationService.getTranslation('common.actions.view_more') }} &#10095;
+    </a>
+  </div>
+
+  <p *ngIf="loading" class="estado">
+    {{ loadingText }}...
+  </p>
+
+  <p *ngIf="error" class="estado error">
+    {{ error }}
+  </p>
+
+  <div
+    class="carousel-container"
+    *ngIf="!loading && items.length > 0; else noItems"
+  >
+    <button
+      type="button"
+      class="carousel-btn prev-btn"
+      (click)="prevCarousel()"
+    >
+      &#10094;
+    </button>
+
+    <div class="carousel-track" [id]="carouselId">
+      <app-capitulo-card
+        class="carousel-card"
+        *ngFor="let item of items; trackBy: trackByCapitulo"
+        [item]="item"
+        [showDescription]="showDescription"
+        (openCapitulo)="openCapitulo.emit($event)"
+        (openAutor)="openAutor.emit($event)"
+      ></app-capitulo-card>
+    </div>
+
+    <button
+      type="button"
+      class="carousel-btn next-btn"
+      (click)="nextCarousel()"
+    >
+      &#10095;
+    </button>
+  </div>
+
+  <ng-template #noItems>
+    <p class="estado" *ngIf="!loading && !error">
+      {{ translationService.getTranslation(emptyKey) }}
+    </p>
+  </ng-template>
+</section>

@@ -52,6 +52,7 @@ export interface AdminObra {
   idiomas?: AdminObraIdioma[];
   tipoEntrega?: string;
   portada?: string;
+  portadaThumb?: string;
   numVisitas: number;
   fechaCreacion: string;
   capitulos: AdminCapitulo[];

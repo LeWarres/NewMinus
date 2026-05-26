@@ -1,0 +1,14 @@
+<div class="upload-summary">
+  <span>
+    {{ translationService.getTranslation('common.labels.languages') }}:
+    {{ isArtworkWork ? 'GLOBAL' : totalVersiones }}
+  </span>
+
+  <span>
+    {{ translationService.getTranslation('chapterUploader.summary.pages') }}: {{ totalPagesCount }}
+  </span>
+
+  <span>
+    {{ translationService.getTranslation('common.stats.total_selected_size') }}: {{ formatSize(totalPagesSize) }}
+  </span>
+</div>

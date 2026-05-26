@@ -6,17 +6,13 @@ import { Subscription } from 'rxjs';
 
 import { TranslationService } from '../../services/translation.service';
 import { AuthService, CurrentUser } from '../../services/auth.service';
+import { getContentLanguageCode } from '../../shared/options/language-options';
 import { RecommendedCarouselComponent } from '../../components/recommended-carousel/recommended-carousel.component';
+import { HomeWorkCarouselComponent } from './components/home-work-carousel/home-work-carousel.component';
+import { HomeChapterCarouselComponent } from './components/home-chapter-carousel/home-chapter-carousel.component';
 
-import {
-  ObraCardComponent,
-  ObraCardItem
-} from '../../components/cards/obra-card/obra-card.component';
-
-import {
-  CapituloCardComponent,
-  CapituloCardItem
-} from '../../components/cards/capitulo-card/capitulo-card.component';
+import type { ObraCardItem } from '../../components/cards/obra-card/obra-card.component';
+import type { CapituloCardItem } from '../../components/cards/capitulo-card/capitulo-card.component';
 
 interface Obra extends ObraCardItem {
   tipoEntrega?: string;
@@ -49,8 +45,8 @@ interface HeroBannerImage {
     CommonModule,
     RouterModule,
     RecommendedCarouselComponent,
-    ObraCardComponent,
-    CapituloCardComponent
+    HomeWorkCarouselComponent,
+    HomeChapterCarouselComponent
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
@@ -81,6 +77,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   errorPopulares7Dias = '';
 
   private languageSubscription?: Subscription;
+  private readonly homeCarouselLimit = 8;
+  private readonly followingHomeLimit = 6;
+  private readonly deferredLoadStepMs = 220;
+  private deferredLoadTimers: number[] = [];
+  private lastLoadedLanguage = '';
 
   constructor(
     private http: HttpClient,
@@ -105,7 +106,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     this.currentUser = this.authService.getCurrentUser();
-    this.updateHeroBannerImages();
+    this.loadHomeForCurrentLanguage();
 
     /*
       Recarga Home cuando cambia el idioma de la interfaz.
@@ -113,23 +114,24 @@ export class HomeComponent implements OnInit, OnDestroy {
       Si hay sesión, el backend usa usuario_idiomas_lectura.
     */
     this.languageSubscription = this.translationService.currentLanguage$.subscribe(() => {
-      this.updateHeroBannerImages();
-      this.cargarContenidoPrincipal();
+      this.loadHomeForCurrentLanguage();
     });
-
-    if (this.currentUser) {
-      this.cargarFollowing();
-    }
   }
 
   ngOnDestroy(): void {
     this.languageSubscription?.unsubscribe();
+    this.clearDeferredLoads();
   }
 
   cargarContenidoPrincipal(): void {
+    this.clearDeferredLoads();
+    this.prepareDeferredLoadingStates();
+
     this.cargarPopulares7Dias();
-    this.cargarObrasNuevas();
-    this.cargarCapitulosNuevos();
+
+    this.queueHomeLoad(() => this.cargarObrasNuevas(), this.deferredLoadStepMs);
+    this.queueHomeLoad(() => this.cargarCapitulosNuevos(), this.deferredLoadStepMs * 2);
+    this.queueHomeLoad(() => this.cargarFollowing(), this.deferredLoadStepMs * 3);
   }
 
   cargarPopulares7Dias(): void {
@@ -137,7 +139,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.errorPopulares7Dias = '';
 
     const params = this.homeParams()
-      .set('limite', '10');
+      .set('limite', String(this.homeCarouselLimit));
 
     this.http
       .get<ObrasResponse>(
@@ -177,7 +179,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     const params = this.homeParams()
       .set('orden', 'recientes')
-      .set('limite', '10');
+      .set('limite', String(this.homeCarouselLimit));
 
     this.http
       .get<ObrasResponse>(
@@ -216,7 +218,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.errorCapitulos = '';
 
     const params = this.homeParams()
-      .set('limite', '10');
+      .set('limite', String(this.homeCarouselLimit));
 
     this.http
       .get<CapitulosResponse>(
@@ -254,6 +256,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.currentUser = this.authService.getCurrentUser();
 
     if (!this.currentUser) {
+      this.cargandoFollowing = false;
       this.followingItems = [];
       return;
     }
@@ -263,7 +266,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     this.http
       .get<CapitulosResponse>(
-        `${this.followingUrl}?limite=8`,
+        `${this.followingUrl}?limite=${this.followingHomeLimit}`,
         {
           withCredentials: true
         }
@@ -420,22 +423,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  nextCarousel(id: string): void {
-    this.scrollCarousel(id, 1);
-  }
-
-  prevCarousel(id: string): void {
-    this.scrollCarousel(id, -1);
-  }
-
-  trackByObra(index: number, obra: Obra): number {
-    return obra.id || index;
-  }
-
-  trackByCapitulo(index: number, item: CapituloCardItem): number | string {
-    return item.capituloVersionId || item.capituloId || `${item.obraId}-${item.numeroCapitulo}-${item.idioma || 'GLOBAL'}-${index}`;
-  }
-
   trackByHeroBanner(index: number, image: HeroBannerImage): string {
     return image.src || `${index}`;
   }
@@ -477,6 +464,62 @@ export class HomeComponent implements OnInit, OnDestroy {
     }));
   }
 
+  private loadHomeForCurrentLanguage(): void {
+    const currentLanguage = this.translationService
+      .getCurrentLanguage()
+      .trim()
+      .toLowerCase();
+
+    if (this.lastLoadedLanguage === currentLanguage) {
+      return;
+    }
+
+    this.lastLoadedLanguage = currentLanguage;
+    this.updateHeroBannerImages();
+    this.cargarContenidoPrincipal();
+  }
+
+  private prepareDeferredLoadingStates(): void {
+    this.currentUser = this.authService.getCurrentUser();
+
+    this.obrasPopulares7Dias = [];
+    this.obrasNuevas = [];
+    this.capitulosNuevos = [];
+
+    this.cargandoObras = true;
+    this.cargandoCapitulos = true;
+    this.cargandoPopulares7Dias = true;
+
+    this.errorObras = '';
+    this.errorCapitulos = '';
+    this.errorPopulares7Dias = '';
+
+    if (this.currentUser) {
+      this.followingItems = [];
+      this.cargandoFollowing = true;
+      this.errorFollowing = '';
+      return;
+    }
+
+    this.cargandoFollowing = false;
+    this.errorFollowing = '';
+    this.followingItems = [];
+  }
+
+  private queueHomeLoad(callback: () => void, delayMs: number): void {
+    const timerId = window.setTimeout(() => {
+      this.deferredLoadTimers = this.deferredLoadTimers.filter(id => id !== timerId);
+      callback();
+    }, delayMs);
+
+    this.deferredLoadTimers.push(timerId);
+  }
+
+  private clearDeferredLoads(): void {
+    this.deferredLoadTimers.forEach(timerId => window.clearTimeout(timerId));
+    this.deferredLoadTimers = [];
+  }
+
   private homeParams(): HttpParams {
     return new HttpParams()
       .set('contexto', 'home')
@@ -484,47 +527,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private getIdiomaInterfazContenido(): string {
-    const currentLanguage = this.translationService
-      .getCurrentLanguage()
-      .trim()
-      .toUpperCase();
-
-    const allowedLanguages = [
-      'ES',
-      'EN',
-      'JA',
-      'KO',
-      'ZH',
-      'FR',
-      'DE',
-      'PT',
-      'IT',
-      'RU',
-      'AR',
-      'HI',
-      'ID',
-      'VI',
-      'TH',
-      'TR',
-      'PL',
-      'NL'
-    ];
-
-    return allowedLanguages.includes(currentLanguage)
-      ? currentLanguage
-      : 'EN';
-  }
-
-  private scrollCarousel(id: string, direction: 1 | -1): void {
-    const carousel = document.getElementById(id);
-
-    if (!carousel) {
-      return;
-    }
-
-    carousel.scrollBy({
-      left: direction * 320,
-      behavior: 'smooth'
-    });
+    return getContentLanguageCode(
+      this.translationService.getCurrentLanguage()
+    );
   }
 }

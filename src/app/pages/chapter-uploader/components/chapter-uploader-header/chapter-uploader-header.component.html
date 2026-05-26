@@ -1,0 +1,41 @@
+<header class="chapter-header">
+  <div>
+    <span class="eyebrow">
+      {{ translationService.getTranslation('common.brand.minus_creators') }}
+    </span>
+
+    <h1>
+      {{ translationService.getTranslation('common.actions.upload_new_chapter') }}
+    </h1>
+
+    <p>
+      {{ translationService.getTranslation('chapterUploader.hero.description') }}
+    </p>
+
+    <p class="artwork-global-note" *ngIf="isArtworkWork">
+      🌐 {{ translationService.getTranslation('uploader.artwork.global_only') }}
+    </p>
+
+    <p class="artwork-global-note" *ngIf="loadingWorkType && !isArtworkWork">
+      {{ translationService.getTranslation('common.state.loading_work') }}...
+    </p>
+  </div>
+
+  <button
+    *ngIf="!isArtworkWork; else globalBadge"
+    type="button"
+    class="add-language-btn"
+    (click)="addLanguageVersion.emit()"
+    [disabled]="cargando || !canAddLanguageVersion"
+  >
+    <span>＋</span>
+    {{ translationService.getTranslation('common.actions.add_language') }}
+  </button>
+
+  <ng-template #globalBadge>
+    <div class="global-language-chip" aria-live="polite">
+      <strong>GLOBAL</strong>
+      <span>{{ translationService.getTranslation('common.labels.languages') }}: {{ totalVersiones }}</span>
+    </div>
+  </ng-template>
+</header>

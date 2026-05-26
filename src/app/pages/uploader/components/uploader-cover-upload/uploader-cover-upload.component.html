@@ -1,0 +1,96 @@
+<section class="upload-section">
+  <div class="upload-title">
+    <div>
+      <span class="section-kicker">
+        {{ translationService.getTranslation('uploader.cover.kicker') }}
+      </span>
+
+      <h2>
+        {{ translationService.getTranslation('uploader.cover.title') }}
+      </h2>
+    </div>
+
+    <div>
+      <p>
+        {{ translationService.getTranslation('common.file.formats') }} ·
+        {{ translationService.getTranslation('common.file.max') }}
+        {{ formatSize(maxCoverFileSize) }} ·
+        {{ translationService.getTranslation('common.file.optimized_webp') }}
+      </p>
+    </div>
+  </div>
+
+  <div class="upload-layout">
+    <div
+      class="upload-container"
+      (click)="triggerFileInput()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      [class.dragover]="isDragging"
+    >
+      <div class="upload-icon">🖼️</div>
+
+      <h3>
+        {{ translationService.getTranslation('uploader.cover.drop_here') }}
+      </h3>
+
+      <p>
+        {{ translationService.getTranslation('uploader.cover.select_file') }}
+      </p>
+
+      <input
+        type="file"
+        #fileInput
+        (change)="onFileSelected($event)"
+        hidden
+        accept="image/jpeg, image/png, image/webp"
+      />
+    </div>
+
+    <div
+      class="preview-panel"
+      *ngIf="selectedFile; else noCover"
+    >
+      <div class="file-preview-icon">📁</div>
+
+      <div>
+        <h3>
+          {{ translationService.getTranslation('uploader.cover.selected') }}
+        </h3>
+
+        <p class="file-name">
+          {{ selectedFile.name }}
+        </p>
+
+        <p class="file-size">
+          {{ formatSize(selectedFile.size) }}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="remove-btn"
+        (click)="removeFile($event)"
+      >
+        {{ translationService.getTranslation('common.actions.delete') }}
+      </button>
+    </div>
+
+    <ng-template #noCover>
+      <div class="preview-panel empty-preview">
+        <div class="file-preview-icon">📁</div>
+
+        <div>
+          <h3>
+            {{ translationService.getTranslation('uploader.cover.none_selected') }}
+          </h3>
+
+          <p>
+            {{ translationService.getTranslation('uploader.cover.preview_placeholder') }}
+          </p>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+</section>

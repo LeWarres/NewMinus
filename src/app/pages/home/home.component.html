@@ -3,7 +3,7 @@
     <div class="hero-content">
       <div class="hero-banner-strip" *ngIf="heroBannerImages.length > 0">
         <a
-          *ngFor="let image of heroBannerImages; trackBy: trackByHeroBanner"
+          *ngFor="let image of heroBannerImages; let index = index; trackBy: trackByHeroBanner"
           class="hero-banner-link"
           [href]="image.href"
           [attr.aria-label]="image.alt"
@@ -14,7 +14,10 @@
             class="hero-banner-image"
             [src]="image.src"
             [alt]="image.alt"
-            loading="lazy"
+            width="416"
+            height="234"
+            loading="eager"
+            [attr.fetchpriority]="index === 0 ? 'high' : 'auto'"
             decoding="async"
           />
         </a>
@@ -40,262 +43,86 @@
     ></app-recommended-carousel>
   </section>
 
-  <section class="home-section trending-section">
-    <div class="section-header">
-      <div>
-        <h2>
-          {{ translationService.getTranslation('home.trending.title') }}
-        </h2>
+  @defer (on viewport) {
+    <app-home-work-carousel
+      sectionClass="trending-section"
+      titleKey="home.trending.title"
+      descriptionKey="home.trending.description"
+      cardLabelKey="home.trending.card_label"
+      emptyKey="home.trending.empty"
+      carouselId="populares-7-dias"
+      [items]="obrasPopulares7Dias"
+      [loading]="cargandoPopulares7Dias"
+      [error]="errorPopulares7Dias"
+      [viewMoreQueryParams]="{ orden: 'populares', idioma: 'preferidos' }"
+      (openObra)="abrirObra($event)"
+      (openAutor)="abrirPerfilObra($event)"
+    ></app-home-work-carousel>
+  } @placeholder {
+    <section class="home-section deferred-placeholder">
+      <div class="section-skeleton"></div>
+    </section>
+  }
 
-        <p>
-          {{ translationService.getTranslation('home.trending.description') }}
-        </p>
-      </div>
+  @defer (on viewport) {
+    <app-home-work-carousel
+      titleKey="home.newWorks.title"
+      descriptionKey="home.newWorks.description"
+      cardLabelKey="home.newWorks.card_label"
+      emptyKey="home.newWorks.empty"
+      carouselId="nuevas-obras"
+      [items]="obrasNuevas"
+      [loading]="cargandoObras"
+      [error]="errorObras"
+      (openObra)="abrirObra($event)"
+      (openAutor)="abrirPerfilObra($event)"
+    ></app-home-work-carousel>
+  } @placeholder {
+    <section class="home-section deferred-placeholder">
+      <div class="section-skeleton"></div>
+    </section>
+  }
 
-      <a
-        routerLink="/categorias"
-        [queryParams]="{ orden: 'populares', idioma: 'preferidos' }"
-      >
-          {{ translationService.getTranslation('common.actions.view_more') }} &#10095;
-      </a>
-    </div>
+  @defer (on viewport) {
+    <app-home-chapter-carousel
+      titleKey="home.newChapters.title"
+      descriptionKey="home.newChapters.description"
+      loadingKey="home.newChapters.loading"
+      emptyKey="home.newChapters.empty"
+      carouselId="nuevos-capitulos"
+      [items]="capitulosNuevos"
+      [loading]="cargandoCapitulos"
+      [error]="errorCapitulos"
+      (openCapitulo)="abrirCapitulo($event)"
+      (openAutor)="abrirPerfilCapitulo($event)"
+    ></app-home-chapter-carousel>
+  } @placeholder {
+    <section class="home-section deferred-placeholder">
+      <div class="section-skeleton"></div>
+    </section>
+  }
 
-    <p *ngIf="cargandoPopulares7Dias" class="estado">
-      {{ translationService.getTranslation('home.trending.loading') }}...
-    </p>
-
-    <p *ngIf="errorPopulares7Dias" class="estado error">
-      {{ errorPopulares7Dias }}
-    </p>
-
-    <div
-      class="carousel-container"
-      *ngIf="!cargandoPopulares7Dias && obrasPopulares7Dias.length > 0; else noPopulares7Dias"
-    >
-      <button
-        type="button"
-        class="carousel-btn prev-btn"
-        (click)="prevCarousel('populares-7-dias')"
-      >
-        &#10094;
-      </button>
-
-      <div class="carousel-track" id="populares-7-dias">
-        <app-obra-card
-          class="carousel-card"
-          *ngFor="let obra of obrasPopulares7Dias; trackBy: trackByObra"
-          [obra]="obra"
-          [label]="translationService.getTranslation('home.trending.card_label')"
-          (openObra)="abrirObra($event)"
-          (openAutor)="abrirPerfilObra($event)"
-        ></app-obra-card>
-      </div>
-
-      <button
-        type="button"
-        class="carousel-btn next-btn"
-        (click)="nextCarousel('populares-7-dias')"
-      >
-        &#10095;
-      </button>
-    </div>
-
-    <ng-template #noPopulares7Dias>
-      <p class="estado" *ngIf="!cargandoPopulares7Dias && !errorPopulares7Dias">
-        {{ translationService.getTranslation('home.trending.empty') }}
-      </p>
-    </ng-template>
-  </section>
-
-  <section class="home-section">
-    <div class="section-header">
-      <div>
-        <h2>
-          {{ translationService.getTranslation('home.newWorks.title') }}
-        </h2>
-
-        <p>
-          {{ translationService.getTranslation('home.newWorks.description') }}
-        </p>
-      </div>
-
-      <a routerLink="/categorias">
-          {{ translationService.getTranslation('common.actions.view_more') }} &#10095;
-      </a>
-    </div>
-
-    <p *ngIf="cargandoObras" class="estado">
-      {{ translationService.getTranslation('common.state.loading_works') }}...
-    </p>
-
-    <p *ngIf="errorObras" class="estado error">
-      {{ errorObras }}
-    </p>
-
-    <div
-      class="carousel-container"
-      *ngIf="!cargandoObras && obrasNuevas.length > 0; else noObras"
-    >
-      <button
-        type="button"
-        class="carousel-btn prev-btn"
-        (click)="prevCarousel('nuevas-obras')"
-      >
-        &#10094;
-      </button>
-
-      <div class="carousel-track" id="nuevas-obras">
-        <app-obra-card
-          class="carousel-card"
-          *ngFor="let obra of obrasNuevas; trackBy: trackByObra"
-          [obra]="obra"
-          [label]="translationService.getTranslation('home.newWorks.card_label')"
-          (openObra)="abrirObra($event)"
-          (openAutor)="abrirPerfilObra($event)"
-        ></app-obra-card>
-      </div>
-
-      <button
-        type="button"
-        class="carousel-btn next-btn"
-        (click)="nextCarousel('nuevas-obras')"
-      >
-        &#10095;
-      </button>
-    </div>
-
-    <ng-template #noObras>
-      <p class="estado" *ngIf="!cargandoObras && !errorObras">
-        {{ translationService.getTranslation('home.newWorks.empty') }}
-      </p>
-    </ng-template>
-  </section>
-
-  <section class="home-section">
-    <div class="section-header">
-      <div>
-        <h2>
-          {{ translationService.getTranslation('home.newChapters.title') }}
-        </h2>
-
-        <p>
-          {{ translationService.getTranslation('home.newChapters.description') }}
-        </p>
-      </div>
-
-      <a routerLink="/categorias">
-          {{ translationService.getTranslation('common.actions.view_more') }} &#10095;
-      </a>
-    </div>
-
-    <p *ngIf="cargandoCapitulos" class="estado">
-      {{ translationService.getTranslation('home.newChapters.loading') }}...
-    </p>
-
-    <p *ngIf="errorCapitulos" class="estado error">
-      {{ errorCapitulos }}
-    </p>
-
-    <div
-      class="carousel-container"
-      *ngIf="!cargandoCapitulos && capitulosNuevos.length > 0; else noCapitulos"
-    >
-      <button
-        type="button"
-        class="carousel-btn prev-btn"
-        (click)="prevCarousel('nuevos-capitulos')"
-      >
-        &#10094;
-      </button>
-
-      <div class="carousel-track" id="nuevos-capitulos">
-        <app-capitulo-card
-          class="carousel-card"
-          *ngFor="let item of capitulosNuevos; trackBy: trackByCapitulo"
-          [item]="item"
-          (openCapitulo)="abrirCapitulo($event)"
-          (openAutor)="abrirPerfilCapitulo($event)"
-        ></app-capitulo-card>
-      </div>
-
-      <button
-        type="button"
-        class="carousel-btn next-btn"
-        (click)="nextCarousel('nuevos-capitulos')"
-      >
-        &#10095;
-      </button>
-    </div>
-
-    <ng-template #noCapitulos>
-      <p class="estado" *ngIf="!cargandoCapitulos && !errorCapitulos">
-        {{ translationService.getTranslation('home.newChapters.empty') }}
-      </p>
-    </ng-template>
-  </section>
-
-  <section class="home-section following-section" *ngIf="currentUser">
-    <div class="section-header">
-      <div>
-        <h2>
-          {{ translationService.getTranslation('common.labels.news') }}
-        </h2>
-
-        <p>
-          {{ translationService.getTranslation('home.following.description') }}
-        </p>
-      </div>
-
-      <a routerLink="/following">
-          {{ translationService.getTranslation('common.actions.view_more') }} &#10095;
-      </a>
-    </div>
-
-    <p *ngIf="cargandoFollowing" class="estado">
-      {{ translationService.getTranslation('home.following.loading') }}...
-    </p>
-
-    <p *ngIf="errorFollowing" class="estado error">
-      {{ errorFollowing }}
-    </p>
-
-    <div
-      class="carousel-container"
-      *ngIf="!cargandoFollowing && followingItems.length > 0; else noFollowing"
-    >
-      <button
-        type="button"
-        class="carousel-btn prev-btn"
-        (click)="prevCarousel('following-home')"
-      >
-        &#10094;
-      </button>
-
-      <div class="carousel-track" id="following-home">
-        <app-capitulo-card
-          class="carousel-card"
-          *ngFor="let item of followingItems; trackBy: trackByCapitulo"
-          [item]="item"
-          [showDescription]="false"
-          (openCapitulo)="abrirCapitulo($event)"
-          (openAutor)="abrirPerfilCapitulo($event)"
-        ></app-capitulo-card>
-      </div>
-
-      <button
-        type="button"
-        class="carousel-btn next-btn"
-        (click)="nextCarousel('following-home')"
-      >
-        &#10095;
-      </button>
-    </div>
-
-    <ng-template #noFollowing>
-      <p class="estado" *ngIf="!cargandoFollowing && !errorFollowing">
-        {{ translationService.getTranslation('home.following.empty') }}
-      </p>
-    </ng-template>
-  </section>
+  @if (currentUser) {
+    @defer (on viewport) {
+      <app-home-chapter-carousel
+        sectionClass="following-section"
+        titleKey="common.labels.news"
+        descriptionKey="home.following.description"
+        loadingKey="home.following.loading"
+        emptyKey="home.following.empty"
+        carouselId="following-home"
+        viewMoreRoute="/following"
+        [items]="followingItems"
+        [loading]="cargandoFollowing"
+        [error]="errorFollowing"
+        [showDescription]="false"
+        (openCapitulo)="abrirCapitulo($event)"
+        (openAutor)="abrirPerfilCapitulo($event)"
+      ></app-home-chapter-carousel>
+    } @placeholder {
+      <section class="home-section deferred-placeholder">
+        <div class="section-skeleton"></div>
+      </section>
+    }
+  }
 </div>
-

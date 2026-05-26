@@ -1,0 +1,259 @@
+<section
+  class="upload-section language-versions-section"
+  *ngIf="!isArtworkSelected; else artworkGlobalSection"
+>
+  <div class="upload-title language-title">
+    <div>
+      <span class="section-kicker">
+        {{ translationService.getTranslation('uploader.versions.kicker') }}
+      </span>
+
+      <h2>
+        {{ translationService.getTranslation('common.labels.chapter_plain') }} 1
+      </h2>
+    </div>
+
+    <button
+      type="button"
+      class="add-language-btn"
+      (click)="addLanguageVersion.emit()"
+      [disabled]="!canAddLanguageVersion"
+    >
+      {{ translationService.getTranslation('common.actions.add_language') }}
+    </button>
+  </div>
+
+  <p class="language-helper">
+    {{ translationService.getTranslation('uploader.versions.helper') }}
+  </p>
+
+  <div class="language-version-list">
+    <article
+      class="language-version-card"
+      *ngFor="let version of versionesIdioma; let versionIndex = index; trackBy: trackByVersionId"
+    >
+      <div class="language-version-header">
+        <div>
+          <span class="version-count">
+            {{ translationService.getTranslation('uploader.versions.version') }} {{ versionIndex + 1 }}
+          </span>
+
+          <h3>
+            {{ getIdiomaLabel(version.idioma) }}
+          </h3>
+        </div>
+
+        <button
+          type="button"
+          class="remove-language-btn"
+          *ngIf="versionesIdioma.length > 1"
+          (click)="removeLanguageVersion.emit(version.id)"
+        >
+          {{ translationService.getTranslation('uploader.versions.remove_language') }}
+        </button>
+      </div>
+
+      <label class="language-select-label">
+        <span>
+          {{ translationService.getTranslation('uploader.versions.language_of_version') }}
+        </span>
+
+        <select
+          [value]="version.idioma"
+          (change)="version.idioma = $any($event.target).value; idiomaVersionChange.emit(version)"
+        >
+          <option
+            *ngFor="let idioma of getAvailableLanguageOptions(version); trackBy: trackByIdiomaValue"
+            [value]="idioma.value"
+          >
+            {{ getOptionLabel(idioma) }}
+          </option>
+        </select>
+      </label>
+
+      <div
+        class="upload-container pages-dropzone version-dropzone"
+        (click)="versionFileInput.click()"
+        (dragover)="onDragOverVersion($event, version)"
+        (dragleave)="onDragLeaveVersion($event, version)"
+        (drop)="onDropVersion($event, version)"
+        [class.dragover]="version.isDragging"
+      >
+        <div class="upload-icon">🖼️</div>
+
+        <h3>
+          {{ translationService.getTranslation('uploader.pages.add_images_here') }}
+        </h3>
+
+        <p>
+          {{ translationService.getTranslation('common.upload.select_multiple_images') }} ·
+          {{ getIdiomaLabel(version.idioma) }}
+        </p>
+
+        <input
+          type="file"
+          #versionFileInput
+          (change)="onFilesSelected($event, version)"
+          multiple
+          hidden
+          accept="image/jpeg, image/png, image/webp"
+        />
+      </div>
+
+      <div
+        *ngIf="version.paginas.length > 0"
+        class="files-container version-files-container"
+      >
+        <div class="files-header">
+          <h3>
+            {{ translationService.getTranslation('common.pages.selected') }}
+          </h3>
+
+          <span>
+            {{ version.paginas.length }}
+          </span>
+        </div>
+
+        <p class="file-size">
+          {{ translationService.getTranslation('common.stats.total_selected_size') }}:
+          {{ formatSize(getVersionPagesTotalSize(version)) }}
+        </p>
+
+        <div class="files-list">
+          <div
+            *ngFor="let file of version.paginas; let index = index; trackBy: trackByFileName"
+            class="file-item"
+          >
+            <div class="page-number">
+              {{ index + 1 }}
+            </div>
+
+            <div class="file-info">
+              <span class="file-name">
+                {{ file.name }}
+              </span>
+
+              <span class="file-size">
+                {{ formatSize(file.size) }}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              (click)="onRemovePage(version, index, $event)"
+              class="remove-btn small"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <p class="file-size language-total-size" *ngIf="selectedPagesTotalSize > 0">
+    {{ translationService.getTranslation('common.stats.total_selected_size') }}:
+    {{ formatSize(selectedPagesTotalSize) }}
+  </p>
+</section>
+
+<ng-template #artworkGlobalSection>
+  <section class="upload-section language-versions-section">
+    <article
+      class="language-version-card artwork-global-card"
+      *ngIf="versionesIdioma[0] as globalVersion"
+    >
+      <div class="files-header">
+        <h3>
+          {{ translationService.getTranslation('uploader.artwork.global_title') }}
+        </h3>
+
+        <span>
+          {{ getIdiomaLabel('GLOBAL') }}
+        </span>
+      </div>
+
+      <p class="language-helper">
+        {{ translationService.getTranslation('uploader.artwork.global_description') }}
+      </p>
+
+      <div
+        class="upload-container pages-dropzone version-dropzone"
+        (click)="artworkFileInput.click()"
+        (dragover)="onDragOverVersion($event, globalVersion)"
+        (dragleave)="onDragLeaveVersion($event, globalVersion)"
+        (drop)="onDropVersion($event, globalVersion)"
+        [class.dragover]="globalVersion.isDragging"
+      >
+        <div class="upload-icon">🖼️</div>
+
+        <h3>
+          {{ translationService.getTranslation('uploader.pages.add_images_here') }}
+        </h3>
+
+        <p>
+          {{ translationService.getTranslation('common.upload.select_multiple_images') }} ·
+          {{ getIdiomaLabel('GLOBAL') }}
+        </p>
+
+        <input
+          type="file"
+          #artworkFileInput
+          (change)="onFilesSelected($event, globalVersion)"
+          multiple
+          hidden
+          accept="image/jpeg, image/png, image/webp"
+        />
+      </div>
+
+      <div
+        class="files-container version-files-container"
+        *ngIf="artworkFiles.length > 0"
+      >
+        <div class="files-header">
+          <h3>
+            {{ translationService.getTranslation('common.pages.selected') }}
+          </h3>
+
+          <span>
+            {{ artworkFiles.length }}
+          </span>
+        </div>
+
+        <p class="file-size">
+          {{ translationService.getTranslation('common.stats.total_selected_size') }}:
+          {{ formatSize(totalArtworkFilesSize) }}
+        </p>
+
+        <div class="files-list">
+          <div
+            class="file-item"
+            *ngFor="let file of artworkFiles; let index = index; trackBy: trackByFileName"
+          >
+            <div class="page-number">
+              {{ index + 1 }}
+            </div>
+
+            <div class="file-info">
+              <span class="file-name">
+                {{ file.name }}
+              </span>
+
+              <span class="file-size">
+                {{ formatSize(file.size) }}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              (click)="onRemovePage(globalVersion, index, $event)"
+              class="remove-btn small"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+</ng-template>

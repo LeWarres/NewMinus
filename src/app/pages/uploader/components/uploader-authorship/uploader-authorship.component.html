@@ -1,0 +1,76 @@
+<section class="authorship-panel" [formGroup]="formulario">
+  <div class="authorship-inner">
+    <div class="authorship-header">
+      <span class="authorship-title">
+        {{ translationService.getTranslation('uploader.authorship.title') }}
+      </span>
+
+      <p>
+        {{ translationService.getTranslation('uploader.authorship.description') }}
+      </p>
+    </div>
+
+    <div class="authorship-examples">
+      <article class="auth-example allowed">
+        <div class="example-mark allowed-mark">✓</div>
+
+        <div class="example-body">
+          <div class="example-text">
+            <strong>
+              {{ translationService.getTranslation('uploader.authorship.allowed_title') }}
+            </strong>
+
+            <p>
+              {{ translationService.getTranslation('uploader.authorship.allowed_description') }}
+            </p>
+          </div>
+
+          <img
+            src="/obras/paleta/af.webp"
+            [alt]="translationService.getTranslation('uploader.authorship.allowed_title')"
+            width="220"
+            height="140"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      </article>
+
+      <article class="auth-example not-allowed">
+        <div class="example-mark not-allowed-mark">×</div>
+
+        <div class="example-body">
+          <div class="example-text">
+            <strong>
+              {{ translationService.getTranslation('uploader.authorship.not_allowed_title') }}
+            </strong>
+
+            <p>
+              {{ translationService.getTranslation('uploader.authorship.not_allowed_description') }}
+            </p>
+          </div>
+
+          <img
+            src="/obras/paleta/portada.webp"
+            [alt]="translationService.getTranslation('uploader.authorship.not_allowed_title')"
+            width="220"
+            height="140"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      </article>
+    </div>
+
+    <label class="authorship-checkbox">
+      <input
+        type="checkbox"
+        formControlName="aceptaAutoria"
+      />
+
+      <span>
+        {{ translationService.getTranslation('uploader.authorship.accept') }}
+      </span>
+    </label>
+  </div>
+</section>

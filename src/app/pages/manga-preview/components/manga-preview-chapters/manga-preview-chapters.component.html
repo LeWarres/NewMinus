@@ -1,0 +1,46 @@
+<div class="episodes-header" [class.mobile]="isMobileView">
+  <h2>
+    {{ translationService.getTranslation('common.labels.chapters') }}
+  </h2>
+
+  <span>
+    {{ capitulos.length }}
+    {{ translationService.getTranslation('common.labels.chapters_lower') }}
+  </span>
+</div>
+
+<button
+  type="button"
+  class="episode"
+  *ngFor="let capitulo of capitulos; let i = index; trackBy: trackByCapitulo"
+  (click)="openCapitulo.emit(capitulo)"
+>
+  <img
+    [src]="getCapituloImagen(capitulo)"
+    [alt]="getCapituloTitulo(capitulo)"
+    width="92"
+    height="122"
+    [attr.loading]="getEpisodeImageLoading(i)"
+    [attr.fetchpriority]="getEpisodeImageFetchPriority(i)"
+    decoding="async"
+  />
+
+  <div class="episode-info">
+    <span class="episode-badge">
+      {{ translationService.getTranslation('common.labels.chapter') }}
+      {{ capitulo.numeroCapitulo }}
+    </span>
+
+    <h3>{{ getCapituloTitulo(capitulo) }}</h3>
+    <p>{{ getCapituloDescripcion(capitulo) }}</p>
+  </div>
+
+  <div class="episode-meta">
+    <span>📅 {{ capitulo.creadoEn }}</span>
+    <span>👁️ {{ getCapituloVisitas(capitulo) }}</span>
+  </div>
+</button>
+
+<div class="empty-language-chapters" *ngIf="capitulos.length === 0">
+  {{ translationService.getTranslation('mangaPreview.chapters.empty_by_language') }}
+</div>

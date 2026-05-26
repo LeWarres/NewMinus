@@ -1,0 +1,174 @@
+<div class="movie-info">
+  <div class="card">
+    <div class="header-tags">
+      <button
+        type="button"
+        class="lang-tag clickable-tag"
+        (click)="openIdioma.emit(selectedLanguage)"
+      >
+        {{ selectedLanguageLabel }}
+      </button>
+
+      <button
+        type="button"
+        class="series-tag clickable-tag"
+        *ngIf="obra.tipoEntrega"
+        (click)="openTipo.emit(obra.tipoEntrega)"
+      >
+        {{ tipoEntregaLabel }}
+      </button>
+
+      <ng-container *ngIf="categoriaItems.length > 0; else sinCategoriasPreview">
+        <button
+          type="button"
+          class="genre-tag genre-tag-button"
+          *ngFor="let categoria of categoriaItems; trackBy: trackByCategoria"
+          (click)="openCategoria.emit(categoria.value)"
+        >
+          {{ categoria.label }}
+        </button>
+      </ng-container>
+
+      <ng-template #sinCategoriasPreview>
+        <span class="genre-tag">
+          {{ translationService.getTranslation('common.labels.no_category') }}
+        </span>
+      </ng-template>
+    </div>
+
+    <h1 class="title">{{ obra.titulo }}</h1>
+
+    <div class="stats">
+      <span>
+        👁️ {{ obra.numVisitas }}
+        {{ translationService.getTranslation('common.stats.views') }}
+      </span>
+
+      <span>
+        📚 {{ obra.capitulos.length }}
+        {{ translationService.getTranslation('common.labels.chapters_lower') }}
+      </span>
+
+      <span>
+        ⭐ {{ obra.totalSuscriptores }}
+        {{ translationService.getTranslation('mangaPreview.stats.subscribers') }}
+      </span>
+    </div>
+
+    <p class="description" [class.hidden]="!showDetails">
+      {{ description }}
+    </p>
+
+    <div class="author" [class.hidden]="!showDetails">
+      <button type="button" class="author-main" (click)="openAutor.emit()">
+        <img
+          class="author-photo"
+          [src]="imageUrl(obra.autorAvatar, '/obras/paleta/tres.png')"
+          [alt]="obra.autor"
+          width="50"
+          height="50"
+          loading="eager"
+          decoding="async"
+        />
+
+        <span class="name">{{ obra.autor }}</span>
+      </button>
+
+      <app-subscribe-button
+        class="preview-subscribe"
+        *ngIf="!isCurrentUser"
+        [targetUserId]="obra.usuarioId"
+        [currentUserId]="currentUserId"
+        [isSubscribed]="obra.estaSuscrito"
+        [totalSubscribers]="obra.totalSuscriptores || 0"
+        [showCount]="false"
+        (subscriptionChange)="subscriptionChange.emit($event)"
+      ></app-subscribe-button>
+
+      <button
+        class="follow-btn owner"
+        type="button"
+        *ngIf="isCurrentUser"
+        (click)="uploadChapter.emit()"
+      >
+        {{ translationService.getTranslation('common.actions.upload_chapter') }}
+      </button>
+    </div>
+
+    <p class="message" *ngIf="mensaje">
+      {{ mensaje }}
+    </p>
+
+    <div class="action-row">
+      <button
+        type="button"
+        class="primary-btn"
+        (click)="readFirst.emit()"
+        [disabled]="obra.capitulos.length === 0"
+      >
+        {{ translationService.getTranslation('mangaPreview.actions.read_from_start') }}
+      </button>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        (click)="readLast.emit()"
+        [disabled]="obra.capitulos.length === 0"
+      >
+        {{ translationService.getTranslation('mangaPreview.actions.latest_chapter') }}
+      </button>
+    </div>
+
+    <div class="social-buttons" [class.hidden]="!showDetails">
+      <a
+        *ngIf="obra.facebook"
+        [href]="obra.facebook"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="facebook"
+      >
+        {{ translationService.getTranslation('common.social.facebook') }}
+      </a>
+
+      <a
+        *ngIf="obra.twitter"
+        [href]="obra.twitter"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="twitter"
+      >
+        {{ translationService.getTranslation('mangaPreview.social.twitter') }}
+      </a>
+
+      <a
+        *ngIf="obra.instagram"
+        [href]="obra.instagram"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="instagram"
+      >
+        {{ translationService.getTranslation('common.social.instagram') }}
+      </a>
+    </div>
+
+    <div class="meta" [class.hidden]="!showDetails">
+      <div class="metadata">
+        📅 {{ translationService.getTranslation('mangaPreview.meta.published') }}:
+        {{ obra.fechaCreacion }}
+      </div>
+
+      <div class="metadata">
+        📝 {{ translationService.getTranslation('mangaPreview.meta.author') }}:
+        {{ obra.autor }}
+      </div>
+    </div>
+
+    <button class="details-btn" type="button" (click)="toggleDetails.emit()">
+      {{
+        showDetails
+          ? translationService.getTranslation('mangaPreview.actions.hide_details') + ' ⮝'
+          : translationService.getTranslation('mangaPreview.actions.show_details') + ' ⮟'
+      }}
+    </button>
+  </div>
+</div>

@@ -49,6 +49,7 @@ interface PerfilObraApi {
   tipoEntrega?: string;
   serieConcluida?: boolean;
   portada?: string;
+  portadaThumb?: string;
   numVisitas: number;
   promedioCalificacion?: number;
   fechaCreacion: string;
@@ -64,6 +65,7 @@ interface PerfilCapituloApi {
   tituloObra: string;
   descripcionObra?: string;
   portada?: string;
+  portadaThumb?: string;
   genero?: string;
   categorias?: string[];
   idioma?: string;
@@ -75,12 +77,14 @@ interface PerfilCapituloApi {
 }
 
 interface PerfilObra extends ObraCardItem {
+  portadaThumb?: string;
   tipoEntrega?: string;
   serieConcluida?: boolean;
   fechaCreacion: string;
 }
 
 interface PerfilCapitulo extends CapituloCardItem {
+  portadaThumb?: string;
   fechaCreacion: string;
 }
 
@@ -445,6 +449,7 @@ export class PerfilComponent implements OnInit {
       tipoEntrega: obra.tipoEntrega,
       serieConcluida: obra.serieConcluida,
       portada: obra.portada,
+      portadaThumb: obra.portadaThumb,
       numVisitas: obra.numVisitas || 0,
       promedioCalificacion: obra.promedioCalificacion || 0,
       fechaCreacion: obra.fechaCreacion,
@@ -465,6 +470,7 @@ export class PerfilComponent implements OnInit {
       categorias: capitulo.categorias,
       idioma: capitulo.idioma,
       portada: capitulo.portada,
+      portadaThumb: capitulo.portadaThumb,
       tipoEntrega: capitulo.tipoEntrega,
 
       numVisitas: capitulo.numVisitas || 0,

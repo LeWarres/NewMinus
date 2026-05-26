@@ -6,10 +6,7 @@
   {{ error }}
 </div>
 
-<div
-  class="movie-preview"
-  *ngIf="obra"
->
+<div class="movie-preview" *ngIf="obra">
   <div class="overlay"></div>
 
   <div class="content">
@@ -19,9 +16,7 @@
           {{ translationService.getTranslation('common.labels.reading_language') }}
         </span>
 
-        <strong>
-          {{ getSelectedLanguageLabel() }}
-        </strong>
+        <strong>{{ getSelectedLanguageLabel() }}</strong>
       </div>
 
       <label class="language-select-wrap">
@@ -43,329 +38,91 @@
         </select>
       </label>
     </section>
-    <div class="left-panel" *ngIf="!isMobileView">
-      <div class="episodes-header">
-        <h2>
-          {{ translationService.getTranslation('common.labels.chapters') }}
-        </h2>
 
-        <span>
-          {{ obra.capitulos.length }}
-          {{ translationService.getTranslation('common.labels.chapters_lower') }}
-        </span>
-      </div>
-
-      <button
-        type="button"
-        class="episode"
-        *ngFor="let capitulo of obra.capitulos; let i = index; trackBy: trackByCapitulo"
-        (click)="abrirCapitulo(capitulo)"
-      >
-        <img
-          [src]="getCapituloImagen(capitulo)"
-          [alt]="getCapituloTitulo(capitulo)"
-          [attr.loading]="getEpisodeImageLoading(i)"
-          [attr.fetchpriority]="getEpisodeImageFetchPriority(i)"
-          decoding="async"
-        />
-
-        <div class="episode-info">
-          <span class="episode-badge">
-            {{ translationService.getTranslation('common.labels.chapter') }}
-            {{ capitulo.numeroCapitulo }}
-          </span>
-
-          <h3>
-            {{ getCapituloTitulo(capitulo) }}
-          </h3>
-
-          <p>
-            {{ getCapituloDescripcion(capitulo) }}
-          </p>
-        </div>
-
-        <div class="episode-meta">
-          <span>📅 {{ capitulo.creadoEn }}</span>
-          <span>👁️ {{ getCapituloVisitas(capitulo) }}</span>
-        </div>
-      </button>
-
-      <div class="empty-language-chapters" *ngIf="obra.capitulos.length === 0">
-        {{ translationService.getTranslation('mangaPreview.chapters.empty_by_language') }}
-      </div>
-    </div>
+    <app-manga-preview-chapters
+      class="left-panel"
+      *ngIf="!isMobileView"
+      [capitulos]="obra.capitulos"
+      [obraDescripcion]="obra.descripcion || ''"
+      [obraPortada]="obra.portada"
+      [obraPortadaThumb]="obra.portadaThumb"
+      [isMobileView]="false"
+      (openCapitulo)="abrirCapitulo($event)"
+    ></app-manga-preview-chapters>
 
     <div class="right-panel">
-      <div class="cover-container">
-        <img
-          class="cover"
-          [src]="coverUrl"
-          [alt]="obra.titulo"
-          loading="eager"
-          fetchpriority="high"
-          decoding="async"
-        />
-      </div>
+      <app-manga-preview-cover
+        [coverUrl]="coverUrl"
+        [title]="obra.titulo"
+      ></app-manga-preview-cover>
 
-      <div class="movie-info">
-        <div class="card">
-          <div class="header-tags">
-            <button
-              type="button"
-              class="lang-tag clickable-tag"
-              (click)="abrirIdiomaObra(selectedLanguage)"
-            >
-              {{ getSelectedLanguageLabel() }}
-            </button>
+      <app-manga-preview-chapters
+        class="mobile-chapters"
+        *ngIf="isMobileView"
+        [capitulos]="obra.capitulos"
+        [obraDescripcion]="obra.descripcion || ''"
+        [obraPortada]="obra.portada"
+        [obraPortadaThumb]="obra.portadaThumb"
+        [isMobileView]="true"
+        (openCapitulo)="abrirCapitulo($event)"
+      ></app-manga-preview-chapters>
 
-            <button
-              type="button"
-              class="series-tag clickable-tag"
-              *ngIf="obra.tipoEntrega"
-              (click)="abrirTipoObra(obra.tipoEntrega)"
-            >
-              {{ getTipoEntregaLabel(obra.tipoEntrega) }}
-            </button>
-
-            <ng-container *ngIf="getCategoriaItems(3).length > 0; else sinCategoriasPreview">
-              <button
-                type="button"
-                class="genre-tag genre-tag-button"
-                *ngFor="let categoria of getCategoriaItems(3); trackBy: trackByCategoria"
-                (click)="abrirCategoria(categoria.value)"
-              >
-                {{ categoria.label }}
-              </button>
-            </ng-container>
-
-            <ng-template #sinCategoriasPreview>
-              <span class="genre-tag">
-                {{ translationService.getTranslation('common.labels.no_category') }}
-              </span>
-            </ng-template>
-          </div>
-
-          <h1 class="title">
-            {{ obra.titulo }}
-          </h1>
-
-          <div class="stats">
-            <span>
-              👁️ {{ obra.numVisitas }}
-              {{ translationService.getTranslation('common.stats.views') }}
-            </span>
-
-            <span>
-              📚 {{ obra.capitulos.length }}
-              {{ translationService.getTranslation('common.labels.chapters_lower') }}
-            </span>
-
-            <span>
-              ⭐ {{ obra.totalSuscriptores }}
-              {{ translationService.getTranslation('mangaPreview.stats.subscribers') }}
-            </span>
-          </div>
-
-          <p class="description" [class.hidden]="!showDetails">
-            {{ getObraDescripcion() }}
-          </p>
-
-          <div class="author" [class.hidden]="!showDetails">
-            <button
-              type="button"
-              class="author-main"
-              (click)="abrirPerfilAutor()"
-            >
-              <img
-                class="author-photo"
-                [src]="imageUrl(obra.autorAvatar, '/obras/paleta/tres.png')"
-                [alt]="obra.autor"
-                loading="eager"
-                decoding="async"
-              />
-
-              <span class="name">
-                {{ obra.autor }}
-              </span>
-            </button>
-
-            <app-subscribe-button
-              class="preview-subscribe"
-              *ngIf="!isCurrentUser"
-              [targetUserId]="obra.usuarioId"
-              [currentUserId]="currentUser?.id || null"
-              [isSubscribed]="obra.estaSuscrito"
-              [totalSubscribers]="obra.totalSuscriptores || 0"
-              [showCount]="false"
-              (subscriptionChange)="onSubscriptionChange($event)"
-            ></app-subscribe-button>
-
-            <button
-              class="follow-btn owner"
-              type="button"
-              *ngIf="isCurrentUser"
-              (click)="subirCapitulo()"
-            >
-              {{ translationService.getTranslation('common.actions.upload_chapter') }}
-            </button>
-          </div>
-
-          <p class="message" *ngIf="mensaje">
-            {{ mensaje }}
-          </p>
-
-          <div class="action-row">
-            <button
-              type="button"
-              class="primary-btn"
-              (click)="leerPrimerCapitulo()"
-              [disabled]="obra.capitulos.length === 0"
-            >
-              {{ translationService.getTranslation('mangaPreview.actions.read_from_start') }}
-            </button>
-
-            <button
-              type="button"
-              class="secondary-btn"
-              (click)="leerUltimoCapitulo()"
-              [disabled]="obra.capitulos.length === 0"
-            >
-              {{ translationService.getTranslation('mangaPreview.actions.latest_chapter') }}
-            </button>
-          </div>
-
-          <section class="obra-report-section" *ngIf="obra && !isCurrentUser">
-              <app-reportar-contenido
-                [textoBoton]="translationService.getTranslation('mangaPreview.actions.report_work')"
-                [urlReportada]="urlReporteObra"
-                [tituloContenido]="obra.titulo"
-                [contextoContenido]="contextoReporteObra"
-                (reporteConfirmado)="enviarReporteDesdeObra($event)">
-              </app-reportar-contenido>
-            </section>
-
-          <div class="social-buttons" [class.hidden]="!showDetails">
-            <a
-              *ngIf="obra.facebook"
-              [href]="obra.facebook"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="facebook"
-            >
-              {{ translationService.getTranslation('common.social.facebook') }}
-            </a>
-
-            <a
-              *ngIf="obra.twitter"
-              [href]="obra.twitter"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="twitter"
-            >
-              {{ translationService.getTranslation('mangaPreview.social.twitter') }}
-            </a>
-
-            <a
-              *ngIf="obra.instagram"
-              [href]="obra.instagram"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="instagram"
-            >
-              {{ translationService.getTranslation('common.social.instagram') }}
-            </a>
-          </div>
-
-          <div class="meta" [class.hidden]="!showDetails">
-            <div class="metadata">
-              📅 {{ translationService.getTranslation('mangaPreview.meta.published') }}:
-              {{ obra.fechaCreacion }}
-            </div>
-
-            <div class="metadata">
-              📝 {{ translationService.getTranslation('mangaPreview.meta.author') }}:
-              {{ obra.autor }}
-            </div>
-          </div>
-
-          <button
-            class="details-btn"
-            type="button"
-            (click)="toggleDetails()"
-          >
-            {{
-              showDetails
-                ? translationService.getTranslation('mangaPreview.actions.hide_details') + ' ⮝'
-                : translationService.getTranslation('mangaPreview.actions.show_details') + ' ⮟'
-            }}
-          </button>
-        </div>
-      </div>
-
-      <div class="episode-container" *ngIf="isMobileView">
-        <div class="episodes-header mobile">
-          <h2>
-            {{ translationService.getTranslation('common.labels.chapters') }}
-          </h2>
-
-          <span>
-            {{ obra.capitulos.length }}
-            {{ translationService.getTranslation('common.labels.chapters_lower') }}
-          </span>
-        </div>
-
-        <button
-          type="button"
-          class="episode"
-          *ngFor="let capitulo of obra.capitulos; let i = index; trackBy: trackByCapitulo"
-          (click)="abrirCapitulo(capitulo)"
-        >
-          <img
-            [src]="getCapituloImagen(capitulo)"
-            [alt]="getCapituloTitulo(capitulo)"
-            [attr.loading]="getEpisodeImageLoading(i)"
-            [attr.fetchpriority]="getEpisodeImageFetchPriority(i)"
-            decoding="async"
-          />
-
-          <div class="episode-info">
-            <span class="episode-badge">
-              {{ translationService.getTranslation('common.labels.chapter') }}
-              {{ capitulo.numeroCapitulo }}
-            </span>
-
-            <h3>
-              {{ getCapituloTitulo(capitulo) }}
-            </h3>
-
-            <p>
-              {{ getCapituloDescripcion(capitulo) }}
-            </p>
-          </div>
-
-          <div class="episode-meta">
-            <span>📅 {{ capitulo.creadoEn }}</span>
-            <span>👁️ {{ getCapituloVisitas(capitulo) }}</span>
-          </div>
-        </button>
-
-        <div class="empty-language-chapters mobile-empty" *ngIf="obra.capitulos.length === 0">
-          {{ translationService.getTranslation('mangaPreview.chapters.empty_by_language') }}
-        </div>
-      </div>
+      <app-manga-preview-info
+        [obra]="obra"
+        [currentUserId]="currentUser?.id || null"
+        [isCurrentUser]="isCurrentUser"
+        [selectedLanguage]="selectedLanguage"
+        [selectedLanguageLabel]="getSelectedLanguageLabel()"
+        [categoriaItems]="getCategoriaItems(3)"
+        [tipoEntregaLabel]="getTipoEntregaLabel(obra.tipoEntrega)"
+        [description]="getObraDescripcion()"
+        [showDetails]="showDetails"
+        [mensaje]="mensaje"
+        (openIdioma)="abrirIdiomaObra($event)"
+        (openTipo)="abrirTipoObra($event)"
+        (openCategoria)="abrirCategoria($event)"
+        (openAutor)="abrirPerfilAutor()"
+        (subscriptionChange)="onSubscriptionChange($event)"
+        (uploadChapter)="subirCapitulo()"
+        (readFirst)="leerPrimerCapitulo()"
+        (readLast)="leerUltimoCapitulo()"
+        (toggleDetails)="toggleDetails()"
+      ></app-manga-preview-info>
     </div>
   </div>
 
-  <app-rating-stars
-    [obraId]="obra.id"
-    [ownerUserId]="obra.usuarioId"
-    [currentUserId]="currentUser?.id || null"
-  ></app-rating-stars>
+  @defer (on viewport) {
+    <section class="deferred-preview-section" *ngIf="obra && !isCurrentUser">
+      <app-reportar-contenido
+        [textoBoton]="translationService.getTranslation('mangaPreview.actions.report_work')"
+        [urlReportada]="urlReporteObra"
+        [tituloContenido]="obra.titulo"
+        [contextoContenido]="contextoReporteObra"
+        (reporteConfirmado)="enviarReporteDesdeObra($event)"
+      ></app-reportar-contenido>
+    </section>
+  } @placeholder {
+    <section class="deferred-preview-section deferred-placeholder" aria-hidden="true"></section>
+  }
 
-  <app-comments-section
-    class="preview-comments-host"
-    tipo="obra"
-    [targetId]="obra.id"
-    [showReactions]="false"
-  ></app-comments-section>
+  @defer (on viewport) {
+    <app-rating-stars
+      [obraId]="obra.id"
+      [ownerUserId]="obra.usuarioId"
+      [currentUserId]="currentUser?.id || null"
+    ></app-rating-stars>
+  } @placeholder {
+    <section class="deferred-preview-section deferred-placeholder" aria-hidden="true"></section>
+  }
+
+  @defer (on viewport) {
+    <app-comments-section
+      class="preview-comments-host"
+      tipo="obra"
+      [targetId]="obra.id"
+      [showReactions]="false"
+    ></app-comments-section>
+  } @placeholder {
+    <section class="preview-comments-host deferred-placeholder" aria-hidden="true"></section>
+  }
 </div>

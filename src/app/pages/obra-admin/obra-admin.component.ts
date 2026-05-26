@@ -32,6 +32,7 @@ interface GenericResponse {
 
 interface PortadaResponse extends GenericResponse {
   portada?: string;
+  portadaThumb?: string;
 }
 
 interface PaginasResponse extends GenericResponse {
@@ -104,7 +105,7 @@ export class ObraAdminComponent implements OnInit {
   selectedCategories: string[] = [];
 
   maxCoverFileSize = 5 * 1024 * 1024;
-  maxPageFileSize = 8 * 1024 * 1024;
+  maxPageFileSize = 5 * 1024 * 1024;
   maxTotalPagesSize = 300 * 1024 * 1024;
 
   selectedChapterFiles: Record<string, File[]> = {};
@@ -391,6 +392,10 @@ export class ObraAdminComponent implements OnInit {
 
         if (coverRes.portada && this.obra) {
           this.obra.portada = coverRes.portada;
+        }
+
+        if (coverRes.portadaThumb && this.obra) {
+          this.obra.portadaThumb = coverRes.portadaThumb;
         }
 
         if (this.coverPreview) {

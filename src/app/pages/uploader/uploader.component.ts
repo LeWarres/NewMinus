@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -7,60 +7,35 @@ import { Router } from '@angular/router';
 import { TranslationService } from '../../services/translation.service';
 import { AuthService } from '../../services/auth.service';
 
-interface UploadResponse {
-  success: boolean;
-  mensaje?: string;
-  error?: string;
-  obra_id?: number;
-  capitulo_id?: number;
-  usuario_id?: number;
-  portada?: string;
-  versiones_guardadas?: number;
-  paginas_guardadas?: number;
-}
-
-interface SelectOption {
-  value: string;
-  labelKey: string;
-  nativeLabel?: string;
-}
-
-interface IdiomaVersionUpload {
-  id: string;
-  idioma: string;
-  paginas: File[];
-  isDragging: boolean;
-}
-
-interface VersionPayload {
-  key: string;
-  idioma: string;
-  titulo: string;
-  descripcion: string;
-  numeroCapitulo: number;
-  tituloCapitulo: string;
-  descripcionCapitulo: string;
-}
+import { UploaderWorkInfoComponent } from './components/uploader-work-info/uploader-work-info.component';
+import { UploaderCoverUploadComponent } from './components/uploader-cover-upload/uploader-cover-upload.component';
+import { UploaderLanguageVersionsComponent } from './components/uploader-language-versions/uploader-language-versions.component';
+import { UploaderAuthorshipComponent } from './components/uploader-authorship/uploader-authorship.component';
+import { IDIOMA_OPTIONS, TIPO_OBRA_OPTIONS, WORK_CATEGORY_OPTIONS } from './uploader.options';
+import { IdiomaVersionUpload, SelectOption, UploadResponse, VersionFilesEvent, VersionPageRemoveEvent, VersionPayload } from './uploader.models';
 
 @Component({
   selector: 'app-uploader',
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    UploaderWorkInfoComponent,
+    UploaderCoverUploadComponent,
+    UploaderLanguageVersionsComponent,
+    UploaderAuthorshipComponent
   ],
   templateUrl: './uploader.component.html',
   styleUrl: './uploader.component.css'
 })
 export class UploaderComponent {
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   apiUrl = 'https://minuscreators.com/api/upload.php';
 
   selectedFile: File | null = null;
+  artworkFiles: File[] = [];
   versionesIdioma: IdiomaVersionUpload[] = [];
 
-  isDragging = false;
 
   cargando = false;
   respuesta = '';
@@ -68,7 +43,7 @@ export class UploaderComponent {
   maxCategories = 3;
 
   maxCoverFileSize = 5 * 1024 * 1024;
-  maxPageFileSize = 8 * 1024 * 1024;
+  maxPageFileSize = 5 * 1024 * 1024;
   maxTotalPagesSize = 300 * 1024 * 1024;
 
   selectedCategories: string[] = [];
@@ -76,86 +51,9 @@ export class UploaderComponent {
   private versionCounter = 0;
   private versionPrincipalId = '';
 
-  idiomas: SelectOption[] = [
-    { value: 'GLOBAL', labelKey: 'common.languages.global', nativeLabel: 'Global' },
-    { value: 'ES', labelKey: 'common.languages.es', nativeLabel: 'Español' },
-    { value: 'EN', labelKey: 'common.languages.en', nativeLabel: 'English' },
-    { value: 'JA', labelKey: 'common.languages.ja', nativeLabel: '日本語' },
-    { value: 'KO', labelKey: 'common.languages.ko', nativeLabel: '한국어' },
-    { value: 'ZH', labelKey: 'common.languages.zh', nativeLabel: '中文' },
-    { value: 'FR', labelKey: 'common.languages.fr', nativeLabel: 'Français' },
-    { value: 'DE', labelKey: 'common.languages.de', nativeLabel: 'Deutsch' },
-    { value: 'PT', labelKey: 'common.languages.pt', nativeLabel: 'Português' },
-    { value: 'IT', labelKey: 'common.languages.it', nativeLabel: 'Italiano' },
-    { value: 'RU', labelKey: 'common.languages.ru', nativeLabel: 'Русский' },
-    { value: 'AR', labelKey: 'common.languages.ar', nativeLabel: 'العربية' },
-    { value: 'HI', labelKey: 'common.languages.hi', nativeLabel: 'हिन्दी' },
-    { value: 'ID', labelKey: 'common.languages.id', nativeLabel: 'Bahasa Indonesia' },
-    { value: 'VI', labelKey: 'common.languages.vi', nativeLabel: 'Tiếng Việt' },
-    { value: 'TH', labelKey: 'common.languages.th', nativeLabel: 'ไทย' },
-    { value: 'TR', labelKey: 'common.languages.tr', nativeLabel: 'Türkçe' },
-    { value: 'PL', labelKey: 'common.languages.pl', nativeLabel: 'Polski' },
-    { value: 'NL', labelKey: 'common.languages.nl', nativeLabel: 'Nederlands' }
-  ];
-
-  tipoObraOptions: SelectOption[] = [
-    { value: 'comic', labelKey: 'common.work_type.comic', nativeLabel: 'Comic' },
-    { value: 'manga', labelKey: 'common.work_type.manga', nativeLabel: 'Manga' },
-    { value: 'libro', labelKey: 'common.work_type.book', nativeLabel: 'Libro' },
-    { value: 'novela', labelKey: 'common.work_type.novel', nativeLabel: 'Novela' },
-    { value: 'artwork', labelKey: 'common.work_type.artwork', nativeLabel: 'Artwork' }
-  ];
-
-  categorias: SelectOption[] = [
-  { value: 'accion', labelKey: 'common.categories.accion', nativeLabel: 'Acción' },
-  { value: 'aventura', labelKey: 'common.categories.aventura', nativeLabel: 'Aventura' },
-  { value: 'comedia', labelKey: 'common.categories.comedia', nativeLabel: 'Comedia' },
-  { value: 'drama', labelKey: 'common.categories.drama', nativeLabel: 'Drama' },
-  { value: 'fantasia', labelKey: 'common.categories.fantasia', nativeLabel: 'Fantasía' },
-  { value: 'romance', labelKey: 'common.categories.romance', nativeLabel: 'Romance' },
-  { value: 'terror', labelKey: 'common.categories.terror', nativeLabel: 'Terror' },
-  { value: 'ciencia-ficcion', labelKey: 'common.categories.ciencia_ficcion', nativeLabel: 'Ciencia ficción' },
-  { value: 'misterio', labelKey: 'common.categories.misterio', nativeLabel: 'Misterio' },
-  { value: 'suspenso', labelKey: 'common.categories.suspenso', nativeLabel: 'Suspenso' },
-  { value: 'sobrenatural', labelKey: 'common.categories.sobrenatural', nativeLabel: 'Sobrenatural' },
-  { value: 'psicologico', labelKey: 'common.categories.psicologico', nativeLabel: 'Psicológico' },
-  { value: 'slice-of-life', labelKey: 'common.categories.slice_of_life', nativeLabel: 'Slice of life' },
-  { value: 'vida-escolar', labelKey: 'common.categories.vida_escolar', nativeLabel: 'Vida escolar' },
-  { value: 'deportes', labelKey: 'common.categories.deportes', nativeLabel: 'Deportes' },
-  { value: 'artes-marciales', labelKey: 'common.categories.artes_marciales', nativeLabel: 'Artes marciales' },
-  { value: 'mecha', labelKey: 'common.categories.mecha', nativeLabel: 'Mecha' },
-  { value: 'isekai', labelKey: 'common.categories.isekai', nativeLabel: 'Isekai' },
-  { value: 'historico', labelKey: 'common.categories.historico', nativeLabel: 'Histórico' },
-  { value: 'musica', labelKey: 'common.categories.musica', nativeLabel: 'Música' },
-  { value: 'cocina', labelKey: 'common.categories.cocina', nativeLabel: 'Cocina' },
-  { value: 'magia', labelKey: 'common.categories.magia', nativeLabel: 'Magia' },
-  { value: 'superheroes', labelKey: 'common.categories.superheroes', nativeLabel: 'Superhéroes' },
-  { value: 'crimen', labelKey: 'common.categories.crimen', nativeLabel: 'Crimen' },
-  { value: 'post-apocaliptico', labelKey: 'common.categories.post_apocaliptico', nativeLabel: 'Post-apocalíptico' },
-  { value: 'cyberpunk', labelKey: 'common.categories.cyberpunk', nativeLabel: 'Cyberpunk' },
-  { value: 'steampunk', labelKey: 'common.categories.steampunk', nativeLabel: 'Steampunk' },
-  { value: 'guerra', labelKey: 'common.categories.guerra', nativeLabel: 'Guerra' },
-  { value: 'parodia', labelKey: 'common.categories.parodia', nativeLabel: 'Parodia' },
-  { value: 'tragedia', labelKey: 'common.categories.tragedia', nativeLabel: 'Tragedia' },
-
-  { value: 'reconfortante', labelKey: 'common.categories.reconfortante', nativeLabel: 'Reconfortante' },
-  { value: 'novela-grafica', labelKey: 'common.categories.novela_grafica', nativeLabel: 'Novela gráfica' },
-  { value: 'informativo', labelKey: 'common.categories.informativo', nativeLabel: 'Informativo' },
-  { value: 'biografico', labelKey: 'common.categories.biografico', nativeLabel: 'Biográfico' },
-  { value: 'animales', labelKey: 'common.categories.animales', nativeLabel: 'Animales' },
-  { value: 'supervivencia', labelKey: 'common.categories.supervivencia', nativeLabel: 'Supervivencia' },
-  { value: 'reencarnacion', labelKey: 'common.categories.reencarnacion', nativeLabel: 'Reencarnación' },
-  { value: 'mitologia', labelKey: 'common.categories.mitologia', nativeLabel: 'Mitología' },
-
-  { value: 'shonen', labelKey: 'common.categories.shonen', nativeLabel: 'Shonen' },
-  { value: 'shojo', labelKey: 'common.categories.shojo', nativeLabel: 'Shojo' },
-  { value: 'seinen', labelKey: 'common.categories.seinen', nativeLabel: 'Seinen' },
-  { value: 'josei', labelKey: 'common.categories.josei', nativeLabel: 'Josei' },
-  { value: 'kodomo', labelKey: 'common.categories.kodomo', nativeLabel: 'Kodomo' },
-  { value: 'boys-love', labelKey: 'common.categories.boys_love', nativeLabel: 'Boys Love' },
-  { value: 'girls-love', labelKey: 'common.categories.girls_love', nativeLabel: 'Girls Love' },
-  { value: 'nsfw', labelKey: 'common.categories.nsfw', nativeLabel: 'NSFW' }
-];
+  idiomas: SelectOption[] = IDIOMA_OPTIONS;
+  tipoObraOptions: SelectOption[] = TIPO_OBRA_OPTIONS;
+  categorias: SelectOption[] = WORK_CATEGORY_OPTIONS;
 
   formulario!: FormGroup;
 
@@ -173,14 +71,22 @@ export class UploaderComponent {
       aceptaAutoria: [false, Validators.requiredTrue]
     });
 
+    this.formulario.get('tipoEntrega')?.valueChanges.subscribe((tipoEntrega) => {
+      this.onTipoEntregaChange(tipoEntrega);
+    });
+
     this.agregarVersionIdioma('ES');
   }
 
   get totalVersiones(): number {
-    return this.versionesIdioma.length;
+    return this.isArtworkSelected ? 1 : this.versionesIdioma.length;
   }
 
   get selectedPagesTotalSize(): number {
+    if (this.isArtworkSelected) {
+      return this.artworkFiles.reduce((total, file) => total + file.size, 0);
+    }
+
     return this.versionesIdioma.reduce(
       (total, version) => total + this.getVersionPagesTotalSize(version),
       0
@@ -188,7 +94,31 @@ export class UploaderComponent {
   }
 
   get canAddLanguageVersion(): boolean {
-    return this.versionesIdioma.length < this.idiomas.length;
+    if (this.isArtworkSelected) {
+      return false;
+    }
+
+    return this.versionesIdioma.length < this.idiomas.filter(idioma => idioma.value !== 'GLOBAL').length;
+  }
+
+  get isArtworkSelected(): boolean {
+    return this.formulario.get('tipoEntrega')?.value === 'artwork';
+  }
+
+  get artworkGlobalVersion(): IdiomaVersionUpload {
+    let version = this.versionesIdioma[0];
+
+    if (!version) {
+      version = this.createLanguageVersion('GLOBAL');
+      this.versionesIdioma = [version];
+      this.versionPrincipalId = version.id;
+    }
+
+    return {
+      ...version,
+      idioma: 'GLOBAL',
+      paginas: this.artworkFiles
+    };
   }
 
   trackByCategoriaValue(index: number, categoria: SelectOption): string {
@@ -215,8 +145,53 @@ export class UploaderComponent {
     return `${file.name}-${file.size}-${index}`;
   }
 
-  triggerFileInput(): void {
-    this.fileInput.nativeElement.click();
+  onCoverSelected(file: File): void {
+    this.onCoverFilesSelected([file]);
+  }
+
+  onCoverFilesSelected(files: File[]): void {
+    if (files.length === 0) {
+      return;
+    }
+
+    const file = files[0];
+
+    if (!this.esImagenValida(file, this.maxCoverFileSize)) {
+      this.respuesta =
+        this.translationService.getTranslation('common.error.cover_invalid_max') +
+        ` ${this.formatSize(this.maxCoverFileSize)}`;
+      return;
+    }
+
+    this.selectedFile = file;
+
+    if (!this.isArtworkSelected) {
+      this.artworkFiles = [];
+    }
+
+    this.respuesta = '';
+  }
+
+  onArtworkFileRemoved(index: number): void {
+    if (!this.isArtworkSelected) {
+      return;
+    }
+
+    this.artworkFiles = this.artworkFiles.filter((_, itemIndex) => itemIndex !== index);
+    this.respuesta = '';
+  }
+
+  onCoverRemoved(): void {
+    this.selectedFile = null;
+    this.respuesta = '';
+  }
+
+  onVersionFilesSelected(event: VersionFilesEvent): void {
+    this.agregarPaginasAVersion(event.version, event.files);
+  }
+
+  onVersionPageRemove(event: VersionPageRemoveEvent): void {
+    this.removePageFromVersion(event.version, event.index);
   }
 
   isCategorySelected(value: string): boolean {
@@ -282,8 +257,8 @@ export class UploaderComponent {
   }
 
   getSelectOptionLabel(option?: SelectOption): string {
-  return this.getOptionLabel(option);
-}
+    return this.getOptionLabel(option);
+  }
 
   getIdiomaLabel(value: string): string {
     const option = this.idiomas.find(idioma => idioma.value === value);
@@ -311,8 +286,44 @@ export class UploaderComponent {
       .map(item => item.idioma);
 
     return this.idiomas.filter(idioma => {
+      if (!this.isArtworkSelected && idioma.value === 'GLOBAL') {
+        return false;
+      }
+
       return idioma.value === version.idioma || !usados.includes(idioma.value);
     });
+  }
+
+  onTipoEntregaChange(tipoEntrega?: string): void {
+    const normalizedType = String(tipoEntrega || '').trim().toLowerCase();
+
+    if (normalizedType === 'artwork') {
+      const artworkVersion = this.createLanguageVersion('GLOBAL');
+      this.versionesIdioma = [artworkVersion];
+      this.versionPrincipalId = artworkVersion.id;
+      this.artworkFiles = [];
+      this.respuesta = '';
+      return;
+    }
+
+    if (this.versionesIdioma.length === 0 || this.versionesIdioma.every(version => version.idioma === 'GLOBAL')) {
+      this.versionesIdioma = [];
+      this.versionPrincipalId = '';
+      this.agregarVersionIdioma('ES');
+    }
+
+    this.artworkFiles = [];
+  }
+
+  private createLanguageVersion(idioma: string): IdiomaVersionUpload {
+    this.versionCounter++;
+
+    return {
+      id: `version_${Date.now()}_${this.versionCounter}`,
+      idioma,
+      paginas: [],
+      isDragging: false
+    };
   }
 
   agregarVersionIdioma(idiomaPreferido?: string): void {
@@ -328,14 +339,12 @@ export class UploaderComponent {
       return;
     }
 
-    this.versionCounter++;
+    if (this.isArtworkSelected) {
+      this.respuesta = this.translationService.getTranslation('uploader.artwork.global_only');
+      return;
+    }
 
-    const nuevaVersion: IdiomaVersionUpload = {
-      id: `version_${Date.now()}_${this.versionCounter}`,
-      idioma,
-      paginas: [],
-      isDragging: false
-    };
+    const nuevaVersion = this.createLanguageVersion(idioma);
 
     if (!this.versionPrincipalId) {
       this.versionPrincipalId = nuevaVersion.id;
@@ -350,6 +359,11 @@ export class UploaderComponent {
   }
 
   eliminarVersionIdioma(versionId: string): void {
+    if (this.isArtworkSelected) {
+      this.respuesta = this.translationService.getTranslation('uploader.artwork.global_only');
+      return;
+    }
+
     if (this.versionesIdioma.length <= 1) {
       this.respuesta = this.translationService.getTranslation('uploader.error.min_one_language_version');
       return;
@@ -365,6 +379,11 @@ export class UploaderComponent {
   }
 
   onIdiomaVersionChange(version: IdiomaVersionUpload): void {
+    if (this.isArtworkSelected) {
+      version.idioma = 'GLOBAL';
+      return;
+    }
+
     const duplicado = this.versionesIdioma.some(item => {
       return item.id !== version.id && item.idioma === version.idioma;
     });
@@ -383,93 +402,12 @@ export class UploaderComponent {
     this.respuesta = this.translationService.getTranslation('uploader.error.duplicate_language_versions');
   }
 
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-
-    if (!input.files || input.files.length === 0) {
-      return;
-    }
-
-    const file = input.files[0];
-
-    if (!this.esImagenValida(file, this.maxCoverFileSize)) {
-      this.respuesta =
-        this.translationService.getTranslation('common.error.cover_invalid_max') +
-        ` ${this.formatSize(this.maxCoverFileSize)}`;
-
-      input.value = '';
-      return;
-    }
-
-    this.selectedFile = file;
-    this.respuesta = '';
-  }
-
-  onFilesSelectedVersion(event: Event, version: IdiomaVersionUpload): void {
-    const input = event.target as HTMLInputElement;
-
-    if (!input.files || input.files.length === 0) {
-      return;
-    }
-
-    this.agregarPaginasAVersion(version, Array.from(input.files));
-    input.value = '';
-  }
-
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragging = true;
-  }
-
-  onDragLeave(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragging = false;
-  }
-
-  onDrop(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragging = false;
-
-    if (!event.dataTransfer || event.dataTransfer.files.length === 0) {
-      return;
-    }
-
-    const file = event.dataTransfer.files[0];
-
-    if (!this.esImagenValida(file, this.maxCoverFileSize)) {
-      this.respuesta =
-        this.translationService.getTranslation('common.error.cover_invalid_max') +
-        ` ${this.formatSize(this.maxCoverFileSize)}`;
-
-      return;
-    }
-
-    this.selectedFile = file;
-    this.respuesta = '';
-  }
-
-  onDragOverVersion(event: DragEvent, version: IdiomaVersionUpload): void {
-    event.preventDefault();
-    version.isDragging = true;
-  }
-
-  onDragLeaveVersion(event: DragEvent, version: IdiomaVersionUpload): void {
-    event.preventDefault();
-    version.isDragging = false;
-  }
-
-  onDropVersion(event: DragEvent, version: IdiomaVersionUpload): void {
-    event.preventDefault();
-    version.isDragging = false;
-
-    if (!event.dataTransfer || event.dataTransfer.files.length === 0) {
-      return;
-    }
-
-    this.agregarPaginasAVersion(version, Array.from(event.dataTransfer.files));
-  }
-
   agregarPaginasAVersion(version: IdiomaVersionUpload, files: File[]): void {
+    if (this.isArtworkSelected) {
+      this.setArtworkFiles(files);
+      return;
+    }
+
     let totalActual = this.selectedPagesTotalSize;
     const paginasValidas: File[] = [];
     let omitidos = 0;
@@ -510,15 +448,17 @@ export class UploaderComponent {
     event?.stopPropagation();
 
     this.selectedFile = null;
-
-    if (this.fileInput) {
-      this.fileInput.nativeElement.value = '';
-    }
   }
 
   removePageFromVersion(version: IdiomaVersionUpload, index: number, event?: Event): void {
     event?.preventDefault();
     event?.stopPropagation();
+
+    if (this.isArtworkSelected) {
+      this.artworkFiles = this.artworkFiles.filter((_, itemIndex) => itemIndex !== index);
+      this.respuesta = '';
+      return;
+    }
 
     version.paginas = version.paginas.filter((_, itemIndex) => itemIndex !== index);
     this.versionesIdioma = [...this.versionesIdioma];
@@ -568,26 +508,39 @@ export class UploaderComponent {
       return;
     }
 
-    if (this.versionesIdioma.length === 0) {
-      this.respuesta = this.translationService.getTranslation('uploader.error.add_at_least_one_language');
+    if (this.isArtworkSelected && this.artworkFiles.length === 0) {
+      this.respuesta = this.translationService.getTranslation('uploader.artwork.error.add_at_least_one_image');
       return;
     }
 
-    if (this.hasDuplicateLanguages()) {
-      this.respuesta = this.translationService.getTranslation('uploader.error.duplicate_language_versions');
-      return;
+    if (!this.isArtworkSelected) {
+      if (this.versionesIdioma.length === 0) {
+        this.respuesta = this.translationService.getTranslation('uploader.error.add_at_least_one_language');
+        return;
+      }
+
+      if (this.hasDuplicateLanguages()) {
+        this.respuesta = this.translationService.getTranslation('uploader.error.duplicate_language_versions');
+        return;
+      }
+
+      const versionSinPaginas = this.versionesIdioma.find(version => version.paginas.length === 0);
+
+      if (versionSinPaginas) {
+        this.respuesta =
+          this.translationService.getTranslation('uploader.error.add_at_least_one_page_for') +
+          ` ${this.getIdiomaLabel(versionSinPaginas.idioma)}`;
+        return;
+      }
+
+      if (this.selectedPagesTotalSize > this.maxTotalPagesSize) {
+        this.respuesta =
+          this.translationService.getTranslation('common.error.total_pages_size_too_large');
+        return;
+      }
     }
 
-    const versionSinPaginas = this.versionesIdioma.find(version => version.paginas.length === 0);
-
-    if (versionSinPaginas) {
-      this.respuesta =
-        this.translationService.getTranslation('uploader.error.add_at_least_one_page_for') +
-        ` ${this.getIdiomaLabel(versionSinPaginas.idioma)}`;
-      return;
-    }
-
-    if (this.selectedPagesTotalSize > this.maxTotalPagesSize) {
+    if (this.isArtworkSelected && this.selectedPagesTotalSize > this.maxTotalPagesSize) {
       this.respuesta =
         this.translationService.getTranslation('common.error.total_pages_size_too_large');
       return;
@@ -603,7 +556,15 @@ export class UploaderComponent {
     const valores = this.formulario.value;
     const titulo = valores.titulo || '';
     const descripcion = valores.descripcion || '';
-    const primeraVersion = this.getVersionPrincipal();
+    const tipoEntrega = String(valores.tipoEntrega || 'manga').trim().toLowerCase();
+    const primeraVersion = this.isArtworkSelected
+      ? this.artworkGlobalVersion
+      : this.getVersionPrincipal();
+
+    const versionesParaSubir = this.isArtworkSelected
+      ? [this.artworkGlobalVersion]
+      : this.versionesIdioma;
+
     const formData = new FormData();
 
     formData.append('titulo', titulo);
@@ -618,22 +579,28 @@ export class UploaderComponent {
     formData.append('tituloVersion', titulo);
     formData.append('descripcionVersion', descripcion);
 
-    formData.append('tipoEntrega', valores.tipoEntrega || 'manga');
+    formData.append('tipoEntrega', tipoEntrega);
     formData.append('portada', this.selectedFile);
 
-    const versionesPayload: VersionPayload[] = this.versionesIdioma.map((version) => ({
+    if (this.isArtworkSelected) {
+      formData.append('artworkGlobal', '1');
+    }
+
+    const versionesPayload: VersionPayload[] = versionesParaSubir.map((version) => ({
       key: version.id,
-      idioma: version.idioma,
+      idioma: this.isArtworkSelected ? 'GLOBAL' : version.idioma,
       titulo,
       descripcion,
       numeroCapitulo: 1,
-      tituloCapitulo: `${this.translationService.getTranslation('common.labels.chapter')} 1`,
-      descripcionCapitulo: ''
+      tituloCapitulo: this.isArtworkSelected
+        ? titulo
+        : `${this.translationService.getTranslation('common.labels.chapter')} 1`,
+      descripcionCapitulo: this.isArtworkSelected ? descripcion : ''
     }));
 
     formData.append('versiones', JSON.stringify(versionesPayload));
 
-    this.versionesIdioma.forEach((version) => {
+    versionesParaSubir.forEach((version) => {
       version.paginas.forEach((file) => {
         formData.append(`paginas_${version.id}[]`, file);
       });
@@ -665,6 +632,39 @@ export class UploaderComponent {
     }
 
     this.subirObra(formData);
+  }
+
+  private setArtworkFiles(files: File[]): void {
+    const paginasValidas: File[] = [];
+    let totalActual = this.artworkFiles.reduce((total, file) => total + file.size, 0);
+    let omitidos = 0;
+
+    for (const file of files) {
+      if (!this.esImagenValida(file, this.maxPageFileSize)) {
+        omitidos++;
+        continue;
+      }
+
+      if (totalActual + file.size > this.maxTotalPagesSize) {
+        omitidos++;
+        continue;
+      }
+
+      paginasValidas.push(file);
+      totalActual += file.size;
+    }
+
+    this.artworkFiles = [
+      ...this.artworkFiles,
+      ...paginasValidas
+    ];
+
+    if (omitidos > 0) {
+      this.respuesta = this.translationService.getTranslation('common.error.pages_skipped_size_limit');
+      return;
+    }
+
+    this.respuesta = '';
   }
 
   private subirObra(formData: FormData): void {
@@ -731,14 +731,11 @@ export class UploaderComponent {
 
     this.selectedCategories = [];
     this.selectedFile = null;
+    this.artworkFiles = [];
     this.versionCounter = 0;
     this.versionPrincipalId = '';
     this.versionesIdioma = [];
     this.agregarVersionIdioma('ES');
-
-    if (this.fileInput) {
-      this.fileInput.nativeElement.value = '';
-    }
   }
 
   private getVersionPrincipal(): IdiomaVersionUpload {
@@ -751,16 +748,19 @@ export class UploaderComponent {
   private getPrimerIdiomaDisponible(preferido?: string): string {
     const usados = this.versionesIdioma.map(version => version.idioma);
     const normalizado = String(preferido || '').trim().toUpperCase();
+    const idiomasDisponibles = this.idiomas.filter(option => {
+      return this.isArtworkSelected || option.value !== 'GLOBAL';
+    });
 
     if (
       normalizado &&
       !usados.includes(normalizado) &&
-      this.idiomas.some(idioma => idioma.value === normalizado)
+      idiomasDisponibles.some(idioma => idioma.value === normalizado)
     ) {
       return normalizado;
     }
 
-    const idioma = this.idiomas.find(option => !usados.includes(option.value));
+    const idioma = idiomasDisponibles.find(option => !usados.includes(option.value));
 
     return idioma?.value || '';
   }

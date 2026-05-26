@@ -110,6 +110,7 @@
 
 .hero-cover {
   position: relative;
+  aspect-ratio: 13 / 16;
   z-index: 1;
   height: 320px;
   border-radius: 22px;

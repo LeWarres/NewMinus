@@ -54,9 +54,12 @@
           (click)="abrirItem(item)"
         >
           <img
-            [src]="getCoverUrl(item.portada)"
+            [src]="getPreviewCoverUrl(item)"
             [alt]="item.tituloObra"
-            loading="lazy"
+            width="420"
+            height="236"
+            [attr.loading]="index === 0 ? 'eager' : 'lazy'"
+            [attr.fetchpriority]="index === 0 ? 'high' : 'auto'"
             decoding="async"
           />
 

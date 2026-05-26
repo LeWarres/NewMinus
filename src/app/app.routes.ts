@@ -1,88 +1,92 @@
 import { Routes } from '@angular/router';
 
-import { HomeComponent } from './pages/home/home.component';
-import { UploaderComponent } from './pages/uploader/uploader.component';
-import { LoginComponent } from './pages/login/login.component';
-import { SignupComponent } from './pages/signup/signup.component';
-import { PerfilComponent } from './pages/perfil/perfil.component';
-import { EditProfileComponent } from './pages/edit-profile/edit-profile.component';
-import { ReaderComponent } from './pages/reader/reader.component';
-import { CategoriasComponent } from './pages/categorias/categorias.component';
-import { FollowingComponent } from './pages/following/following.component';
-import { TopComponent } from './pages/top/top.component';
-import { ChapterUploaderComponent } from './pages/chapter-uploader/chapter-uploader.component';
-import { MangaPreviewComponent } from './pages/manga-preview/manga-preview.component';
-import { ObraAdminComponent } from './pages/obra-admin/obra-admin.component';
-
-import { ReenviarVerificacionComponent } from './pages/reenviar-verificacion/reenviar-verificacion.component';
-import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
-import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
-
 export const routes: Routes = [
   {
     path: '',
-    component: HomeComponent,
+    loadComponent: () =>
+      import('./pages/home/home.component').then(m => m.HomeComponent),
     pathMatch: 'full'
   },
   {
     path: 'login',
-    component: LoginComponent
+    loadComponent: () =>
+      import('./pages/login/login.component').then(m => m.LoginComponent)
   },
   {
     path: 'signup',
-    component: SignupComponent
+    loadComponent: () =>
+      import('./pages/signup/signup.component').then(m => m.SignupComponent)
   },
   {
     path: 'reenviar-verificacion',
-    component: ReenviarVerificacionComponent
+    loadComponent: () =>
+      import('./pages/reenviar-verificacion/reenviar-verificacion.component')
+        .then(m => m.ReenviarVerificacionComponent)
   },
   {
     path: 'forgot-password',
-    component: ForgotPasswordComponent
+    loadComponent: () =>
+      import('./pages/forgot-password/forgot-password.component')
+        .then(m => m.ForgotPasswordComponent)
   },
   {
     path: 'reset-password',
-    component: ResetPasswordComponent
+    loadComponent: () =>
+      import('./pages/reset-password/reset-password.component')
+        .then(m => m.ResetPasswordComponent)
   },
   {
     path: 'uploader',
-    component: UploaderComponent
+    loadComponent: () =>
+      import('./pages/uploader/uploader.component').then(m => m.UploaderComponent)
   },
   {
     path: 'following',
-    component: FollowingComponent
+    loadComponent: () =>
+      import('./pages/following/following.component').then(m => m.FollowingComponent)
   },
   {
     path: 'top',
-    component: TopComponent
+    loadComponent: () =>
+      import('./pages/top/top.component').then(m => m.TopComponent)
   },
   {
     path: 'categorias',
-    component: CategoriasComponent
+    loadComponent: () =>
+      import('./pages/categorias/categorias.component').then(m => m.CategoriasComponent)
   },
   {
     path: 'perfil/:id/editar',
-    component: EditProfileComponent
+    loadComponent: () =>
+      import('./pages/edit-profile/edit-profile.component')
+        .then(m => m.EditProfileComponent)
   },
   {
     path: 'perfil/:id',
-    component: PerfilComponent
+    loadComponent: () =>
+      import('./pages/perfil/perfil.component').then(m => m.PerfilComponent)
   },
   {
     path: 'obra/:id/admin',
-    component: ObraAdminComponent
+    loadComponent: () =>
+      import('./pages/obra-admin/obra-admin.component').then(m => m.ObraAdminComponent)
   },
   {
     path: 'obra/:id/subir-capitulo',
-    component: ChapterUploaderComponent
+    loadComponent: () =>
+      import('./pages/chapter-uploader/chapter-uploader.component')
+        .then(m => m.ChapterUploaderComponent)
   },
   {
     path: 'obra/:id/capitulo/:capitulo',
-    component: ReaderComponent
+    loadComponent: () =>
+      import('./pages/reader/reader.component').then(m => m.ReaderComponent)
   },
   {
     path: 'obra/:id',
-    component: MangaPreviewComponent
+    loadComponent: () =>
+      import('./pages/manga-preview/manga-preview.component')
+        .then(m => m.MangaPreviewComponent)
   },
   {
     path: '**',

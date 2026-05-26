@@ -20,6 +20,7 @@ export interface CapituloCardItem {
   idioma?: string;
 
   portada?: string;
+  portadaThumb?: string;
 
   tipoEntrega?: string;
 
@@ -107,7 +108,7 @@ export class CapituloCardComponent {
   }
 
   get coverUrl(): string {
-    return this.metadataService.imageUrl(this.item.portada);
+    return this.metadataService.imageUrl(this.item.portadaThumb || this.item.portada);
   }
 
   get description(): string {

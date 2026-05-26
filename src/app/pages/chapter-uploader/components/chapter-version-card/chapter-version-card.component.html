@@ -1,0 +1,158 @@
+<article class="language-version-card">
+  <div class="version-header">
+    <div>
+      <span class="version-kicker">
+        {{ isArtworkWork
+          ? translationService.getTranslation('uploader.artwork.global_title')
+          : translationService.getTranslation('chapterUploader.version.title') }}
+      </span>
+
+      <h2>
+        {{ isArtworkWork ? globalLanguageLabel : getIdiomaLabel(version.idioma) }}
+      </h2>
+    </div>
+
+    <button
+      type="button"
+      class="remove-version-btn"
+      *ngIf="!isArtworkWork"
+      (click)="removeVersion.emit(version)"
+      [disabled]="versiones.length <= 1 || cargando"
+    >
+      {{ translationService.getTranslation('common.actions.delete') }}
+    </button>
+  </div>
+
+  <div class="version-grid">
+    <ng-container *ngIf="!isArtworkWork; else globalLockedLanguage">
+      <label>
+        <span>
+          {{ translationService.getTranslation('common.labels.language') }}
+        </span>
+
+        <select
+          [(ngModel)]="version.idioma"
+          (ngModelChange)="onIdiomaModelChange()"
+          [disabled]="cargando"
+        >
+          <option
+            *ngFor="let idioma of availableIdiomas; trackBy: trackByIdiomaValue"
+            [value]="idioma.value"
+            [disabled]="isIdiomaUsadoPorOtraVersion(idioma.value)"
+          >
+            {{ getIdiomaOptionLabel(idioma) }}
+          </option>
+        </select>
+      </label>
+    </ng-container>
+
+    <ng-template #globalLockedLanguage>
+      <label>
+        <span>
+          {{ translationService.getTranslation('common.labels.language') }}
+        </span>
+
+        <div class="locked-language-box">
+          <strong>{{ globalLanguageLabel }}</strong>
+          <small>{{ translationService.getTranslation('uploader.artwork.global_only') }}</small>
+        </div>
+      </label>
+    </ng-template>
+
+    <label>
+      <span>
+        {{ translationService.getTranslation('common.labels.chapter_title') }}
+      </span>
+
+      <input
+        type="text"
+        [(ngModel)]="version.titulo"
+        [placeholder]="translationService.getTranslation('chapterUploader.fields.chapter_title_placeholder')"
+        [disabled]="cargando"
+      />
+    </label>
+
+    <label class="full">
+      <span>
+        {{ translationService.getTranslation('common.labels.description') }}
+      </span>
+
+      <textarea
+        [(ngModel)]="version.descripcion"
+        [placeholder]="translationService.getTranslation('chapterUploader.fields.description_placeholder')"
+        [disabled]="cargando"
+      ></textarea>
+    </label>
+  </div>
+
+  <label
+    class="file-zone"
+    [class.dragover]="version.isDragging"
+    (dragover)="onDragOverVersion($event)"
+    (dragleave)="onDragLeaveVersion($event)"
+    (drop)="onDropVersion($event)"
+  >
+    <div class="file-zone-inner">
+      <span class="file-icon">🖼️</span>
+
+      <strong>
+        {{ translationService.getTranslation('chapterUploader.pages.add') }}
+      </strong>
+
+      <small>
+        {{ translationService.getTranslation('common.file.formats') }} ·
+        {{ translationService.getTranslation('common.file.max') }}
+        {{ formatSize(maxPageFileSize) }}
+        {{ translationService.getTranslation('chapterUploader.pages.each') }}
+      </small>
+
+      <small>
+        {{ translationService.getTranslation('common.upload.select_multiple_images') }}
+      </small>
+    </div>
+
+    <input
+      type="file"
+      multiple
+      accept="image/jpeg, image/png, image/webp"
+      (change)="onFilesSelectedVersion($event)"
+      [disabled]="cargando"
+    />
+  </label>
+
+  <div
+    *ngIf="version.pages.length > 0"
+    class="files-container"
+  >
+    <div class="files-header">
+      <h3>
+        {{ translationService.getTranslation('common.pages.selected') }}
+      </h3>
+
+      <span>
+        {{ version.pages.length }} · {{ formatSize(getVersionPagesTotalSize()) }}
+      </span>
+    </div>
+
+    <div
+      *ngFor="let file of version.pages; let index = index; trackBy: trackByFileName"
+      class="file-item"
+    >
+      <span>
+        {{ translationService.getTranslation('common.labels.page') }} {{ index + 1 }} - {{ file.name }}
+      </span>
+
+      <span>
+        {{ formatSize(file.size) }}
+      </span>
+
+      <button
+        type="button"
+        (click)="onRemovePage(index, $event)"
+        [disabled]="cargando"
+      >
+        {{ translationService.getTranslation('chapterUploader.actions.remove_page') }}
+      </button>
+    </div>
+  </div>
+</article>

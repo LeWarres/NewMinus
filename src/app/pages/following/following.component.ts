@@ -6,6 +6,7 @@ import { Router, RouterModule } from '@angular/router';
 import { TranslationService } from '../../services/translation.service';
 import { AuthService, CurrentUser } from '../../services/auth.service';
 import { ContentMetadataService } from '../../services/content-metadata.service';
+import { getContentLocale } from '../../shared/options/language-options';
 
 import {
   CapituloCardComponent,
@@ -31,6 +32,7 @@ interface FollowingResponse {
 })
 export class FollowingComponent implements OnInit {
   apiUrl = 'https://minuscreators.com/api/following.php';
+  readonly followingLimit = 24;
 
   currentUser: CurrentUser | null = null;
 
@@ -93,7 +95,7 @@ export class FollowingComponent implements OnInit {
 
     this.http
       .get<FollowingResponse>(
-        `${this.apiUrl}?limite=50`,
+        `${this.apiUrl}?limite=${this.followingLimit}`,
         {
           withCredentials: true
         }
@@ -155,6 +157,19 @@ export class FollowingComponent implements OnInit {
     this.router.navigate(['/categorias']);
   }
 
+  getPreviewCoverUrl(item: CapituloCardItem): string {
+    const itemWithThumb = item as CapituloCardItem & {
+      portadaThumb?: string | null;
+      portada_thumb?: string | null;
+    };
+
+    return this.getCoverUrl(
+      itemWithThumb.portadaThumb ||
+      itemWithThumb.portada_thumb ||
+      item.portada
+    );
+  }
+
   getCoverUrl(path?: string | null): string {
     return this.metadataService.imageUrl(path, '/obras/paleta/portada.png');
   }
@@ -170,31 +185,8 @@ export class FollowingComponent implements OnInit {
   }
 
   private getCurrentLocale(): string {
-    const currentLanguage = String(this.translationService.getCurrentLanguage() || 'en')
-      .trim()
-      .toLowerCase();
-
-    const localeMap: Record<string, string> = {
-      es: 'es',
-      en: 'en',
-      ja: 'ja',
-      ko: 'ko',
-      zh: 'zh',
-      fr: 'fr',
-      de: 'de',
-      pt: 'pt',
-      it: 'it',
-      ru: 'ru',
-      ar: 'ar',
-      hi: 'hi',
-      id: 'id',
-      vi: 'vi',
-      th: 'th',
-      tr: 'tr',
-      pl: 'pl',
-      nl: 'nl'
-    };
-
-    return localeMap[currentLanguage] || 'en';
+    return getContentLocale(
+      this.translationService.getCurrentLanguage()
+    );
   }
 }

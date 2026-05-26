@@ -16,6 +16,7 @@ export interface ObraCardItem {
   idiomasDisponibles?: string[];
   idiomasExtraCount?: number;
   portada?: string;
+  portadaThumb?: string;
   tipoEntrega?: string;
   numVisitas: number;
   autor: string;
@@ -129,7 +130,7 @@ export class ObraCardComponent {
   }
 
   get coverUrl(): string {
-    return this.metadataService.imageUrl(this.obra.portada);
+    return this.metadataService.imageUrl(this.obra.portadaThumb || this.obra.portada);
   }
 
   get workTypeLabel(): string {

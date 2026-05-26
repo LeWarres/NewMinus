@@ -1,7 +1,9 @@
 <div class="uploader-page">
   <section class="uploader-hero">
     <div>
-      <span class="eyebrow">{{ translationService.getTranslation('common.brand.minus_creators') }}</span>
+      <span class="eyebrow">
+        {{ translationService.getTranslation('common.brand.minus_creators') }}
+      </span>
 
       <h1>
         {{ translationService.getTranslation('uploader.hero.title') }}
@@ -23,372 +25,38 @@
     [formGroup]="formulario"
     (ngSubmit)="enviarFormulario()"
   >
-    <div class="form-header">
-      <div>
-        <span class="section-kicker">
-          {{ translationService.getTranslation('common.labels.work') }}
-        </span>
+    <app-uploader-work-info
+      [formulario]="formulario"
+      [categorias]="categorias"
+      [selectedCategories]="selectedCategories"
+      [maxCategories]="maxCategories"
+      [tipoObraOptions]="tipoObraOptions"
+      (toggleCategory)="toggleCategory($event)"
+      (tipoEntregaChange)="onTipoEntregaChange($event)"
+    ></app-uploader-work-info>
 
-        <h2>
-          {{ translationService.getTranslation('common.work.info_title') }}
-        </h2>
-      </div>
+    <app-uploader-cover-upload
+      [selectedFile]="selectedFile"
+      [maxCoverFileSize]="maxCoverFileSize"
+      (fileSelected)="onCoverSelected($event)"
+      (fileRemoved)="onCoverRemoved()"
+    ></app-uploader-cover-upload>
 
-      <span class="required-note">
-        {{ translationService.getTranslation('uploader.work.required_fields') }}
-      </span>
-    </div>
-
-    <div class="form-grid">
-      <label class="full">
-        <span>
-          {{ translationService.getTranslation('common.labels.title') }}
-          <strong>*</strong>
-        </span>
-
-        <input
-          type="text"
-          formControlName="titulo"
-          [placeholder]="translationService.getTranslation('common.labels.title')"
-        />
-
-        <small
-          class="field-error"
-          *ngIf="formulario.get('titulo')?.invalid && formulario.get('titulo')?.touched"
-        >
-          {{ translationService.getTranslation('common.validation.title_required') }}
-        </small>
-      </label>
-
-      <label class="full">
-        <span>
-          {{ translationService.getTranslation('common.labels.description') }}
-        </span>
-
-        <textarea
-          formControlName="descripcion"
-          rows="5"
-          [placeholder]="translationService.getTranslation('common.labels.description')"
-        ></textarea>
-      </label>
-
-      <div class="category-panel full">
-        <div class="category-header">
-          <div>
-            <span class="panel-label">
-              {{ translationService.getTranslation('common.labels.categories') }}
-            </span>
-
-            <p>
-                {{ translationService.getTranslation('common.categories.select_up_to') }}
-            </p>
-          </div>
-
-          <strong>
-            {{ selectedCategories.length }}/{{ maxCategories }}
-          </strong>
-        </div>
-
-        <div class="category-grid">
-          <button
-            type="button"
-            *ngFor="let categoria of categorias; trackBy: trackByCategoriaValue"
-            class="category-chip"
-            [class.selected]="isCategorySelected(categoria.value)"
-            [disabled]="!isCategorySelected(categoria.value) && selectedCategories.length >= maxCategories"
-            (click)="toggleCategory(categoria.value)"
-          >
-            {{ getCategoryLabel(categoria.value) }}
-          </button>
-        </div>
-
-        <div
-          class="selected-categories"
-          *ngIf="selectedCategories.length > 0"
-        >
-          <span
-            *ngFor="let categoria of selectedCategories; trackBy: trackBySelectedCategoria"
-            class="selected-category"
-          >
-            {{ getCategoryLabel(categoria) }}
-          </span>
-        </div>
-      </div>
-
-      <div class="radio-panel full">
-        <span class="panel-label">
-          {{ translationService.getTranslation('common.labels.work_type') }}
-        </span>
-
-        <div class="radio-options">
-          <label
-            class="radio-option"
-            *ngFor="let tipo of tipoObraOptions; trackBy: trackByTipoObraValue"
-          >
-            <input
-              type="radio"
-              formControlName="tipoEntrega"
-              [value]="tipo.value"
-            />
-
-            <span>
-              {{ getSelectOptionLabel(tipo) }}
-            </span>
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <section class="upload-section">
-      <div class="upload-title">
-        <div>
-          <span class="section-kicker">
-            {{ translationService.getTranslation('uploader.cover.kicker') }}
-          </span>
-
-          <h2>
-            {{ translationService.getTranslation('uploader.cover.title') }}
-          </h2>
-        </div>
-
-        <p>
-          {{ translationService.getTranslation('common.file.formats') }} ·
-          {{ translationService.getTranslation('common.file.max') }}
-          {{ formatSize(maxCoverFileSize) }} ·
-          {{ translationService.getTranslation('common.file.optimized_webp') }}
-        </p>
-      </div>
-
-      <div class="upload-layout">
-        <div
-          class="upload-container"
-          (click)="triggerFileInput()"
-          (dragover)="onDragOver($event)"
-          (dragleave)="onDragLeave($event)"
-          (drop)="onDrop($event)"
-          [class.dragover]="isDragging"
-        >
-          <div class="upload-icon">🖼️</div>
-
-          <h3>
-            {{ translationService.getTranslation('uploader.cover.drop_here') }}
-          </h3>
-
-          <p>
-            {{ translationService.getTranslation('uploader.cover.select_file') }}
-          </p>
-
-          <input
-            type="file"
-            #fileInput
-            (change)="onFileSelected($event)"
-            hidden
-            accept="image/jpeg, image/png, image/webp"
-          />
-        </div>
-
-        <div
-          class="preview-panel"
-          *ngIf="selectedFile; else noCover"
-        >
-          <div class="file-preview-icon">📁</div>
-
-          <div>
-            <h3>
-              {{ translationService.getTranslation('uploader.cover.selected') }}
-            </h3>
-
-            <p class="file-name">
-              {{ selectedFile.name }}
-            </p>
-
-            <p class="file-size">
-              {{ formatSize(selectedFile.size) }}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            class="remove-btn"
-            (click)="removeFile($event)"
-          >
-            {{ translationService.getTranslation('common.actions.delete') }}
-          </button>
-        </div>
-
-        <ng-template #noCover>
-          <div class="preview-panel empty-preview">
-            <div class="file-preview-icon">📁</div>
-
-            <div>
-              <h3>
-                {{ translationService.getTranslation('uploader.cover.none_selected') }}
-              </h3>
-
-              <p>
-                {{ translationService.getTranslation('uploader.cover.preview_placeholder') }}
-              </p>
-            </div>
-          </div>
-        </ng-template>
-      </div>
-    </section>
-
-    <section class="upload-section language-versions-section">
-      <div class="upload-title language-title">
-        <div>
-          <span class="section-kicker">
-            {{ translationService.getTranslation('uploader.versions.kicker') }}
-          </span>
-
-          <h2>
-            {{ translationService.getTranslation('common.labels.chapter_plain') }} 1
-          </h2>
-        </div>
-
-        <button
-          type="button"
-          class="add-language-btn"
-          (click)="agregarVersionIdioma()"
-          [disabled]="!canAddLanguageVersion"
-        >
-          {{ translationService.getTranslation('common.actions.add_language') }}
-        </button>
-      </div>
-
-      <p class="language-helper">
-        {{ translationService.getTranslation('uploader.versions.helper') }}
-      </p>
-
-      <div class="language-version-list">
-        <article
-          class="language-version-card"
-          *ngFor="let version of versionesIdioma; let versionIndex = index; trackBy: trackByVersionId"
-        >
-          <div class="language-version-header">
-            <div>
-              <span class="version-count">
-                {{ translationService.getTranslation('uploader.versions.version') }} {{ versionIndex + 1 }}
-              </span>
-
-              <h3>
-                {{ getIdiomaLabel(version.idioma) }}
-              </h3>
-            </div>
-
-            <button
-              type="button"
-              class="remove-language-btn"
-              *ngIf="versionesIdioma.length > 1"
-              (click)="eliminarVersionIdioma(version.id)"
-            >
-              {{ translationService.getTranslation('uploader.versions.remove_language') }}
-            </button>
-          </div>
-
-          <label class="language-select-label">
-            <span>
-              {{ translationService.getTranslation('uploader.versions.language_of_version') }}
-            </span>
-
-            <select
-              [value]="version.idioma"
-              (change)="version.idioma = $any($event.target).value; onIdiomaVersionChange(version)"
-            >
-              <option
-                *ngFor="let idioma of getAvailableLanguageOptions(version); trackBy: trackByIdiomaValue"
-                [value]="idioma.value"
-              >
-                {{ getSelectOptionLabel(idioma) }}
-              </option>
-            </select>
-          </label>
-
-          <div
-            class="upload-container pages-dropzone version-dropzone"
-            (click)="versionFileInput.click()"
-            (dragover)="onDragOverVersion($event, version)"
-            (dragleave)="onDragLeaveVersion($event, version)"
-            (drop)="onDropVersion($event, version)"
-            [class.dragover]="version.isDragging"
-          >
-            <div class="upload-icon">🖼️</div>
-
-            <h3>
-              {{ translationService.getTranslation('uploader.pages.add_images_here') }}
-            </h3>
-
-            <p>
-              {{ translationService.getTranslation('common.upload.select_multiple_images') }} ·
-              {{ getIdiomaLabel(version.idioma) }}
-            </p>
-
-            <input
-              type="file"
-              #versionFileInput
-              (change)="onFilesSelectedVersion($event, version)"
-              multiple
-              hidden
-              accept="image/jpeg, image/png, image/webp"
-            />
-          </div>
-
-          <div
-            *ngIf="version.paginas.length > 0"
-            class="files-container version-files-container"
-          >
-            <div class="files-header">
-              <h3>
-                {{ translationService.getTranslation('common.pages.selected') }}
-              </h3>
-
-              <span>
-                {{ version.paginas.length }}
-              </span>
-            </div>
-
-            <p class="file-size">
-              {{ translationService.getTranslation('common.stats.total_selected_size') }}:
-              {{ formatSize(getVersionPagesTotalSize(version)) }}
-            </p>
-
-            <div class="files-list">
-              <div
-                *ngFor="let file of version.paginas; let index = index; trackBy: trackByFileName"
-                class="file-item"
-              >
-                <div class="page-number">
-                  {{ index + 1 }}
-                </div>
-
-                <div class="file-info">
-                  <span class="file-name">
-                    {{ file.name }}
-                  </span>
-
-                  <span class="file-size">
-                    {{ formatSize(file.size) }}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  (click)="removePageFromVersion(version, index, $event)"
-                  class="remove-btn small"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          </div>
-        </article>
-      </div>
-
-      <p class="file-size language-total-size" *ngIf="selectedPagesTotalSize > 0">
-        {{ translationService.getTranslation('common.stats.total_selected_size') }}:
-        {{ formatSize(selectedPagesTotalSize) }}
-      </p>
-    </section>
+    <app-uploader-language-versions
+      [versionesIdioma]="versionesIdioma"
+      [idiomas]="idiomas"
+      [selectedFile]="selectedFile"
+      [artworkFiles]="artworkFiles"
+      [isArtworkSelected]="isArtworkSelected"
+      [canAddLanguageVersion]="canAddLanguageVersion"
+      [selectedPagesTotalSize]="selectedPagesTotalSize"
+      [maxPageFileSize]="maxPageFileSize"
+      (addLanguageVersion)="agregarVersionIdioma()"
+      (removeLanguageVersion)="eliminarVersionIdioma($event)"
+      (idiomaVersionChange)="onIdiomaVersionChange($event)"
+      (versionFilesSelected)="onVersionFilesSelected($event)"
+      (versionPageRemoved)="onVersionPageRemove($event)"
+    ></app-uploader-language-versions>
 
     <p
       *ngIf="respuesta"
@@ -397,78 +65,18 @@
       {{ respuesta }}
     </p>
 
-    <section class="authorship-panel">
-      <div class="authorship-inner">
-        <div class="authorship-header">
-          <span class="authorship-title">
-            {{ translationService.getTranslation('uploader.authorship.title') }}
-          </span>
-
-          <p>
-            {{ translationService.getTranslation('uploader.authorship.description') }}
-          </p>
-        </div>
-
-        <div class="authorship-examples">
-          <article class="auth-example allowed">
-            <div class="example-mark allowed-mark">✓</div>
-
-            <div class="example-body">
-              <div class="example-text">
-                <strong>
-                  {{ translationService.getTranslation('uploader.authorship.allowed_title') }}
-                </strong>
-
-                <p>
-                  {{ translationService.getTranslation('uploader.authorship.allowed_description') }}
-                </p>
-              </div>
-
-              <img
-                src="/obras/paleta/af.webp"
-                [alt]="translationService.getTranslation('uploader.authorship.allowed_title')"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-          </article>
-
-          <article class="auth-example not-allowed">
-            <div class="example-mark not-allowed-mark">×</div>
-
-            <div class="example-body">
-              <div class="example-text">
-                <strong>
-                  {{ translationService.getTranslation('uploader.authorship.not_allowed_title') }}
-                </strong>
-
-                <p>
-                  {{ translationService.getTranslation('uploader.authorship.not_allowed_description') }}
-                </p>
-              </div>
-
-              <img
-                src="/obras/paleta/portada.webp"
-                [alt]="translationService.getTranslation('uploader.authorship.not_allowed_title')"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-          </article>
-        </div>
-
-        <label class="authorship-checkbox">
-          <input
-            type="checkbox"
-            formControlName="aceptaAutoria"
-          />
-
-          <span>
-            {{ translationService.getTranslation('uploader.authorship.accept') }}
-          </span>
-        </label>
-      </div>
-    </section>
+    @defer (on viewport) {
+      <app-uploader-authorship [formulario]="formulario"></app-uploader-authorship>
+    } @placeholder {
+      <section class="authorship-placeholder">
+        <span class="section-kicker">
+          {{ translationService.getTranslation('uploader.authorship.title') }}
+        </span>
+        <p>
+          {{ translationService.getTranslation('uploader.authorship.description') }}
+        </p>
+      </section>
+    }
 
     <button
       type="submit"

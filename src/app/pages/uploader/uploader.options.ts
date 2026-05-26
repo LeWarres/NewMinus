@@ -1,0 +1,82 @@
+import { SelectOption } from './uploader.models';
+
+export const IDIOMA_OPTIONS: SelectOption[] = [
+    { value: 'GLOBAL', labelKey: 'common.languages.global', nativeLabel: 'Global' },
+    { value: 'ES', labelKey: 'common.languages.es', nativeLabel: 'Español' },
+    { value: 'EN', labelKey: 'common.languages.en', nativeLabel: 'English' },
+    { value: 'JA', labelKey: 'common.languages.ja', nativeLabel: '日本語' },
+    { value: 'KO', labelKey: 'common.languages.ko', nativeLabel: '한국어' },
+    { value: 'ZH', labelKey: 'common.languages.zh', nativeLabel: '中文' },
+    { value: 'FR', labelKey: 'common.languages.fr', nativeLabel: 'Français' },
+    { value: 'DE', labelKey: 'common.languages.de', nativeLabel: 'Deutsch' },
+    { value: 'PT', labelKey: 'common.languages.pt', nativeLabel: 'Português' },
+    { value: 'IT', labelKey: 'common.languages.it', nativeLabel: 'Italiano' },
+    { value: 'RU', labelKey: 'common.languages.ru', nativeLabel: 'Русский' },
+    { value: 'AR', labelKey: 'common.languages.ar', nativeLabel: 'العربية' },
+    { value: 'HI', labelKey: 'common.languages.hi', nativeLabel: 'हिन्दी' },
+    { value: 'ID', labelKey: 'common.languages.id', nativeLabel: 'Bahasa Indonesia' },
+    { value: 'VI', labelKey: 'common.languages.vi', nativeLabel: 'Tiếng Việt' },
+    { value: 'TH', labelKey: 'common.languages.th', nativeLabel: 'ไทย' },
+    { value: 'TR', labelKey: 'common.languages.tr', nativeLabel: 'Türkçe' },
+    { value: 'PL', labelKey: 'common.languages.pl', nativeLabel: 'Polski' },
+    { value: 'NL', labelKey: 'common.languages.nl', nativeLabel: 'Nederlands' }
+  ];
+
+export const TIPO_OBRA_OPTIONS: SelectOption[] = [
+    { value: 'comic', labelKey: 'common.work_type.comic', nativeLabel: 'Comic' },
+    { value: 'manga', labelKey: 'common.work_type.manga', nativeLabel: 'Manga' },
+    { value: 'libro', labelKey: 'common.work_type.book', nativeLabel: 'Libro' },
+    { value: 'novela', labelKey: 'common.work_type.novel', nativeLabel: 'Novela' },
+    { value: 'artwork', labelKey: 'common.work_type.artwork', nativeLabel: 'Artwork' }
+  ];
+
+export const WORK_CATEGORY_OPTIONS: SelectOption[] = [
+  { value: 'accion', labelKey: 'common.categories.accion', nativeLabel: 'Acción' },
+  { value: 'aventura', labelKey: 'common.categories.aventura', nativeLabel: 'Aventura' },
+  { value: 'comedia', labelKey: 'common.categories.comedia', nativeLabel: 'Comedia' },
+  { value: 'drama', labelKey: 'common.categories.drama', nativeLabel: 'Drama' },
+  { value: 'fantasia', labelKey: 'common.categories.fantasia', nativeLabel: 'Fantasía' },
+  { value: 'romance', labelKey: 'common.categories.romance', nativeLabel: 'Romance' },
+  { value: 'terror', labelKey: 'common.categories.terror', nativeLabel: 'Terror' },
+  { value: 'ciencia-ficcion', labelKey: 'common.categories.ciencia_ficcion', nativeLabel: 'Ciencia ficción' },
+  { value: 'misterio', labelKey: 'common.categories.misterio', nativeLabel: 'Misterio' },
+  { value: 'suspenso', labelKey: 'common.categories.suspenso', nativeLabel: 'Suspenso' },
+  { value: 'sobrenatural', labelKey: 'common.categories.sobrenatural', nativeLabel: 'Sobrenatural' },
+  { value: 'psicologico', labelKey: 'common.categories.psicologico', nativeLabel: 'Psicológico' },
+  { value: 'slice-of-life', labelKey: 'common.categories.slice_of_life', nativeLabel: 'Slice of life' },
+  { value: 'vida-escolar', labelKey: 'common.categories.vida_escolar', nativeLabel: 'Vida escolar' },
+  { value: 'deportes', labelKey: 'common.categories.deportes', nativeLabel: 'Deportes' },
+  { value: 'artes-marciales', labelKey: 'common.categories.artes_marciales', nativeLabel: 'Artes marciales' },
+  { value: 'mecha', labelKey: 'common.categories.mecha', nativeLabel: 'Mecha' },
+  { value: 'isekai', labelKey: 'common.categories.isekai', nativeLabel: 'Isekai' },
+  { value: 'historico', labelKey: 'common.categories.historico', nativeLabel: 'Histórico' },
+  { value: 'musica', labelKey: 'common.categories.musica', nativeLabel: 'Música' },
+  { value: 'cocina', labelKey: 'common.categories.cocina', nativeLabel: 'Cocina' },
+  { value: 'magia', labelKey: 'common.categories.magia', nativeLabel: 'Magia' },
+  { value: 'superheroes', labelKey: 'common.categories.superheroes', nativeLabel: 'Superhéroes' },
+  { value: 'crimen', labelKey: 'common.categories.crimen', nativeLabel: 'Crimen' },
+  { value: 'post-apocaliptico', labelKey: 'common.categories.post_apocaliptico', nativeLabel: 'Post-apocalíptico' },
+  { value: 'cyberpunk', labelKey: 'common.categories.cyberpunk', nativeLabel: 'Cyberpunk' },
+  { value: 'steampunk', labelKey: 'common.categories.steampunk', nativeLabel: 'Steampunk' },
+  { value: 'guerra', labelKey: 'common.categories.guerra', nativeLabel: 'Guerra' },
+  { value: 'parodia', labelKey: 'common.categories.parodia', nativeLabel: 'Parodia' },
+  { value: 'tragedia', labelKey: 'common.categories.tragedia', nativeLabel: 'Tragedia' },
+
+  { value: 'reconfortante', labelKey: 'common.categories.reconfortante', nativeLabel: 'Reconfortante' },
+  { value: 'novela-grafica', labelKey: 'common.categories.novela_grafica', nativeLabel: 'Novela gráfica' },
+  { value: 'informativo', labelKey: 'common.categories.informativo', nativeLabel: 'Informativo' },
+  { value: 'biografico', labelKey: 'common.categories.biografico', nativeLabel: 'Biográfico' },
+  { value: 'animales', labelKey: 'common.categories.animales', nativeLabel: 'Animales' },
+  { value: 'supervivencia', labelKey: 'common.categories.supervivencia', nativeLabel: 'Supervivencia' },
+  { value: 'reencarnacion', labelKey: 'common.categories.reencarnacion', nativeLabel: 'Reencarnación' },
+  { value: 'mitologia', labelKey: 'common.categories.mitologia', nativeLabel: 'Mitología' },
+
+  { value: 'shonen', labelKey: 'common.categories.shonen', nativeLabel: 'Shonen' },
+  { value: 'shojo', labelKey: 'common.categories.shojo', nativeLabel: 'Shojo' },
+  { value: 'seinen', labelKey: 'common.categories.seinen', nativeLabel: 'Seinen' },
+  { value: 'josei', labelKey: 'common.categories.josei', nativeLabel: 'Josei' },
+  { value: 'kodomo', labelKey: 'common.categories.kodomo', nativeLabel: 'Kodomo' },
+  { value: 'boys-love', labelKey: 'common.categories.boys_love', nativeLabel: 'Boys Love' },
+  { value: 'girls-love', labelKey: 'common.categories.girls_love', nativeLabel: 'Girls Love' },
+  { value: 'nsfw', labelKey: 'common.categories.nsfw', nativeLabel: 'NSFW' }
+];

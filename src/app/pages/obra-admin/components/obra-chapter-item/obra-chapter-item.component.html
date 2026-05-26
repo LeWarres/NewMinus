@@ -58,7 +58,10 @@
           <img
             [src]="imageUrl(pagina.imagen)"
             [alt]="translationService.getTranslation('common.labels.page') + ' ' + pagina.numeroPagina"
+            width="110"
+            height="150"
             loading="lazy"
+            decoding="async"
           />
 
           <span>
@@ -82,7 +85,10 @@
           <img
             [src]="selectedFilePreviews[i]"
             [alt]="translationService.getTranslation('obraAdmin.pages.new_page') + ' ' + file.name"
+            width="110"
+            height="150"
             loading="lazy"
+            decoding="async"
           />
 
           <span>

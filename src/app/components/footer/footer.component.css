@@ -254,3 +254,98 @@
     display: none;
   }
 }
+
+/* CLS stability fixes */
+.footer {
+  min-height: 250px;
+}
+
+.footer-content {
+  align-items: start;
+  min-height: 126px;
+}
+
+.footer-brand {
+  min-height: 126px;
+}
+
+.footer-logo {
+  width: 165px;
+  min-width: 165px;
+  min-height: 62px;
+}
+
+.footer-logo img {
+  aspect-ratio: 165 / 62;
+  object-fit: contain;
+}
+
+.footer-brand p {
+  min-height: 46px;
+}
+
+.footer-section {
+  min-height: 120px;
+}
+
+.footer-bottom {
+  min-height: 38px;
+}
+
+@media (max-width: 900px) {
+  .footer {
+    min-height: 300px;
+  }
+
+  .footer-content {
+    min-height: 190px;
+  }
+}
+
+@media (max-width: 560px) {
+  .footer {
+    min-height: 86px;
+  }
+
+  .footer-content {
+    min-height: 44px;
+  }
+
+  .footer-brand {
+    min-height: 44px;
+  }
+
+  .footer-logo {
+    width: 72px;
+    min-width: 72px;
+    min-height: 27px;
+  }
+
+  .footer-brand p {
+    min-height: 28px;
+  }
+
+  .footer-bottom {
+    min-height: 28px;
+  }
+}
+
+@media (max-width: 420px) {
+  .footer {
+    min-height: 66px;
+  }
+
+  .footer-logo {
+    width: 64px;
+    min-width: 64px;
+    min-height: 24px;
+  }
+
+  .footer-brand p {
+    min-height: 0;
+  }
+
+  .footer-bottom {
+    min-height: 18px;
+  }
+}

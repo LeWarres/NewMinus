@@ -43,15 +43,21 @@
 }
 
 .logo-link {
+  width: 160px;
+  height: 54px;
+
   display: flex;
   align-items: center;
+  justify-content: center;
+
   text-decoration: none;
 }
 
 .logo-image {
-  width: 160px;
-  height: auto;
+  width: 100%;
+  height: 100%;
   display: block;
+  object-fit: contain;
   filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
 }
 
@@ -98,6 +104,8 @@
 }
 
 .nav ul {
+  min-height: 42px;
+
   list-style: none;
   margin: 0;
   padding: 0;
@@ -137,12 +145,13 @@
 }
 
 .search-upload {
+  min-width: 250px;
+  min-height: 42px;
+
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-
-  min-width: 250px;
 }
 
 .search-upload input {
@@ -209,6 +218,8 @@
 }
 
 .upload-lang-container {
+  min-height: 42px;
+
   display: flex;
   align-items: center;
   gap: 10px;
@@ -440,6 +451,8 @@
 }
 
 .auth-area {
+  min-height: 42px;
+
   flex: 0 0 auto;
   display: flex;
   align-items: center;
@@ -527,6 +540,7 @@
 .avatar-img {
   width: 100%;
   height: 100%;
+  display: block;
   object-fit: cover;
 }
 
@@ -611,8 +625,9 @@
     margin-left: 0;
   }
 
-  .logo-image {
+  .logo-link {
     width: 150px;
+    height: 50px;
   }
 
   .nav {
@@ -700,8 +715,9 @@
     padding: 10px 12px;
   }
 
-  .logo-image {
+  .logo-link {
     width: 132px;
+    height: 44px;
   }
 
   .menu-toggle {
@@ -742,8 +758,9 @@
     display: none;
   }
 
-  .logo-image {
+  .logo-link {
     width: 120px;
+    height: 40px;
   }
 
   .language-trigger-text small {
