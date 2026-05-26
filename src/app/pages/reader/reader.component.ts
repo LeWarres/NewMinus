@@ -750,17 +750,43 @@ export class ReaderComponent implements OnInit {
       const viewports = document.querySelectorAll<HTMLElement>('.reader-pan-viewport');
 
       viewports.forEach((viewport) => {
-        viewport.scrollLeft = Math.max(
+        const centeredLeft = Math.max(
           0,
           Math.round((viewport.scrollWidth - viewport.clientWidth) / 2)
         );
 
-        viewport.scrollTop = Math.max(
+        const centeredTop = Math.max(
           0,
           Math.round((viewport.scrollHeight - viewport.clientHeight) / 2)
         );
+
+        this.setClampedImageScroll(viewport, centeredLeft, centeredTop);
       });
     });
+  }
+
+  onReaderImageWheel(event: WheelEvent): void {
+    if (event.ctrlKey || event.metaKey) {
+      return;
+    }
+
+    event.preventDefault();
+
+    window.scrollBy({
+      top: event.deltaY,
+      left: 0,
+      behavior: 'auto'
+    });
+  }
+
+  onReaderImageScroll(event: Event): void {
+    const viewport = event.currentTarget as HTMLElement;
+
+    if (this.imageZoom <= 100) {
+      return;
+    }
+
+    this.clampImageViewport(viewport);
   }
 
   startImagePan(event: PointerEvent): void {
@@ -790,8 +816,11 @@ export class ReaderComponent implements OnInit {
     const deltaX = event.clientX - this.panStartX;
     const deltaY = event.clientY - this.panStartY;
 
-    this.panViewport.scrollLeft = this.panStartScrollLeft - deltaX;
-    this.panViewport.scrollTop = this.panStartScrollTop - deltaY;
+    this.setClampedImageScroll(
+      this.panViewport,
+      this.panStartScrollLeft - deltaX,
+      this.panStartScrollTop - deltaY
+    );
 
     event.preventDefault();
   }
@@ -803,11 +832,137 @@ export class ReaderComponent implements OnInit {
       } catch {
         // El pointer pudo haberse liberado antes. No pasa nada.
       }
+
+      this.clampImageViewport(this.panViewport);
     }
 
     this.isPanningImage = false;
     this.panViewport = null;
     this.panPointerId = null;
+  }
+
+  private clampImageViewport(viewport: HTMLElement): void {
+    this.setClampedImageScroll(
+      viewport,
+      viewport.scrollLeft,
+      viewport.scrollTop
+    );
+  }
+
+  private setClampedImageScroll(
+    viewport: HTMLElement,
+    requestedLeft: number,
+    requestedTop: number
+  ): void {
+    const bounds = this.getImageScrollBounds(viewport);
+
+    viewport.scrollLeft = this.clampNumber(
+      requestedLeft,
+      bounds.minLeft,
+      bounds.maxLeft
+    );
+
+    viewport.scrollTop = this.clampNumber(
+      requestedTop,
+      bounds.minTop,
+      bounds.maxTop
+    );
+  }
+
+  private getImageScrollBounds(viewport: HTMLElement): {
+    minLeft: number;
+    maxLeft: number;
+    minTop: number;
+    maxTop: number;
+  } {
+    const canvas = viewport.querySelector<HTMLElement>('.page-image-canvas');
+    const image = viewport.querySelector<HTMLImageElement>('.reader-page-image');
+
+    const maxScrollLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+    const maxScrollTop = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
+
+    if (
+      !canvas ||
+      !image ||
+      !image.naturalWidth ||
+      !image.naturalHeight ||
+      !canvas.clientWidth ||
+      !canvas.clientHeight
+    ) {
+      return {
+        minLeft: 0,
+        maxLeft: maxScrollLeft,
+        minTop: 0,
+        maxTop: maxScrollTop
+      };
+    }
+
+    const canvasWidth = canvas.clientWidth;
+    const canvasHeight = canvas.clientHeight;
+
+    const containScale = Math.min(
+      canvasWidth / image.naturalWidth,
+      canvasHeight / image.naturalHeight
+    );
+
+    const renderedImageWidth = image.naturalWidth * containScale;
+    const renderedImageHeight = image.naturalHeight * containScale;
+
+    const imageOffsetLeft = Math.max(0, (canvasWidth - renderedImageWidth) / 2);
+    const imageOffsetTop = Math.max(0, (canvasHeight - renderedImageHeight) / 2);
+
+    const horizontalRange = this.getAxisScrollBounds(
+      imageOffsetLeft,
+      renderedImageWidth,
+      viewport.clientWidth,
+      maxScrollLeft
+    );
+
+    const verticalRange = this.getAxisScrollBounds(
+      imageOffsetTop,
+      renderedImageHeight,
+      viewport.clientHeight,
+      maxScrollTop
+    );
+
+    return {
+      minLeft: horizontalRange.min,
+      maxLeft: horizontalRange.max,
+      minTop: verticalRange.min,
+      maxTop: verticalRange.max
+    };
+  }
+
+  private getAxisScrollBounds(
+    contentStart: number,
+    contentSize: number,
+    viewportSize: number,
+    maxScroll: number
+  ): { min: number; max: number } {
+    if (contentSize <= viewportSize) {
+      const centered = contentStart - ((viewportSize - contentSize) / 2);
+      const clampedCenter = this.clampNumber(centered, 0, maxScroll);
+
+      return {
+        min: clampedCenter,
+        max: clampedCenter
+      };
+    }
+
+    const min = this.clampNumber(contentStart, 0, maxScroll);
+    const max = this.clampNumber(contentStart + contentSize - viewportSize, 0, maxScroll);
+
+    return {
+      min: Math.min(min, max),
+      max: Math.max(min, max)
+    };
+  }
+
+  private clampNumber(value: number, min: number, max: number): number {
+    return Math.min(
+      max,
+      Math.max(min, value)
+    );
   }
 
   private hidePage(index: number): void {
