@@ -120,6 +120,19 @@ export class ReaderComponent implements OnInit {
   currentPageIndex = 0;
   scrollProgress = 0;
 
+  imageZoom = 100;
+  readonly minImageZoom = 100;
+  readonly maxImageZoom = 250;
+  readonly imageZoomStep = 10;
+
+  isPanningImage = false;
+  private panViewport: HTMLElement | null = null;
+  private panPointerId: number | null = null;
+  private panStartX = 0;
+  private panStartY = 0;
+  private panStartScrollLeft = 0;
+  private panStartScrollTop = 0;
+
   reporteEnviando = false;
   recommendationsResetKey = 0;
 
@@ -154,6 +167,16 @@ export class ReaderComponent implements OnInit {
   @HostListener('window:scroll')
   onWindowScroll(): void {
     this.updateScrollProgress();
+  }
+
+  @HostListener('window:pointerup', ['$event'])
+  onWindowPointerUp(event: PointerEvent): void {
+    this.stopImagePan(event);
+  }
+
+  @HostListener('window:pointercancel', ['$event'])
+  onWindowPointerCancel(event: PointerEvent): void {
+    this.stopImagePan(event);
   }
 
   @HostListener('window:keydown', ['$event'])
@@ -252,6 +275,14 @@ export class ReaderComponent implements OnInit {
     return this.obra?.idiomasDisponiblesCapitulo || [];
   }
 
+  get imageZoomLabel(): string {
+    return `${this.imageZoom}%`;
+  }
+
+  get imageZoomCanvasSize(): string {
+    return `${this.imageZoom}%`;
+  }
+
   get urlReporteActual(): string {
     if (!this.obra) {
       return '';
@@ -275,6 +306,7 @@ export class ReaderComponent implements OnInit {
     this.hiddenPageIndexes = [];
     this.currentPageIndex = 0;
     this.scrollProgress = 0;
+    this.resetImageZoom();
 
     const params = new URLSearchParams();
     params.set('id', id);
@@ -333,6 +365,7 @@ export class ReaderComponent implements OnInit {
 
         setTimeout(() => {
           this.updateScrollProgress();
+          this.centerZoomViewportsSoon();
         }, 300);
       },
       error: (err) => {
@@ -408,6 +441,7 @@ export class ReaderComponent implements OnInit {
   setReadingMode(mode: ReadingMode): void {
     this.readingMode = mode;
     this.currentPageIndex = 0;
+    this.resetImageZoom();
 
     window.scrollTo({
       top: 0,
@@ -415,7 +449,10 @@ export class ReaderComponent implements OnInit {
       behavior: 'auto'
     });
 
-    setTimeout(() => this.updateScrollProgress(), 100);
+    setTimeout(() => {
+      this.updateScrollProgress();
+      this.centerZoomViewportsSoon();
+    }, 100);
   }
 
   nextPage(): void {
@@ -433,6 +470,8 @@ export class ReaderComponent implements OnInit {
       this.currentPageIndex + step,
       this.totalPages - 1
     );
+
+    this.centerZoomViewportsSoon();
   }
 
   previousPage(): void {
@@ -446,6 +485,8 @@ export class ReaderComponent implements OnInit {
 
     const step = this.readingMode === 'double' ? 2 : 1;
     this.currentPageIndex = Math.max(this.currentPageIndex - step, 0);
+
+    this.centerZoomViewportsSoon();
   }
 
   onChapterChange(event: Event): void {
@@ -537,6 +578,7 @@ export class ReaderComponent implements OnInit {
     }
 
     this.isDoublePageSwapped = !this.isDoublePageSwapped;
+    this.centerZoomViewportsSoon();
   }
 
   toggleFavorite(): void {
@@ -672,11 +714,100 @@ export class ReaderComponent implements OnInit {
 
     if (img.naturalWidth <= 10) {
       this.hidePage(index);
+      return;
     }
+
+    this.centerZoomViewportsSoon();
   }
 
   isPageHidden(index: number): boolean {
     return this.hiddenPageIndexes.includes(index);
+  }
+
+  onImageZoomChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = Number(input.value);
+
+    if (Number.isNaN(value)) {
+      return;
+    }
+
+    this.imageZoom = Math.min(
+      this.maxImageZoom,
+      Math.max(this.minImageZoom, value)
+    );
+
+    this.centerZoomViewportsSoon();
+  }
+
+  resetImageZoom(): void {
+    this.imageZoom = 100;
+    this.centerZoomViewportsSoon();
+  }
+
+  centerZoomViewportsSoon(): void {
+    requestAnimationFrame(() => {
+      const viewports = document.querySelectorAll<HTMLElement>('.reader-pan-viewport');
+
+      viewports.forEach((viewport) => {
+        viewport.scrollLeft = Math.max(
+          0,
+          Math.round((viewport.scrollWidth - viewport.clientWidth) / 2)
+        );
+
+        viewport.scrollTop = Math.max(
+          0,
+          Math.round((viewport.scrollHeight - viewport.clientHeight) / 2)
+        );
+      });
+    });
+  }
+
+  startImagePan(event: PointerEvent): void {
+    if (this.imageZoom <= 100) {
+      return;
+    }
+
+    const viewport = event.currentTarget as HTMLElement;
+
+    this.isPanningImage = true;
+    this.panViewport = viewport;
+    this.panPointerId = event.pointerId;
+    this.panStartX = event.clientX;
+    this.panStartY = event.clientY;
+    this.panStartScrollLeft = viewport.scrollLeft;
+    this.panStartScrollTop = viewport.scrollTop;
+
+    viewport.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }
+
+  moveImagePan(event: PointerEvent): void {
+    if (!this.isPanningImage || !this.panViewport) {
+      return;
+    }
+
+    const deltaX = event.clientX - this.panStartX;
+    const deltaY = event.clientY - this.panStartY;
+
+    this.panViewport.scrollLeft = this.panStartScrollLeft - deltaX;
+    this.panViewport.scrollTop = this.panStartScrollTop - deltaY;
+
+    event.preventDefault();
+  }
+
+  stopImagePan(event?: PointerEvent): void {
+    if (this.panViewport && this.panPointerId !== null && event) {
+      try {
+        this.panViewport.releasePointerCapture(this.panPointerId);
+      } catch {
+        // El pointer pudo haberse liberado antes. No pasa nada.
+      }
+    }
+
+    this.isPanningImage = false;
+    this.panViewport = null;
+    this.panPointerId = null;
   }
 
   private hidePage(index: number): void {
