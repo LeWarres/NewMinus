@@ -267,19 +267,18 @@
                 [class.hidden-page]="isPageHidden(i)"
                 [class.zoomed]="imageZoom > 100"
                 [class.is-panning]="isPanningImage"
+                [style.--reader-image-zoom]="imageZoomScale"
                 (wheel)="onReaderImageWheel($event)"
-                (scroll)="onReaderImageScroll($event)"
-                (pointerdown)="startImagePan($event)"
-                (pointermove)="moveImagePan($event)"
+                (pointerenter)="showImageZoomControls()"
+                (touchstart)="showImageZoomControls()"
+                (pointerdown)="onImageViewportPointerDown($event)"
+                (pointermove)="onImageViewportPointerMove($event)"
                 (pointerup)="stopImagePan($event)"
                 (pointerleave)="stopImagePan($event)"
                 (pointercancel)="stopImagePan($event)"
               >
-                <div
-                  class="page-image-canvas"
-                  [style.width]="imageZoomCanvasSize"
-                  [style.height]="imageZoomCanvasSize"
-                >
+                <div class="page-image-frame">
+                  <div class="page-image-canvas">
                   <img
                     *ngIf="!isPageHidden(i)"
                     class="reader-page-image"
@@ -292,32 +291,43 @@
                     (error)="onPageImageError(i)"
                     (load)="onPageImageLoad($event, i)"
                   />
+                  </div>
+
+                  <div
+                    class="reader-image-zoom-actions"
+                  [class.visible]="zoomControlsVisible"
+                  (pointerdown)="$event.stopPropagation()"
+                  (pointermove)="$event.stopPropagation()"
+                  (click)="$event.stopPropagation()"
+                >
+                  <button
+                    type="button"
+                    aria-label="Acercar imagen"
+                    (click)="increaseImageZoom($event)"
+                  >
+                    +
+                  </button>
+
+                  <button
+                    type="button"
+                    aria-label="Alejar imagen"
+                    [disabled]="imageZoom <= minImageZoom"
+                    (click)="decreaseImageZoom($event)"
+                  >
+                    −
+                  </button>
+
+                  <button
+                    type="button"
+                    aria-label="Restablecer zoom"
+                    [disabled]="imageZoom <= minImageZoom"
+                    (click)="resetImageZoomFromButton($event)"
+                  >
+                    ↺
+                  </button>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div class="reader-zoom-control" *ngIf="images.length > 0">
-              <label for="reader-zoom-strip">
-                Zoom
-              </label>
-
-              <input
-                id="reader-zoom-strip"
-                type="range"
-                [min]="minImageZoom"
-                [max]="maxImageZoom"
-                [step]="imageZoomStep"
-                [value]="imageZoom"
-                (input)="onImageZoomChange($event)"
-              />
-
-              <span>
-                {{ imageZoomLabel }}
-              </span>
-
-              <button type="button" (click)="resetImageZoom()">
-                Restablecer
-              </button>
             </div>
           </section>
 
@@ -327,19 +337,18 @@
                 class="page-image-wrap reader-pan-viewport single-page"
                 [class.zoomed]="imageZoom > 100"
                 [class.is-panning]="isPanningImage"
+                [style.--reader-image-zoom]="imageZoomScale"
                 (wheel)="onReaderImageWheel($event)"
-                (scroll)="onReaderImageScroll($event)"
-                (pointerdown)="startImagePan($event)"
-                (pointermove)="moveImagePan($event)"
+                (pointerenter)="showImageZoomControls()"
+                (touchstart)="showImageZoomControls()"
+                (pointerdown)="onImageViewportPointerDown($event)"
+                (pointermove)="onImageViewportPointerMove($event)"
                 (pointerup)="stopImagePan($event)"
                 (pointerleave)="stopImagePan($event)"
                 (pointercancel)="stopImagePan($event)"
               >
-                <div
-                  class="page-image-canvas"
-                  [style.width]="imageZoomCanvasSize"
-                  [style.height]="imageZoomCanvasSize"
-                >
+                <div class="page-image-frame">
+                  <div class="page-image-canvas">
                   <img
                     *ngIf="currentSpreadImages[0]"
                     class="reader-page-image"
@@ -351,31 +360,42 @@
                     decoding="async"
                     (load)="centerZoomViewportsSoon()"
                   />
+                  </div>
+
+                  <div
+                    class="reader-image-zoom-actions"
+                  [class.visible]="zoomControlsVisible"
+                  (pointerdown)="$event.stopPropagation()"
+                  (pointermove)="$event.stopPropagation()"
+                  (click)="$event.stopPropagation()"
+                >
+                  <button
+                    type="button"
+                    aria-label="Acercar imagen"
+                    (click)="increaseImageZoom($event)"
+                  >
+                    +
+                  </button>
+
+                  <button
+                    type="button"
+                    aria-label="Alejar imagen"
+                    [disabled]="imageZoom <= minImageZoom"
+                    (click)="decreaseImageZoom($event)"
+                  >
+                    −
+                  </button>
+
+                  <button
+                    type="button"
+                    aria-label="Restablecer zoom"
+                    [disabled]="imageZoom <= minImageZoom"
+                    (click)="resetImageZoomFromButton($event)"
+                  >
+                    ↺
+                  </button>
+                  </div>
                 </div>
-              </div>
-
-              <div class="reader-zoom-control">
-                <label for="reader-zoom-single">
-                  Zoom
-                </label>
-
-                <input
-                  id="reader-zoom-single"
-                  type="range"
-                  [min]="minImageZoom"
-                  [max]="maxImageZoom"
-                  [step]="imageZoomStep"
-                  [value]="imageZoom"
-                  (input)="onImageZoomChange($event)"
-                />
-
-                <span>
-                  {{ imageZoomLabel }}
-                </span>
-
-                <button type="button" (click)="resetImageZoom()">
-                  Restablecer
-                </button>
               </div>
             </div>
           </section>
@@ -390,19 +410,18 @@
                 *ngFor="let image of currentSpreadImages; let i = index; trackBy: trackBySpreadImage"
                 [class.zoomed]="imageZoom > 100"
                 [class.is-panning]="isPanningImage"
+                [style.--reader-image-zoom]="imageZoomScale"
                 (wheel)="onReaderImageWheel($event)"
-                (scroll)="onReaderImageScroll($event)"
-                (pointerdown)="startImagePan($event)"
-                (pointermove)="moveImagePan($event)"
+                (pointerenter)="showImageZoomControls()"
+                (touchstart)="showImageZoomControls()"
+                (pointerdown)="onImageViewportPointerDown($event)"
+                (pointermove)="onImageViewportPointerMove($event)"
                 (pointerup)="stopImagePan($event)"
                 (pointerleave)="stopImagePan($event)"
                 (pointercancel)="stopImagePan($event)"
               >
-                <div
-                  class="page-image-canvas"
-                  [style.width]="imageZoomCanvasSize"
-                  [style.height]="imageZoomCanvasSize"
-                >
+                <div class="page-image-frame">
+                  <div class="page-image-canvas">
                   <img
                     class="reader-page-image"
                     [src]="image"
@@ -413,32 +432,43 @@
                     decoding="async"
                     (load)="centerZoomViewportsSoon()"
                   />
+                  </div>
+
+                  <div
+                    class="reader-image-zoom-actions"
+                  [class.visible]="zoomControlsVisible"
+                  (pointerdown)="$event.stopPropagation()"
+                  (pointermove)="$event.stopPropagation()"
+                  (click)="$event.stopPropagation()"
+                >
+                  <button
+                    type="button"
+                    aria-label="Acercar imagen"
+                    (click)="increaseImageZoom($event)"
+                  >
+                    +
+                  </button>
+
+                  <button
+                    type="button"
+                    aria-label="Alejar imagen"
+                    [disabled]="imageZoom <= minImageZoom"
+                    (click)="decreaseImageZoom($event)"
+                  >
+                    −
+                  </button>
+
+                  <button
+                    type="button"
+                    aria-label="Restablecer zoom"
+                    [disabled]="imageZoom <= minImageZoom"
+                    (click)="resetImageZoomFromButton($event)"
+                  >
+                    ↺
+                  </button>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div class="reader-zoom-control">
-              <label for="reader-zoom-double">
-                Zoom
-              </label>
-
-              <input
-                id="reader-zoom-double"
-                type="range"
-                [min]="minImageZoom"
-                [max]="maxImageZoom"
-                [step]="imageZoomStep"
-                [value]="imageZoom"
-                (input)="onImageZoomChange($event)"
-              />
-
-              <span>
-                {{ imageZoomLabel }}
-              </span>
-
-              <button type="button" (click)="resetImageZoom()">
-                Restablecer
-              </button>
             </div>
           </section>
         </ng-container>
