@@ -259,50 +259,180 @@
         </div>
 
         <ng-container [ngSwitch]="readingMode">
-          <section *ngSwitchCase="'strip'" class="pages-strip">
-            <div
-              *ngFor="let image of images; let i = index; trackBy: trackByImage"
-              class="page-image-wrap"
-              [class.hidden-page]="isPageHidden(i)"
-            >
-              <img
-                *ngIf="!isPageHidden(i)"
-                [src]="image"
-                [alt]="translationService.getTranslation('common.labels.page') + ' ' + (i + 1)"
-                [attr.loading]="getReaderImageLoading(i)"
-                [attr.fetchpriority]="getReaderImageFetchPriority(i)"
-                decoding="async"
-                (error)="onPageImageError(i)"
-                (load)="onPageImageLoad($event, i)"
+          <section *ngSwitchCase="'strip'" class="pages-strip reader-zoom-area">
+            <div class="strip-pages-stack">
+              <div
+                *ngFor="let image of images; let i = index; trackBy: trackByImage"
+                class="page-image-wrap reader-pan-viewport strip-page"
+                [class.hidden-page]="isPageHidden(i)"
+                [class.zoomed]="imageZoom > 100"
+                [class.is-panning]="isPanningImage"
+                (pointerdown)="startImagePan($event)"
+                (pointermove)="moveImagePan($event)"
+                (pointerup)="stopImagePan($event)"
+                (pointerleave)="stopImagePan($event)"
+                (pointercancel)="stopImagePan($event)"
+              >
+                <div
+                  class="page-image-canvas"
+                  [style.width]="imageZoomCanvasSize"
+                  [style.height]="imageZoomCanvasSize"
+                >
+                  <img
+                    *ngIf="!isPageHidden(i)"
+                    class="reader-page-image"
+                    [src]="image"
+                    [alt]="translationService.getTranslation('common.labels.page') + ' ' + (i + 1)"
+                    [attr.loading]="getReaderImageLoading(i)"
+                    [attr.fetchpriority]="getReaderImageFetchPriority(i)"
+                    draggable="false"
+                    decoding="async"
+                    (error)="onPageImageError(i)"
+                    (load)="onPageImageLoad($event, i)"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="reader-zoom-control" *ngIf="images.length > 0">
+              <label for="reader-zoom-strip">
+                Zoom
+              </label>
+
+              <input
+                id="reader-zoom-strip"
+                type="range"
+                [min]="minImageZoom"
+                [max]="maxImageZoom"
+                [step]="imageZoomStep"
+                [value]="imageZoom"
+                (input)="onImageZoomChange($event)"
               />
+
+              <span>
+                {{ imageZoomLabel }}
+              </span>
+
+              <button type="button" (click)="resetImageZoom()">
+                Restablecer
+              </button>
             </div>
           </section>
 
-          <section *ngSwitchCase="'single'" class="pages-single">
-            <div class="page-image-wrap single-page">
-              <img
-                *ngIf="currentSpreadImages[0]"
-                [src]="currentSpreadImages[0]"
-                [alt]="translationService.getTranslation('common.labels.page') + ' ' + currentPageNumber"
-                loading="eager"
-                fetchpriority="high"
-                decoding="async"
-              />
+          <section *ngSwitchCase="'single'" class="pages-single reader-zoom-area">
+            <div class="single-page-stack">
+              <div
+                class="page-image-wrap reader-pan-viewport single-page"
+                [class.zoomed]="imageZoom > 100"
+                [class.is-panning]="isPanningImage"
+                (pointerdown)="startImagePan($event)"
+                (pointermove)="moveImagePan($event)"
+                (pointerup)="stopImagePan($event)"
+                (pointerleave)="stopImagePan($event)"
+                (pointercancel)="stopImagePan($event)"
+              >
+                <div
+                  class="page-image-canvas"
+                  [style.width]="imageZoomCanvasSize"
+                  [style.height]="imageZoomCanvasSize"
+                >
+                  <img
+                    *ngIf="currentSpreadImages[0]"
+                    class="reader-page-image"
+                    [src]="currentSpreadImages[0]"
+                    [alt]="translationService.getTranslation('common.labels.page') + ' ' + currentPageNumber"
+                    loading="eager"
+                    fetchpriority="high"
+                    draggable="false"
+                    decoding="async"
+                    (load)="centerZoomViewportsSoon()"
+                  />
+                </div>
+              </div>
+
+              <div class="reader-zoom-control">
+                <label for="reader-zoom-single">
+                  Zoom
+                </label>
+
+                <input
+                  id="reader-zoom-single"
+                  type="range"
+                  [min]="minImageZoom"
+                  [max]="maxImageZoom"
+                  [step]="imageZoomStep"
+                  [value]="imageZoom"
+                  (input)="onImageZoomChange($event)"
+                />
+
+                <span>
+                  {{ imageZoomLabel }}
+                </span>
+
+                <button type="button" (click)="resetImageZoom()">
+                  Restablecer
+                </button>
+              </div>
             </div>
           </section>
 
-          <section *ngSwitchCase="'double'" class="pages-double">
+          <section *ngSwitchCase="'double'" class="reader-double-stack reader-zoom-area">
             <div
-              class="page-image-wrap double-page"
-              *ngFor="let image of currentSpreadImages; let i = index; trackBy: trackBySpreadImage"
+              class="pages-double"
+              [class.single-spread]="currentSpreadImages.length === 1"
             >
-              <img
-                [src]="image"
-                [alt]="translationService.getTranslation('common.labels.page') + ' ' + (currentPageIndex + i + 1)"
-                loading="eager"
-                [attr.fetchpriority]="i === 0 ? 'high' : 'auto'"
-                decoding="async"
+              <div
+                class="page-image-wrap reader-pan-viewport double-page"
+                *ngFor="let image of currentSpreadImages; let i = index; trackBy: trackBySpreadImage"
+                [class.zoomed]="imageZoom > 100"
+                [class.is-panning]="isPanningImage"
+                (pointerdown)="startImagePan($event)"
+                (pointermove)="moveImagePan($event)"
+                (pointerup)="stopImagePan($event)"
+                (pointerleave)="stopImagePan($event)"
+                (pointercancel)="stopImagePan($event)"
+              >
+                <div
+                  class="page-image-canvas"
+                  [style.width]="imageZoomCanvasSize"
+                  [style.height]="imageZoomCanvasSize"
+                >
+                  <img
+                    class="reader-page-image"
+                    [src]="image"
+                    [alt]="translationService.getTranslation('common.labels.page') + ' ' + (currentPageIndex + i + 1)"
+                    loading="eager"
+                    [attr.fetchpriority]="i === 0 ? 'high' : 'auto'"
+                    draggable="false"
+                    decoding="async"
+                    (load)="centerZoomViewportsSoon()"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="reader-zoom-control">
+              <label for="reader-zoom-double">
+                Zoom
+              </label>
+
+              <input
+                id="reader-zoom-double"
+                type="range"
+                [min]="minImageZoom"
+                [max]="maxImageZoom"
+                [step]="imageZoomStep"
+                [value]="imageZoom"
+                (input)="onImageZoomChange($event)"
               />
+
+              <span>
+                {{ imageZoomLabel }}
+              </span>
+
+              <button type="button" (click)="resetImageZoom()">
+                Restablecer
+              </button>
             </div>
           </section>
         </ng-container>
