@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -96,7 +96,7 @@ type FetchPriorityMode = 'high' | 'low' | 'auto';
   templateUrl: './reader.component.html',
   styleUrl: './reader.component.css'
 })
-export class ReaderComponent implements OnInit {
+export class ReaderComponent implements OnInit, OnDestroy {
   private apiUrl = 'https://minuscreators.com/api/obra_detalle.php';
   private registrarVistaUrl = 'https://minuscreators.com/api/registrar_vista.php';
 
@@ -130,8 +130,11 @@ export class ReaderComponent implements OnInit {
   private panPointerId: number | null = null;
   private panStartX = 0;
   private panStartY = 0;
-  private panStartScrollLeft = 0;
-  private panStartScrollTop = 0;
+  private panStartOffsetX = 0;
+  private panStartOffsetY = 0;
+
+  zoomControlsVisible = false;
+  private zoomControlsHideTimeout: ReturnType<typeof setTimeout> | null = null;
 
   reporteEnviando = false;
   recommendationsResetKey = 0;
@@ -162,6 +165,10 @@ export class ReaderComponent implements OnInit {
 
       this.cargarObra(id, capitulo || undefined, idioma);
     });
+  }
+
+  ngOnDestroy(): void {
+    this.clearZoomControlsTimer();
   }
 
   @HostListener('window:scroll')
@@ -281,6 +288,10 @@ export class ReaderComponent implements OnInit {
 
   get imageZoomCanvasSize(): string {
     return `${this.imageZoom}%`;
+  }
+
+  get imageZoomScale(): string {
+    return String(this.imageZoom / 100);
   }
 
   get urlReporteActual(): string {
@@ -732,40 +743,61 @@ export class ReaderComponent implements OnInit {
       return;
     }
 
-    this.imageZoom = Math.min(
-      this.maxImageZoom,
-      Math.max(this.minImageZoom, value)
-    );
+    this.setImageZoom(value);
+  }
 
-    this.centerZoomViewportsSoon();
+  increaseImageZoom(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    this.setImageZoom(this.imageZoom + this.imageZoomStep);
+  }
+
+  decreaseImageZoom(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    this.setImageZoom(this.imageZoom - this.imageZoomStep);
+  }
+
+  resetImageZoomFromButton(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    this.setImageZoom(this.minImageZoom);
   }
 
   resetImageZoom(): void {
-    this.imageZoom = 100;
-    this.centerZoomViewportsSoon();
+    this.setImageZoom(this.minImageZoom, false);
+  }
+
+  showImageZoomControls(): void {
+    this.zoomControlsVisible = true;
+    this.clearZoomControlsTimer();
+
+    this.zoomControlsHideTimeout = setTimeout(() => {
+      this.zoomControlsVisible = false;
+      this.zoomControlsHideTimeout = null;
+    }, 2200);
+  }
+
+  onImageViewportPointerDown(event: PointerEvent): void {
+    this.showImageZoomControls();
+    this.startImagePan(event);
+  }
+
+  onImageViewportPointerMove(event: PointerEvent): void {
+    this.showImageZoomControls();
+    this.moveImagePan(event);
   }
 
   centerZoomViewportsSoon(): void {
-    requestAnimationFrame(() => {
-      const viewports = document.querySelectorAll<HTMLElement>('.reader-pan-viewport');
-
-      viewports.forEach((viewport) => {
-        const centeredLeft = Math.max(
-          0,
-          Math.round((viewport.scrollWidth - viewport.clientWidth) / 2)
-        );
-
-        const centeredTop = Math.max(
-          0,
-          Math.round((viewport.scrollHeight - viewport.clientHeight) / 2)
-        );
-
-        this.setClampedImageScroll(viewport, centeredLeft, centeredTop);
-      });
-    });
+    this.resetAllImagePanOffsets();
   }
 
   onReaderImageWheel(event: WheelEvent): void {
+    this.showImageZoomControls();
+
     if (event.ctrlKey || event.metaKey) {
       return;
     }
@@ -781,12 +813,10 @@ export class ReaderComponent implements OnInit {
 
   onReaderImageScroll(event: Event): void {
     const viewport = event.currentTarget as HTMLElement;
+    const currentPan = this.getViewportPan(viewport);
+    const clampedPan = this.clampImagePan(viewport, currentPan.x, currentPan.y);
 
-    if (this.imageZoom <= 100) {
-      return;
-    }
-
-    this.clampImageViewport(viewport);
+    this.setViewportPan(viewport, clampedPan.x, clampedPan.y);
   }
 
   startImagePan(event: PointerEvent): void {
@@ -795,14 +825,15 @@ export class ReaderComponent implements OnInit {
     }
 
     const viewport = event.currentTarget as HTMLElement;
+    const currentPan = this.getViewportPan(viewport);
 
     this.isPanningImage = true;
     this.panViewport = viewport;
     this.panPointerId = event.pointerId;
     this.panStartX = event.clientX;
     this.panStartY = event.clientY;
-    this.panStartScrollLeft = viewport.scrollLeft;
-    this.panStartScrollTop = viewport.scrollTop;
+    this.panStartOffsetX = currentPan.x;
+    this.panStartOffsetY = currentPan.y;
 
     viewport.setPointerCapture(event.pointerId);
     event.preventDefault();
@@ -816,11 +847,13 @@ export class ReaderComponent implements OnInit {
     const deltaX = event.clientX - this.panStartX;
     const deltaY = event.clientY - this.panStartY;
 
-    this.setClampedImageScroll(
+    const nextPan = this.clampImagePan(
       this.panViewport,
-      this.panStartScrollLeft - deltaX,
-      this.panStartScrollTop - deltaY
+      this.panStartOffsetX + deltaX,
+      this.panStartOffsetY + deltaY
     );
+
+    this.setViewportPan(this.panViewport, nextPan.x, nextPan.y);
 
     event.preventDefault();
   }
@@ -833,7 +866,9 @@ export class ReaderComponent implements OnInit {
         // El pointer pudo haberse liberado antes. No pasa nada.
       }
 
-      this.clampImageViewport(this.panViewport);
+      const currentPan = this.getViewportPan(this.panViewport);
+      const clampedPan = this.clampImagePan(this.panViewport, currentPan.x, currentPan.y);
+      this.setViewportPan(this.panViewport, clampedPan.x, clampedPan.y);
     }
 
     this.isPanningImage = false;
@@ -841,121 +876,103 @@ export class ReaderComponent implements OnInit {
     this.panPointerId = null;
   }
 
-  private clampImageViewport(viewport: HTMLElement): void {
-    this.setClampedImageScroll(
-      viewport,
-      viewport.scrollLeft,
-      viewport.scrollTop
+  private setImageZoom(value: number, revealControls: boolean = true): void {
+    this.imageZoom = this.clampNumber(
+      value,
+      this.minImageZoom,
+      this.maxImageZoom
     );
+
+    if (revealControls) {
+      this.showImageZoomControls();
+    }
+
+    if (this.imageZoom <= 100) {
+      this.resetAllImagePanOffsets();
+      return;
+    }
+
+    this.clampAllImagePanOffsets();
   }
 
-  private setClampedImageScroll(
+  private getViewportPan(viewport: HTMLElement): { x: number; y: number } {
+    const rawX = viewport.style.getPropertyValue('--reader-image-pan-x').replace('px', '').trim();
+    const rawY = viewport.style.getPropertyValue('--reader-image-pan-y').replace('px', '').trim();
+
+    const x = Number(rawX);
+    const y = Number(rawY);
+
+    return {
+      x: Number.isFinite(x) ? x : 0,
+      y: Number.isFinite(y) ? y : 0
+    };
+  }
+
+  private setViewportPan(viewport: HTMLElement, x: number, y: number): void {
+    viewport.style.setProperty('--reader-image-pan-x', `${x}px`);
+    viewport.style.setProperty('--reader-image-pan-y', `${y}px`);
+  }
+
+  private clampImagePan(
     viewport: HTMLElement,
-    requestedLeft: number,
-    requestedTop: number
-  ): void {
-    const bounds = this.getImageScrollBounds(viewport);
+    requestedX: number,
+    requestedY: number
+  ): { x: number; y: number } {
+    if (this.imageZoom <= 100) {
+      return {
+        x: 0,
+        y: 0
+      };
+    }
 
-    viewport.scrollLeft = this.clampNumber(
-      requestedLeft,
-      bounds.minLeft,
-      bounds.maxLeft
-    );
-
-    viewport.scrollTop = this.clampNumber(
-      requestedTop,
-      bounds.minTop,
-      bounds.maxTop
-    );
-  }
-
-  private getImageScrollBounds(viewport: HTMLElement): {
-    minLeft: number;
-    maxLeft: number;
-    minTop: number;
-    maxTop: number;
-  } {
-    const canvas = viewport.querySelector<HTMLElement>('.page-image-canvas');
+    const frame = viewport.querySelector<HTMLElement>('.page-image-frame');
     const image = viewport.querySelector<HTMLImageElement>('.reader-page-image');
 
-    const maxScrollLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
-    const maxScrollTop = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
-
-    if (
-      !canvas ||
-      !image ||
-      !image.naturalWidth ||
-      !image.naturalHeight ||
-      !canvas.clientWidth ||
-      !canvas.clientHeight
-    ) {
+    if (!frame || !image) {
       return {
-        minLeft: 0,
-        maxLeft: maxScrollLeft,
-        minTop: 0,
-        maxTop: maxScrollTop
+        x: 0,
+        y: 0
       };
     }
 
-    const canvasWidth = canvas.clientWidth;
-    const canvasHeight = canvas.clientHeight;
+    const scale = this.imageZoom / 100;
 
-    const containScale = Math.min(
-      canvasWidth / image.naturalWidth,
-      canvasHeight / image.naturalHeight
-    );
+    const frameWidth = frame.clientWidth || viewport.clientWidth;
+    const frameHeight = frame.clientHeight || viewport.clientHeight;
 
-    const renderedImageWidth = image.naturalWidth * containScale;
-    const renderedImageHeight = image.naturalHeight * containScale;
+    const imageWidth = image.offsetWidth || frameWidth;
+    const imageHeight = image.offsetHeight || frameHeight;
 
-    const imageOffsetLeft = Math.max(0, (canvasWidth - renderedImageWidth) / 2);
-    const imageOffsetTop = Math.max(0, (canvasHeight - renderedImageHeight) / 2);
-
-    const horizontalRange = this.getAxisScrollBounds(
-      imageOffsetLeft,
-      renderedImageWidth,
-      viewport.clientWidth,
-      maxScrollLeft
-    );
-
-    const verticalRange = this.getAxisScrollBounds(
-      imageOffsetTop,
-      renderedImageHeight,
-      viewport.clientHeight,
-      maxScrollTop
-    );
+    const maxX = Math.max(0, ((imageWidth * scale) - frameWidth) / 2);
+    const maxY = Math.max(0, ((imageHeight * scale) - frameHeight) / 2);
 
     return {
-      minLeft: horizontalRange.min,
-      maxLeft: horizontalRange.max,
-      minTop: verticalRange.min,
-      maxTop: verticalRange.max
+      x: this.clampNumber(requestedX, -maxX, maxX),
+      y: this.clampNumber(requestedY, -maxY, maxY)
     };
   }
 
-  private getAxisScrollBounds(
-    contentStart: number,
-    contentSize: number,
-    viewportSize: number,
-    maxScroll: number
-  ): { min: number; max: number } {
-    if (contentSize <= viewportSize) {
-      const centered = contentStart - ((viewportSize - contentSize) / 2);
-      const clampedCenter = this.clampNumber(centered, 0, maxScroll);
+  private resetAllImagePanOffsets(): void {
+    requestAnimationFrame(() => {
+      const viewports = document.querySelectorAll<HTMLElement>('.reader-pan-viewport');
 
-      return {
-        min: clampedCenter,
-        max: clampedCenter
-      };
-    }
+      viewports.forEach((viewport) => {
+        this.setViewportPan(viewport, 0, 0);
+      });
+    });
+  }
 
-    const min = this.clampNumber(contentStart, 0, maxScroll);
-    const max = this.clampNumber(contentStart + contentSize - viewportSize, 0, maxScroll);
+  private clampAllImagePanOffsets(): void {
+    requestAnimationFrame(() => {
+      const viewports = document.querySelectorAll<HTMLElement>('.reader-pan-viewport');
 
-    return {
-      min: Math.min(min, max),
-      max: Math.max(min, max)
-    };
+      viewports.forEach((viewport) => {
+        const currentPan = this.getViewportPan(viewport);
+        const clampedPan = this.clampImagePan(viewport, currentPan.x, currentPan.y);
+
+        this.setViewportPan(viewport, clampedPan.x, clampedPan.y);
+      });
+    });
   }
 
   private clampNumber(value: number, min: number, max: number): number {
@@ -963,6 +980,15 @@ export class ReaderComponent implements OnInit {
       max,
       Math.max(min, value)
     );
+  }
+
+  private clearZoomControlsTimer(): void {
+    if (!this.zoomControlsHideTimeout) {
+      return;
+    }
+
+    clearTimeout(this.zoomControlsHideTimeout);
+    this.zoomControlsHideTimeout = null;
   }
 
   private hidePage(index: number): void {
