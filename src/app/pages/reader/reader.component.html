@@ -269,8 +269,6 @@
                 [class.is-panning]="isPanningImage"
                 [style.--reader-image-zoom]="imageZoomScale"
                 (wheel)="onReaderImageWheel($event)"
-                (pointerenter)="showImageZoomControls()"
-                (touchstart)="showImageZoomControls()"
                 (pointerdown)="onImageViewportPointerDown($event)"
                 (pointermove)="onImageViewportPointerMove($event)"
                 (pointerup)="stopImagePan($event)"
@@ -279,56 +277,53 @@
               >
                 <div class="page-image-frame">
                   <div class="page-image-canvas">
-                  <img
-                    *ngIf="!isPageHidden(i)"
-                    class="reader-page-image"
-                    [src]="image"
-                    [alt]="translationService.getTranslation('common.labels.page') + ' ' + (i + 1)"
-                    [attr.loading]="getReaderImageLoading(i)"
-                    [attr.fetchpriority]="getReaderImageFetchPriority(i)"
-                    draggable="false"
-                    decoding="async"
-                    (error)="onPageImageError(i)"
-                    (load)="onPageImageLoad($event, i)"
-                  />
-                  </div>
-
-                  <div
-                    class="reader-image-zoom-actions"
-                  [class.visible]="zoomControlsVisible"
-                  (pointerdown)="$event.stopPropagation()"
-                  (pointermove)="$event.stopPropagation()"
-                  (click)="$event.stopPropagation()"
-                >
-                  <button
-                    type="button"
-                    aria-label="Acercar imagen"
-                    (click)="increaseImageZoom($event)"
-                  >
-                    +
-                  </button>
-
-                  <button
-                    type="button"
-                    aria-label="Alejar imagen"
-                    [disabled]="imageZoom <= minImageZoom"
-                    (click)="decreaseImageZoom($event)"
-                  >
-                    −
-                  </button>
-
-                  <button
-                    type="button"
-                    aria-label="Restablecer zoom"
-                    [disabled]="imageZoom <= minImageZoom"
-                    (click)="resetImageZoomFromButton($event)"
-                  >
-                    ↺
-                  </button>
+                    <img
+                      *ngIf="!isPageHidden(i)"
+                      class="reader-page-image"
+                      [src]="image"
+                      [alt]="translationService.getTranslation('common.labels.page') + ' ' + (i + 1)"
+                      [attr.loading]="getReaderImageLoading(i)"
+                      [attr.fetchpriority]="getReaderImageFetchPriority(i)"
+                      draggable="false"
+                      decoding="async"
+                      (error)="onPageImageError(i)"
+                      (load)="onPageImageLoad($event, i)"
+                    />
                   </div>
                 </div>
               </div>
             </div>
+
+            <aside class="reader-strip-zoom-control" *ngIf="images.length > 0">
+              <span class="strip-zoom-label">
+                Zoom
+              </span>
+
+              <input
+                class="strip-zoom-slider"
+                type="range"
+                [min]="minImageZoom"
+                [max]="maxImageZoom"
+                [step]="imageZoomStep"
+                [value]="imageZoom"
+                aria-label="Zoom de lectura vertical"
+                (input)="onImageZoomChange($event)"
+              />
+
+              <span class="strip-zoom-value">
+                {{ imageZoomLabel }}
+              </span>
+
+              <button
+                type="button"
+                class="strip-zoom-reset"
+                [disabled]="imageZoom <= minImageZoom"
+                (click)="resetImageZoomFromButton($event)"
+                aria-label="Restablecer zoom"
+              >
+                ↺
+              </button>
+            </aside>
           </section>
 
           <section *ngSwitchCase="'single'" class="pages-single reader-zoom-area">
